@@ -22,13 +22,14 @@ You can easily integrate all of these features with our Android and iOS SDKs.
     }
     ```
 
-2. Add this line to the [local.properties](local.properties) file:
+2. Add this line to the root project `local.properties` file:
 
     ```groovy
     OCTOPUS_API_KEY=YOUR_API_KEY 
     ```
     
-    *Replace `YOUR_API_KEY` with your own API key*
+    *Replace `YOUR_API_KEY` with your own API key. See [Get an API Key](https://octopuscommunity.notion.site/octopus-developer-guide) for more informations.*
+   
 
 ## Use cases
 
@@ -66,8 +67,7 @@ sample and documentation.
 
 - #### SSO
 
-    In order to use the SSO samples, you will also need to provide a `CLIENT_USER_TOKEN_SECRET` in the [local.properties](local.properties) file. 
-    See: [Generate a signed JWT for SSO](https://octopuscommunity.notion.site/Generate-a-signed-JWT-for-SSO-1a4d0ed811a98005a284fe50ed2b1f71) for more informations.
+    In order to use the SSO samples, you will also need to provide a `CLIENT_USER_TOKEN_SECRET` in the root project `local.properties` file. See [Generate a signed JWT for SSO](https://octopuscommunity.notion.site/Generate-a-signed-JWT-for-SSO-1a4d0ed811a98005a284fe50ed2b1f71) for more informations.
 
     - ##### Octopus Managed Profile
 
