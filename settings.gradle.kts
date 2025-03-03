@@ -21,6 +21,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Octopus Community Sample"
+rootProject.name = "Octopus SDK Sample"
 include("samples:standard:fullscreen", "samples:standard:embed", ":samples:sso:octopusprofile", ":samples:sso:appprofile")
  
