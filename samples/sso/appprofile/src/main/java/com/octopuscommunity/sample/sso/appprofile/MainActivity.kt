@@ -9,7 +9,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.NavHost
@@ -52,6 +57,17 @@ class MainActivity : ComponentActivity() {
             val scope = rememberCoroutineScope()
             val navController = rememberNavController()
 
+            var appUser by remember { mutableStateOf(getStoredUser()) }
+            LaunchedEffect(appUser) {
+                val user = appUser
+                setStoredUser(user)
+                if (user != null) {
+                    linkUserWithOctopus(user)
+                } else {
+                    OctopusSDK.disconnectUser()
+                }
+            }
+
             MaterialTheme(
                 colorScheme = if (isSystemInDarkTheme()) {
                     darkColorScheme(
@@ -73,15 +89,14 @@ class MainActivity : ComponentActivity() {
                 ) {
                     composable<MainScreen> {
                         MainScreen(
-                            appUser = getStoredUser(),
+                            appUser = appUser,
                             onLogin = { navController.navigate(LoginScreen) },
                             onEditUser = {
                                 navController.navigate(EditUserScreen(displayAge = true))
                             },
                             onLogout = {
                                 scope.launch {
-                                    context.setStoredUser(null)
-                                    OctopusSDK.disconnectUser()
+                                    appUser = null
                                 }
                             },
                             onOpenOctopus = {
@@ -93,12 +108,11 @@ class MainActivity : ComponentActivity() {
                     composable<LoginScreen> {
                         Column {
                             LoginScreen(
-                                initialAppUser = context.getStoredUser(),
+                                storedUser = appUser,
                                 onLogin = { user ->
                                     scope.launch {
                                         // Your login logic here
-                                        context.setStoredUser(user)
-                                        linkUserWithOctopus(user)
+                                        appUser = user
                                         navController.navigateUp()
                                     }
                                 },
@@ -110,14 +124,11 @@ class MainActivity : ComponentActivity() {
                     composable<EditUserScreen> { backStackEntry ->
                         val destination = backStackEntry.toRoute<EditUserScreen>()
                         EditUserScreen(
-                            initialUser = context.getStoredUser() ?: AppUser(),
+                            initialUser = appUser ?: AppUser(),
                             displayAge = destination.displayAge,
                             onSave = { user ->
-                                scope.launch {
-                                    context.setStoredUser(user)
-                                    linkUserWithOctopus(user)
-                                    navController.navigateUp()
-                                }
+                                appUser = user
+                                navController.navigateUp()
                             },
                             onBack = { navController.navigateUp() }
                         )

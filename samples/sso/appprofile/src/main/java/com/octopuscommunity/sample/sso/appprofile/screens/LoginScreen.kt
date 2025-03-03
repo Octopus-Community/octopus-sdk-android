@@ -40,11 +40,11 @@ import com.octopuscommunity.sample.sso.appprofile.data.AppUser
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
-    initialAppUser: AppUser?,
+    storedUser: AppUser?,
     onLogin: (AppUser) -> Unit,
     onBack: () -> Unit
 ) {
-    var appUser by remember(initialAppUser) { mutableStateOf(initialAppUser ?: AppUser()) }
+    var appUser by remember(storedUser) { mutableStateOf(storedUser ?: AppUser()) }
 
     Scaffold(
         modifier = Modifier
@@ -127,7 +127,7 @@ fun LoginScreen(
 @Composable
 private fun LoginScreenPreview() {
     LoginScreen(
-        initialAppUser = null,
+        storedUser = null,
         onLogin = {},
         onBack = {}
     )

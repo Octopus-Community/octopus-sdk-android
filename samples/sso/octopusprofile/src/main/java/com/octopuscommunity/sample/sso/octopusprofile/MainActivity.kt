@@ -10,7 +10,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.edit
@@ -46,6 +50,8 @@ class MainActivity : ComponentActivity() {
             val scope = rememberCoroutineScope()
             val navController = rememberNavController()
 
+            var userId by remember { mutableStateOf(getStoredUserId()) }
+
             MaterialTheme(
                 colorScheme = if (isSystemInDarkTheme()) {
                     darkColorScheme(
@@ -67,10 +73,11 @@ class MainActivity : ComponentActivity() {
                 ) {
                     composable<MainScreen> {
                         MainScreen(
-                            userId = getStoredUserId(),
+                            storedUserId = userId,
                             onLogin = { navController.navigate(LoginScreen) },
                             onLogout = {
                                 scope.launch {
+                                    userId = null
                                     context.setStoredUserId(null)
                                     OctopusSDK.disconnectUser()
                                 }
@@ -84,12 +91,13 @@ class MainActivity : ComponentActivity() {
                     composable<LoginScreen> {
                         Column {
                             LoginScreen(
-                                storedUserId = getStoredUserId(),
-                                onLogin = { userId ->
+                                storedUserId = userId,
+                                onLogin = { newUserId ->
                                     scope.launch {
                                         // Your login logic here
-                                        setStoredUserId(userId)
-                                        linkUserWithOctopus(userId)
+                                        userId = newUserId
+                                        setStoredUserId(newUserId)
+                                        linkUserWithOctopus(newUserId)
                                         navController.navigateUp()
                                     }
                                 },
