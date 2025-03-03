@@ -11,82 +11,84 @@ You can easily integrate all of these features with our Android and iOS SDKs.
 ## How to use
 
 1. Add the dependencies to your `build.gradle` file:
-
-```kotlin
-dependencies {
-    // Core SDK functionalities
-    implementation("com.octopuscommunity:octopus-sdk:1.0.0-beta01")
-    // SDK UI Components (optional)
-    implementation("com.octopuscommunity:octopus-sdk-ui:1.0.0-beta01")
-}
-```
-
-*Octopus is available on Maven Central*
+    *Octopus is available on Maven Central*
+    
+    ```kotlin
+    dependencies {
+        // Core SDK functionalities
+        implementation("com.octopuscommunity:octopus-sdk:1.0.0-beta01")
+        // SDK UI Components (optional)
+        implementation("com.octopuscommunity:octopus-sdk-ui:1.0.0-beta01")
+    }
+    ```
 
 2. Add this line to the [local.properties](local.properties) file:
 
-```groovy
-OCTOPUS_API_KEY = YOUR_API_KEY 
-```
-
-Replace `YOUR_API_KEY` with your own API key
+    ```groovy
+    OCTOPUS_API_KEY=YOUR_API_KEY 
+    ```
+    
+    *Replace `YOUR_API_KEY` with your own API key*
 
 ## Use cases
 
 Depending on your targeted UI integration and user connection mode/profile, choose the corresponding
 sample and documentation.
 
-## UI Integration Mode
+### UI Integration Mode
 
-### Full Screen
+- #### Full Screen
 
-Octopus can be integrated within your app as
-a [nested navigation graph](https://developer.android.com/guide/navigation/design/nested-graphs)
-that you start like any of your screen by navigating to the `OctopusDestination.Home`
+    Octopus can be integrated within your app as
+    a [nested navigation graph](https://developer.android.com/guide/navigation/design/nested-graphs)
+    that you start like any of your screen by navigating to the `OctopusDestination.Home`
 
-- [Sample](/samples/standard/fullscreen)
-- [Documentation](https://www.notion.so/octopuscommunity/Android-SDK-Setup-Guide-1a4d0ed811a980c5ada0e19726a67051)
+    - [Sample](/samples/standard/fullscreen)
+    - [Documentation](https://octopuscommunity.notion.site/Android-SDK-Setup-Guide-1a4d0ed811a980c5ada0e19726a67051)
 
-### Embed Composable Content
+- #### Embed Composable Content
 
-Octopus can also be integrated as a composable component within your existing app Screen.
-You can add `OctopusHomeContent` just like any other Composable component and apply your
-own `Modifier` to it.
+    Octopus can also be integrated as a composable component within your existing app Screen.
+    You can add `OctopusHomeContent` just like any other Composable component and apply your
+    own `Modifier` to it.
 
-- [Sample](/samples/standard/embed)
-- [Documentation](https://www.notion.so/octopuscommunity/Android-SDK-Setup-Guide-1a4d0ed811a980c5ada0e19726a67051)
+    - [Sample](/samples/standard/embed)
+    - [Documentation](https://octopuscommunity.notion.site/Android-SDK-Setup-Guide-1a4d0ed811a980c5ada0e19726a67051)
 
-## User Authentication/Profile Mode
+### User Connection and Profile Mode
 
-#### Standard - Octopus Managed Connection + Octopus Managed Profile
+- #### Standard (Octopus Managed User Connection and Profile)
 
-Use the Octopus self managed authentication (Magic Link) to let users interact with the community.
+    Use the Octopus self managed authentication (Magic Link) to let users interact with the community.
 
-- [Sample](/samples/standard/)
-- [Documentation](https://www.notion.so/octopuscommunity/Android-SDK-Setup-Guide-1a4d0ed811a980c5ada0e19726a67051)
+    - [Sample](/samples/standard/)
+    - [Documentation](https://octopuscommunity.notion.site/Android-SDK-Setup-Guide-1a4d0ed811a980c5ada0e19726a67051)
 
-#### SSO + Octopus Profile - App Managed Connection + Octopus Managed Profile
+- #### SSO
 
-Use your login mechanism to let your users interact with the community.
-All Octopus profile fields are Managed by Octopus Community. This means that the info you provide
-while linking the user are only used as prefilled values when the user creates its community
-profile. After that, they are not synchronized between your app and the community profile.
+    In order to use the SSO samples, you will also need to provide a `CLIENT_USER_TOKEN_SECRET` in the [local.properties](local.properties) file. 
+    See: [Generate a signed JWT for SSO](https://octopuscommunity.notion.site/Generate-a-signed-JWT-for-SSO-1a4d0ed811a98005a284fe50ed2b1f71) for more informations.
 
-- [Sample](/samples/sso/octopusprofile)
-- [Documentation](https://www.notion.so/octopuscommunity/Android-SDK-Setup-Guide-1a4d0ed811a980c5ada0e19726a67051)
+    - ##### Octopus Managed Profile
 
-#### SSO + App Profile - App Managed Connection + App Managed Profile
+        Use your login mechanism to let your users interact with the community.
+        All Octopus profile fields are Managed by Octopus Community. This means that the info you provide
+        while linking the user are only used as prefilled values when the user creates its community
+        profile. After that, they are not synchronized between your app and the community profile.
 
-Use your login mechanism to let your users interact with the community.
-All profile fields are Managed by your App. This means that your user's profile is the one that
-will be used in the community. It also means that Octopus Community won't moderate the content of
-the profile. It also means that you have to insure that the user's nickname is unique.
+        - [Sample](/samples/sso/octopusprofile)
+        - [Documentation](https://octopuscommunity.notion.site/Android-SDK-Setup-Guide-1a4d0ed811a980c5ada0e19726a67051)
 
-- [Sample](/samples/sso/appprofile)
-- [Documentation](https://www.notion.so/octopuscommunity/Android-SDK-Setup-Guide-1a4d0ed811a980c5ada0e19726a67051)
+    - ##### App Managed Profile
 
-*In order to use the SSO samples, you also need to provide an `CLIENT_USER_TOKEN_SECRET` in
-the `local.properties` file.*
+        Use your login mechanism to let your users interact with the community.
+        All profile fields are Managed by your App. This means that your user's profile is the one that
+        will be used in the community. It also means that Octopus Community won't moderate the content of
+        the profile. It also means that you have to insure that the user's nickname is unique.
+    
+        - [Sample](/samples/sso/appprofile)
+        - [Documentation](https://octopuscommunity.notion.site/Android-SDK-Setup-Guide-1a4d0ed811a980c5ada0e19726a67051)
+
 
 ## Architecture
 
