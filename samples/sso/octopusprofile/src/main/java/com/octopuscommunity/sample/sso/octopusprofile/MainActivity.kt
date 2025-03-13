@@ -52,18 +52,26 @@ class MainActivity : ComponentActivity() {
 
             var userId by remember { mutableStateOf(getStoredUserId()) }
 
+            // Material3 values used by Octopus SDK - You can also instead customize them in
+            // OctopusTheme
             MaterialTheme(
                 colorScheme = if (isSystemInDarkTheme()) {
                     darkColorScheme(
-                        primary = Color.White,
-                        onPrimary = Color.Black,
-                        background = Color.Black
+                        primary = Color(0xFF3AD9B1),
+                        primaryContainer = Color(0xFF083B2F),
+                        inversePrimary = Color(0xFFD8F4F1),
+                        onPrimary = Color(0xFF141414),
+                        background = Color(0xFF141414),
+                        surfaceContainerHigh = Color(0xFF242526)
                     )
                 } else {
                     lightColorScheme(
-                        primary = Color.Black,
-                        onPrimary = Color.White,
-                        background = Color.White
+                        primary = Color(0xFF068677),
+                        primaryContainer = Color(0xFFD8F4F1),
+                        inversePrimary = Color(0xFF15D1A2),
+                        onPrimary = Color(0xFFFFFFFF),
+                        background = Color(0xFFFFFFFF),
+                        surfaceContainerHigh = Color(0xFFFFFFFF)
                     )
                 }
             ) {

@@ -32,7 +32,7 @@ fun MainScreen(
     onOpenOctopus: () -> Unit,
     storedUserId: String? = null
 ) {
-    var userId by remember(storedUserId) { mutableStateOf(storedUserId) }
+    val userId by remember(storedUserId) { mutableStateOf(storedUserId) }
 
     Scaffold(
         modifier = Modifier
