@@ -11,25 +11,23 @@ You can easily integrate all of these features with our Android and iOS SDKs.
 ## How to use
 
 1. Add the dependencies to your `build.gradle` file:
-    *Octopus is available on Maven Central*
     
     ```kotlin
     dependencies {
         // Core SDK functionalities
-        implementation("com.octopuscommunity:octopus-sdk:1.0.2")
+        implementation("com.octopuscommunity:octopus-sdk:1.0.3")
         // SDK UI Components (optional)
-        implementation("com.octopuscommunity:octopus-sdk-ui:1.0.2")
+        implementation("com.octopuscommunity:octopus-sdk-ui:1.0.3")
     }
     ```
+   *(Note: Octopus is available on Maven Central)*
 
 2. Add this line to the root project `local.properties` file:
 
     ```groovy
     OCTOPUS_API_KEY=YOUR_API_KEY 
     ```
-    
     *Replace `YOUR_API_KEY` with your own API key. See [Get an API Key](https://octopuscommunity.notion.site/octopus-developer-guide) for more informations.*
-   
 
 ## Use cases
 
