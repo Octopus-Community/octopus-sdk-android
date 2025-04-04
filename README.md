@@ -15,9 +15,9 @@ You can easily integrate all of these features with our Android and iOS SDKs.
     ```kotlin
     dependencies {
         // Core SDK functionalities
-        implementation("com.octopuscommunity:octopus-sdk:1.0.4")
+        implementation("com.octopuscommunity:octopus-sdk:1.0.5")
         // SDK UI Components (optional)
-        implementation("com.octopuscommunity:octopus-sdk-ui:1.0.4")
+        implementation("com.octopuscommunity:octopus-sdk-ui:1.0.5")
     }
     ```
    *(Note: Octopus is available on Maven Central)*
