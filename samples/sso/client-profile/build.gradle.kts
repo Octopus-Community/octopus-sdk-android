@@ -15,11 +15,11 @@ if (localPropertiesFile.exists()) {
 }
 
 android {
-    namespace = "com.octopuscommunity.sample.fullscreen"
+    namespace = "com.octopuscommunity.sample.sso.client"
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.octopuscommunity.sample.fullscreen"
+        applicationId = "com.octopuscommunity.sample.sso.client"
         minSdk = 21
         targetSdk = 35
         versionCode = 1
@@ -29,6 +29,12 @@ android {
             type = "String",
             name = "OCTOPUS_API_KEY",
             value = "\"${localProperties.getProperty("OCTOPUS_API_KEY") ?: ""}\""
+        )
+
+        buildConfigField(
+            type = "String",
+            name = "OCTOPUS_SSO_CLIENT_USER_TOKEN_SECRET",
+            value = "\"${localProperties.getProperty("OCTOPUS_SSO_CLIENT_USER_TOKEN_SECRET") ?: ""}\""
         )
 
         vectorDrawables {
@@ -85,4 +91,8 @@ dependencies {
 
     // Serialization
     implementation(libs.kotlinx.serialization.json)
+
+    // Coil
+    implementation(libs.coil.network)
+    implementation(libs.coil.compose)
 }
