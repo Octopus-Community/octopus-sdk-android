@@ -23,8 +23,8 @@ dependencyResolutionManagement {
 
 rootProject.name = "Octopus SDK Sample"
 include(
-    "samples:standard:fullscreen",
-    "samples:standard:embed",
+    ":samples:standard:fullscreen",
+    ":samples:standard:embed",
     ":samples:sso:octopus-profile",
     ":samples:sso:hybrid-profile",
     ":samples:sso:client-profile"

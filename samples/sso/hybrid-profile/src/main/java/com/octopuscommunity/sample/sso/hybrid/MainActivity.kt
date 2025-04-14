@@ -21,14 +21,15 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.octopuscommunity.sample.sso.hybrid.data.AppUser
+import com.octopuscommunity.sample.sso.hybrid.data.TokenProvider
 import com.octopuscommunity.sample.sso.hybrid.data.clearStoredUser
 import com.octopuscommunity.sample.sso.hybrid.data.getStoredUser
 import com.octopuscommunity.sample.sso.hybrid.data.setStoredUser
-import com.octopuscommunity.sample.sso.hybrid.data.toOctopusUser
 import com.octopuscommunity.sample.sso.hybrid.screens.SSOEditUserScreen
 import com.octopuscommunity.sample.sso.hybrid.screens.SSOLoginScreen
 import com.octopuscommunity.sample.sso.hybrid.screens.SSOMainScreen
 import com.octopuscommunity.sdk.OctopusSDK
+import com.octopuscommunity.sdk.domain.model.ClientUser
 import com.octopuscommunity.sdk.ui.OctopusDestination
 import com.octopuscommunity.sdk.ui.OctopusTheme
 import com.octopuscommunity.sdk.ui.octopusDarkColorScheme
@@ -175,6 +176,20 @@ class MainActivity : ComponentActivity() {
     }
 
     private suspend fun linkUserWithOctopus(appUser: AppUser) {
-        OctopusSDK.connectUser(user = appUser.toOctopusUser())
+        OctopusSDK.connectUser(
+            user = ClientUser(
+                id = appUser.id ?: "",
+                profile = ClientUser.Profile(
+                    nickname = appUser.nickname,
+                    bio = appUser.bio,
+                    avatar = appUser.avatar,
+                    ageInformation = appUser.ageInformation
+                )
+            ),
+            tokenProvider = {
+                // Your Octopus token provider logic here
+                TokenProvider.getToken(userId = appUser.id ?: "")
+            }
+        )
     }
 }

@@ -81,7 +81,7 @@ fun SSOLoginScreen(
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                value = appUser.userId ?: "",
+                value = appUser.id ?: "",
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Email,
                     imeAction = ImeAction.Next,
@@ -91,7 +91,7 @@ fun SSOLoginScreen(
                 singleLine = true,
                 onValueChange = {
                     appUser = appUser.copy(
-                        userId = it.lowercase().ifEmpty { null }
+                        id = it.lowercase().ifEmpty { null }
                     )
                 },
                 label = { Text("User Id") }
@@ -110,7 +110,7 @@ fun SSOLoginScreen(
 
             Button(
                 modifier = Modifier.fillMaxWidth(),
-                enabled = appUser.userId?.isNotEmpty() == true,
+                enabled = appUser.id?.isNotEmpty() == true,
                 onClick = { onLogin(appUser) }
             ) {
                 Text("Login")

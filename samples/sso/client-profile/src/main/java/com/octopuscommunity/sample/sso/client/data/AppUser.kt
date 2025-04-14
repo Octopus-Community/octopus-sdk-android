@@ -19,9 +19,9 @@ private const val AGE_INFORMATION_KEY = "app_user_age_information"
  */
 data class AppUser(
     /** A unique, stable, identifier for this user */
-    val userId: String? = null,
+    val id: String? = null,
     /** A nickname */
-    val nickname: String? = null,
+    val nickname: String? = noull,
     /** The bio for this user */
     val bio: String? = null,
     /** A profile picture */
@@ -43,7 +43,7 @@ fun Context.getStoredUser(): AppUser? {
     val id = preferences.getString(ID_KEY, null) ?: return null
 
     return AppUser(
-        userId = id,
+        id = id,
         nickname = preferences.getString(NICKNAME_KEY, null),
         bio = preferences.getString(BIO_KEY, null),
         avatar = when (preferences.getString(AVATAR_TYPE_KEY, null)) {
@@ -62,7 +62,7 @@ fun Context.getStoredUser(): AppUser? {
 fun Context.setStoredUser(user: AppUser?) {
     getUserPreferences().edit {
         if (user != null) {
-            putString(ID_KEY, user.userId)
+            putString(ID_KEY, user.id)
             putString(NICKNAME_KEY, user.nickname)
             putString(BIO_KEY, user.bio)
             putString(
@@ -88,13 +88,3 @@ fun Context.setStoredUser(user: AppUser?) {
 }
 
 fun Context.clearStoredUser() = setStoredUser(null)
-
-fun AppUser.toOctopusUser() = ClientUser(
-    id = userId ?: "",
-    profile = ClientUser.Profile(
-        nickname = nickname,
-        bio = bio,
-        avatar = avatar,
-        ageInformation = ageInformation
-    )
-)

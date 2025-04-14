@@ -107,7 +107,7 @@ fun SSOMainScreen(
                     )
                 )
                 Text(
-                    text = "User Id: ${appUser.userId ?: ""}",
+                    text = "User Id: ${appUser.id ?: ""}",
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Text(
