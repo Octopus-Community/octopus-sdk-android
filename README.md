@@ -1,12 +1,6 @@
 # Octopus SDK for Android
 
-## Purpose
-
-The purpose of this Android Dependency is to provide every feature of Octopus Community to your
-Android based apps:
-add your own social network within your app. We handle all the work for you: UI, moderation,
-storage…
-You can easily integrate all of these features with our Android and iOS SDKs.
+Octopus is an SDK that enables you to **integrate a fully customizable social network** into your app, perfectly **aligned with your branding**.
 
 ## Dependencies
 
@@ -27,27 +21,11 @@ dependencies {
 
 Add this line to the root project `local.properties` file:
 
- ```groovy
- OCTOPUS_API_KEY = YOUR_API_KEY 
+ ```properties
+ OCTOPUS_API_KEY=YOUR_API_KEY 
  ```
 
-*Replace `YOUR_API_KEY` with your own API key.
-See [Get an API Key](https://octopus-documentation.pages.dev) for more infos.*
-
-### SSO (Optional)
-
-Provide an Client User Token Secret
-
-If you want to test the SSO connection mode, you need to provide a Client User Token Secret in the
-root project `local.properties` file
-
- ```groovy
-OCTOPUS_SSO_CLIENT_USER_TOKEN_SECRET = YOUR_USER_TOKEN_SECRET
-```
-
-*Replace `YOUR_USER_TOKEN_SECRET` with your own Client User Token Secret.
-See [Generate a signed JWT for SSO](https://octopus-documentation.pages.dev/backend/sso)
-for more infos.*
+Replace `YOUR_API_KEY` with your own API key. See [Get an API Key](https://doc.octopuscommunity.com/) for more infos.
 
 ## Use cases
 
@@ -56,52 +34,61 @@ sample and documentation.
 
 ### UI Integration Mode
 
-- #### Full Screen
+- #### Launch the Octopus Home from an action
 
-  Octopus can be integrated within your app as
-  a [nested navigation graph](https://developer.android.com/guide/navigation/design/nested-graphs)
-  that you start like any of your screen by navigating to the `OctopusDestination.Home`
+  Navigate to the `OctopusDestination.Home` just like any of your screens
 
-    - [Sample](/samples/standard/fullscreen)
-    - [Documentation](https://octopus-documentation.pages.dev)
+  - [Sample](/samples/standard/fullscreen)
+  - [Documentation](https://doc.octopuscommunity.com/SDK/octopus-auth/android)
 
-- #### Embed Composable Content
+OR
 
-  Octopus can also be integrated as a composable component within your existing app Screen.
-  You can add `OctopusHomeContent` just like any other Composable component and apply your
-  own `Modifier` to it.
+- #### Embed OctopusHome Composable Content
 
-    - [Sample](/samples/standard/embed)
-    - [Documentation](https://octopus-documentation.pages.dev)
+  Octopus can be integrated as a composable component within your existing app Screen.
+  Include the `OctopusHomeContent` or `OctopusHomeScreen` just like any other Composable and apply your own `Modifier` to it.
+
+  - [Sample](/samples/standard/embed)
+  - [Documentation](https://doc.octopuscommunity.com/SDK/octopus-auth/android)
 
 ### User Connection and Profile Mode
 
-- #### Standard (Octopus Managed User Connection and Profile)
+- #### Octopus Authentication
 
-  Use the Octopus self managed authentication (Magic Link) to let users interact with the community.
+  This method allows you to integrate Octopus quickly, with no backend development required. Octopus handles both user account creation and authentication.
 
-    - [Sample](/samples/standard/)
-    - [Documentation](https://octopus-documentation.pages.dev/SDK/octopus-auth/android)
+  - [Sample](/samples/standard/)
+  - [Documentation](https://doc.octopuscommunity.com/SDK/octopus-auth/android)
 
 - #### SSO
 
-  Use your login mechanism to let your users interact with the community.
+  This integration mode allows users to be automatically logged into the community within your mobile application. If a user has an account in your application and is already logged in, they won’t need to authenticate again to access the community.
 
-  *In order to test those scenarios, your community should be configured to use SSO Authentication*
+  - Provide a Client User Token Secret
 
-    - ##### Octopus Managed Profile
+    If you want to test the SSO connection mode, you need to provide a Client User Token Secret in the
+root project `local.properties` file
+
+    ```properties
+    OCTOPUS_SSO_CLIENT_USER_TOKEN_SECRET=YOUR_USER_TOKEN_SECRET
+    ```
+    Replace `YOUR_USER_TOKEN_SECRET` with your own Client User Token Secret. See [Generate a signed JWT for SSO](https://doc.octopuscommunity.com/backend/sso)
+for more infos.
+
+  - You need to know the app managed fields (also called as associated fields) that your community is configured for.
+    - ##### SSO without any app managed fields
 
       All profile fields are managed by Octopus Community. This means that the info you provide in
       the connectUser are only used as prefilled values when the user creates its community profile.
       After that, they are not synchronized between your app and the community profile.
 
-        - [Sample](/samples/sso/octopus-profile)
-        - [Documentation](https://octopus-documentation.pages.dev/SDK/sso/android)
+      - [Sample](/samples/sso/octopus-profile)
+      - [Documentation](https://doc.octopuscommunity.com/SDK/sso/android)
 
       In order to test this scenario:
-        - your community should be configured to have no app managed fields
+      - your community should be configured to have no app managed fields
 
-    - ##### Hybrid = Octopus & App Managed Profile
+    - ##### SSO with some app managed fields
 
       Some profile fields are managed by your app. This means these fields are the ones
       that will be used in the community. It also means that Octopus Community won't moderate those
@@ -109,13 +96,13 @@ sample and documentation.
       these fields, you have to ensure that it is unique.
 
         - [Sample](/samples/sso/hybrid-profile)
-        - [Documentation](https://octopus-documentation.pages.dev/SDK/sso/android)
+        - [Documentation](https://doc.octopuscommunity.com/SDK/sso/android)
 
       In order to test this scenario:
         - your community should be configured to have some app managed fields
         - you must set those fields in the OctopusSDK.initialize() function
 
-    - ##### App Managed Profile
+    - ##### SSO with all app managed fields
 
       All profile fields are managed by your app. This means that your user profile is the one that
       will be used in the community. It also means that Octopus Community won't moderate the content
@@ -123,7 +110,7 @@ sample and documentation.
       that the nickname is unique.
 
         - [Sample](/samples/sso/client-profile)
-        - [Documentation](https://octopus-documentation.pages.dev/SDK/sso/android)
+        - [Documentation](https://doc.octopuscommunity.com/SDK/sso/android)
 
       In order to test this scenario:
         - your community should be configured to have all fields as app managed
