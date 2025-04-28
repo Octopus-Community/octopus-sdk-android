@@ -35,6 +35,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         enableEdgeToEdge()
+
         setContent {
             // Material3 values used by Octopus SDK - You can also instead customize them in
             // OctopusTheme

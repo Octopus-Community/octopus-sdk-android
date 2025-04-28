@@ -9,10 +9,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -36,7 +36,6 @@ import com.octopuscommunity.sdk.ui.octopusDarkColorScheme
 import com.octopuscommunity.sdk.ui.octopusDrawables
 import com.octopuscommunity.sdk.ui.octopusLightColorScheme
 import com.octopuscommunity.sdk.ui.octopusNavigation
-import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -57,10 +56,19 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val context = LocalContext.current
-            val scope = rememberCoroutineScope()
             val navController = rememberNavController()
 
-            var appUser by remember { mutableStateOf(context.getStoredUser()) }
+            var appUser by remember { mutableStateOf(getStoredUser()) }
+            LaunchedEffect(appUser) {
+                val user = appUser
+                if (user != null) {
+                    context.setStoredUser(user)
+                    linkUserWithOctopus(user)
+                } else {
+                    context.clearStoredUser()
+                    OctopusSDK.disconnectUser()
+                }
+            }
 
             MaterialTheme(
                 colorScheme = if (isSystemInDarkTheme()) {
@@ -93,13 +101,7 @@ class MainActivity : ComponentActivity() {
                             onEditUser = {
                                 navController.navigate(EditUserScreen(displayAge = false))
                             },
-                            onLogout = {
-                                scope.launch {
-                                    context.clearStoredUser()
-                                    appUser = null
-                                    OctopusSDK.disconnectUser()
-                                }
-                            },
+                            onLogout = { appUser = null },
                             onOpenOctopus = {
                                 navController.navigate(OctopusDestination.Home)
                             }
@@ -112,12 +114,7 @@ class MainActivity : ComponentActivity() {
                                 initialAppUser = context.getStoredUser(),
                                 onLogin = { user ->
                                     appUser = user
-                                    scope.launch {
-                                        // Your login logic here
-                                        context.setStoredUser(user)
-                                        linkUserWithOctopus(user)
-                                        navController.navigateUp()
-                                    }
+                                    navController.navigateUp()
                                 },
                                 onBack = { navController.navigateUp() }
                             )
@@ -132,11 +129,7 @@ class MainActivity : ComponentActivity() {
                             displayAge = destination.displayAge,
                             onSave = { user ->
                                 appUser = user
-                                scope.launch {
-                                    context.setStoredUser(user)
-                                    linkUserWithOctopus(user)
-                                    navController.navigateUp()
-                                }
+                                navController.navigateUp()
                             },
                             onBack = { navController.navigateUp() }
                         )
@@ -178,7 +171,7 @@ class MainActivity : ComponentActivity() {
     private suspend fun linkUserWithOctopus(appUser: AppUser) {
         OctopusSDK.connectUser(
             user = ClientUser(
-                id = appUser.id ?: "",
+                userId = appUser.id ?: "",
                 profile = ClientUser.Profile(
                     nickname = appUser.nickname,
                     bio = appUser.bio,

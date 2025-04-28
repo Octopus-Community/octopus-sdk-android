@@ -21,7 +21,7 @@ data class AppUser(
     /** A unique, stable, identifier for this user */
     val id: String? = null,
     /** A nickname */
-    val nickname: String? = noull,
+    val nickname: String? = null,
     /** The bio for this user */
     val bio: String? = null,
     /** A profile picture */
