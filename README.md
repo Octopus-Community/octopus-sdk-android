@@ -9,9 +9,9 @@ Add the dependencies to your `build.gradle` file:
 ```kotlin
 dependencies {
     // Core SDK functionalities
-    implementation("com.octopuscommunity:octopus-sdk:1.1.2")
+    implementation("com.octopuscommunity:octopus-sdk:1.1.3")
     // SDK UI Components (optional)
-    implementation("com.octopuscommunity:octopus-sdk-ui:1.1.2")
+    implementation("com.octopuscommunity:octopus-sdk-ui:1.1.3")
 }
 ```
 
