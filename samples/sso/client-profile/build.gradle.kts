@@ -81,13 +81,16 @@ dependencies {
 
     // Compose
     implementation(platform(libs.compose.bom))
-    implementation(libs.activity.compose)
-    implementation(libs.navigation.compose)
-    debugImplementation(libs.ui.tooling)
+    implementation(libs.ui.tooling)
     implementation(libs.ui.tooling.preview)
-
     // Material3
     implementation(libs.androidx.material3)
+
+    // Activity Compose
+    implementation(libs.activity.compose)
+
+    // Navigation Compose
+    implementation(libs.navigation.compose)
 
     // Serialization
     implementation(libs.kotlinx.serialization.json)
