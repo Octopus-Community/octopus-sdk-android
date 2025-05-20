@@ -21,10 +21,10 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Octopus SDK Sample"
+rootProject.name = "Octopus SDK Samples"
 include(
-    ":samples:standard:fullscreen",
-    ":samples:standard:embed",
+    ":samples:octopus-auth:fullscreen",
+    ":samples:octopus-auth:embed",
     ":samples:sso:octopus-profile",
     ":samples:sso:hybrid-profile",
     ":samples:sso:client-profile"

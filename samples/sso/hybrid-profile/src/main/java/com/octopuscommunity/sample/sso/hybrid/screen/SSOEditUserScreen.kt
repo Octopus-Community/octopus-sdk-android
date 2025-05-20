@@ -1,4 +1,4 @@
-package com.octopuscommunity.sample.sso.octopus.screens
+package com.octopuscommunity.sample.sso.hybrid.screen
 
 import android.content.ContentResolver
 import android.net.Uri
@@ -48,7 +48,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import com.octopuscommunity.sample.sso.octopus.data.AppUser
+import com.octopuscommunity.sample.sso.hybrid.data.AppUser
 import com.octopuscommunity.sdk.domain.model.ClientUser.Profile.AgeInformation
 import com.octopuscommunity.sdk.domain.model.Image
 import com.octopuscommunity.sdk.domain.model.ProfileField

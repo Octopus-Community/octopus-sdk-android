@@ -1,14 +1,14 @@
-package com.octopuscommunity.sample.sso.hybrid.screens
+package com.octopuscommunity.sample.sso.octopus.screen
 
 import android.content.ContentResolver
 import android.net.Uri
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
@@ -37,7 +37,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
@@ -48,21 +47,20 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import com.octopuscommunity.sample.sso.hybrid.data.AppUser
+import com.octopuscommunity.sample.sso.octopus.data.AppUser
 import com.octopuscommunity.sdk.domain.model.ClientUser.Profile.AgeInformation
 import com.octopuscommunity.sdk.domain.model.Image
-import com.octopuscommunity.sdk.domain.model.ProfileField
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SSOEditUserScreen(
-    initialUser: AppUser,
-    appManagedFields: Set<ProfileField>,
-    displayAge: Boolean,
-    onSave: (AppUser) -> Unit,
+fun SSOLoginScreen(
+    initialAppUser: AppUser?,
+    onLogin: (AppUser) -> Unit,
     onBack: () -> Unit
 ) {
-    var appUser by remember(initialUser) { mutableStateOf(initialUser) }
+    val context = LocalContext.current
+
+    var appUser by remember(initialAppUser) { mutableStateOf(initialAppUser ?: AppUser()) }
 
     Scaffold(
         modifier = Modifier
@@ -71,7 +69,7 @@ fun SSOEditUserScreen(
             .systemBarsPadding(),
         topBar = {
             TopAppBar(
-                title = { Text("Edit your profile") },
+                title = { Text("Login") },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(
@@ -91,38 +89,30 @@ fun SSOEditUserScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .padding(16.dp)
+                .imePadding()
                 .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            EditUserContent(
+            OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
-                appUser = appUser,
-                visibleFields = appManagedFields,
-                displayAge = displayAge,
-                onAppUserChanged = { appUser = it }
+                shape = RoundedCornerShape(16.dp),
+                value = appUser.id ?: "",
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Email,
+                    imeAction = ImeAction.Next,
+                    capitalization = KeyboardCapitalization.None,
+                    autoCorrectEnabled = false
+                ),
+                singleLine = true,
+                onValueChange = {
+                    appUser = appUser.copy(
+                        id = it.lowercase().ifEmpty { null }
+                    )
+                },
+                label = { Text("User Id") }
             )
-            Button(
-                modifier = Modifier.fillMaxWidth(),
-                onClick = { onSave(appUser) }
-            ) {
-                Text("Save")
-            }
-        }
-    }
-}
 
-@Composable
-fun EditUserContent(
-    appUser: AppUser,
-    visibleFields: Set<ProfileField>,
-    displayAge: Boolean,
-    onAppUserChanged: (AppUser) -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val context = LocalContext.current
-    Column(modifier = modifier) {
-        if (ProfileField.NICKNAME in visibleFields) {
+            Spacer(modifier = Modifier.height(16.dp))
+
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
@@ -135,11 +125,9 @@ fun EditUserContent(
                     autoCorrectEnabled = false
                 ),
                 singleLine = true,
-                onValueChange = { onAppUserChanged(appUser.copy(nickname = it.ifEmpty { null })) },
+                onValueChange = { appUser = appUser.copy(nickname = it.ifEmpty { null }) },
             )
-        }
 
-        if (ProfileField.BIO in visibleFields) {
             Spacer(modifier = Modifier.height(16.dp))
 
             OutlinedTextField(
@@ -151,18 +139,16 @@ fun EditUserContent(
                     keyboardType = KeyboardType.Text,
                     capitalization = KeyboardCapitalization.Sentences
                 ),
-                onValueChange = { onAppUserChanged(appUser.copy(bio = it.ifEmpty { null })) },
+                onValueChange = { appUser = appUser.copy(bio = it.ifEmpty { null }) },
             )
-        }
 
-        if (ProfileField.AVATAR in visibleFields) {
             Spacer(modifier = Modifier.height(16.dp))
 
             Text("Avatar")
             SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                 SegmentedButton(
                     selected = appUser.avatar == null,
-                    onClick = { onAppUserChanged(appUser.copy(avatar = null)) },
+                    onClick = { appUser = appUser.copy(avatar = null) },
                     shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3)
                 ) {
                     Text("None")
@@ -170,10 +156,8 @@ fun EditUserContent(
                 SegmentedButton(
                     selected = appUser.avatar is Image.Remote,
                     onClick = {
-                        onAppUserChanged(
-                            appUser.copy(
-                                avatar = Image.Remote("https://play-lh.googleusercontent.com/H6umM_74J78u2KrdnnnDwwLctekjZg5kghkx6LSSeQvt5plFI3E98bjWaLZm8lds0ixg=w480-h960-rw")
-                            )
+                        appUser = appUser.copy(
+                            avatar = Image.Remote("https://play-lh.googleusercontent.com/H6umM_74J78u2KrdnnnDwwLctekjZg5kghkx6LSSeQvt5plFI3E98bjWaLZm8lds0ixg=w480-h960-rw")
                         )
                     },
                     shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3)
@@ -183,15 +167,13 @@ fun EditUserContent(
                 SegmentedButton(
                     selected = appUser.avatar is Image.Local,
                     onClick = {
-                        onAppUserChanged(
-                            appUser.copy(
-                                avatar = Image.Local(
-                                    Uri.Builder()
-                                        .scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
-                                        .authority(context.packageName)
-                                        .path(com.octopuscommunity.sdk.ui.R.drawable.ic_bloc_user.toString())
-                                        .build()
-                                )
+                        appUser = appUser.copy(
+                            avatar = Image.Local(
+                                Uri.Builder()
+                                    .scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
+                                    .authority(context.packageName)
+                                    .path(com.octopuscommunity.sdk.ui.R.drawable.ic_bloc_user.toString())
+                                    .build()
                             )
                         )
                     },
@@ -219,57 +201,53 @@ fun EditUserContent(
             }
         }
 
-        if (displayAge) {
-            Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(16.dp))
 
-            Text("Information about the age")
-            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                SegmentedButton(
-                    selected = appUser.ageInformation == null,
-                    onClick = { onAppUserChanged(appUser.copy(ageInformation = null)) },
-                    shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3)
-                ) {
-                    Text("Not checked")
-                }
-                SegmentedButton(
-                    selected = appUser.ageInformation == AgeInformation.LegalAgeReached,
-                    onClick = {
-                        onAppUserChanged(
-                            appUser.copy(
-                                ageInformation = AgeInformation.LegalAgeReached
-                            )
-                        )
-                    },
-                    shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3)
-                ) {
-                    Text(">= 16")
-                }
-                SegmentedButton(
-                    selected = appUser.ageInformation == AgeInformation.Underage,
-                    onClick = {
-                        onAppUserChanged(
-                            appUser.copy(
-                                ageInformation = AgeInformation.Underage
-                            )
-                        )
-                    },
-                    shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3)
-                ) {
-                    Text("< 16")
-                }
+        Text("Information about the age")
+        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+            SegmentedButton(
+                selected = appUser.ageInformation == null,
+                onClick = { appUser = appUser.copy(ageInformation = null) },
+                shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3)
+            ) {
+                Text("Not checked")
+            }
+            SegmentedButton(
+                selected = appUser.ageInformation == AgeInformation.LegalAgeReached,
+                onClick = {
+                    appUser = appUser.copy(ageInformation = AgeInformation.LegalAgeReached)
+                },
+                shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3)
+            ) {
+                Text(">= 16")
+            }
+            SegmentedButton(
+                selected = appUser.ageInformation == AgeInformation.Underage,
+                onClick = { appUser = appUser.copy(ageInformation = AgeInformation.Underage) },
+                shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3)
+            ) {
+                Text("< 16")
             }
         }
+    }
+
+    Spacer(modifier = Modifier.height(32.dp))
+
+    Button(
+        modifier = Modifier.fillMaxWidth(),
+        enabled = appUser.id?.isNotEmpty() == true,
+        onClick = { onLogin(appUser) }
+    ) {
+        Text("Login")
     }
 }
 
 @Preview
 @Composable
-private fun SSOEditUserScreenPreview() {
-    SSOEditUserScreen(
-        initialUser = AppUser(),
-        appManagedFields = ProfileField.ALL,
-        displayAge = true,
-        onSave = {},
+private fun SSOLoginScreenPreview() {
+    SSOLoginScreen(
+        initialAppUser = null,
+        onLogin = {},
         onBack = {}
     )
 }

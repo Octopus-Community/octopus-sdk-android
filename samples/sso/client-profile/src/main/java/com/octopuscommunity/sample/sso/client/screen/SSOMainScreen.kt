@@ -1,4 +1,4 @@
-package com.octopuscommunity.sample.sso.client.screens
+package com.octopuscommunity.sample.sso.client.screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -35,13 +35,11 @@ import com.octopuscommunity.sample.sso.client.R
 import com.octopuscommunity.sample.sso.client.data.AppUser
 import com.octopuscommunity.sdk.domain.model.ClientUser.Profile.AgeInformation
 import com.octopuscommunity.sdk.domain.model.Image
-import com.octopuscommunity.sdk.domain.model.ProfileField
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SSOMainScreen(
     appUser: AppUser?,
-    appManagedFields: Set<ProfileField>,
     onLogin: () -> Unit,
     onEditUser: () -> Unit,
     onLogout: () -> Unit,
@@ -82,7 +80,7 @@ fun SSOMainScreen(
                     style = MaterialTheme.typography.headlineSmall
                 )
                 Text(
-                    text = "All profile fields are managed by your app. This means that your user profile is the one that  " +
+                    text = "All profile fields are managed by your app. This means that your user profile is the one that " +
                             "will be used in the community. It also means that Octopus Community won't moderate the content " +
                             "of the profile (nickname, bio, and picture profile). It also means that you have to ensure " +
                             "that the nickname is unique.",
@@ -97,97 +95,97 @@ fun SSOMainScreen(
                     color = Color.Red
                 )
             }
-        }
 
-        Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
-        if (appUser != null) {
-            Text(
-                text = "You are currently logged in as:",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold
+            if (appUser != null) {
+                Text(
+                    text = "You are currently logged in as:",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold
+                    )
                 )
-            )
-            Text(
-                text = "User Id: ${appUser.id ?: ""}",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Text(
-                text = "Nickname: ${appUser.nickname ?: ""}",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Text(
-                text = "Bio: ${appUser.bio ?: ""}",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Text(
-                text = "Age Information: ${
-                    when (appUser.ageInformation) {
-                        AgeInformation.LegalAgeReached -> ">= 16"
-                        AgeInformation.Underage -> "< 16>"
-                        null -> "Not checked"
-                    }
-                }",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            Text(
-                text = "Avatar:",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            AsyncImage(
-                modifier = Modifier
-                    .size(64.dp)
-                    .clip(CircleShape),
-                model = when (val avatar = appUser.avatar) {
-                    is Image.Remote -> avatar.url
-                    is Image.Local -> avatar.uri
-                    else -> null
-                },
-                contentDescription = "Avatar",
-                contentScale = ContentScale.Crop,
-            )
-        } else {
-            Text(
-                text = "You are currently not logged in",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold
+                Text(
+                    text = "User Id: ${appUser.id ?: ""}",
+                    style = MaterialTheme.typography.bodyMedium
                 )
-            )
-        }
+                Text(
+                    text = "Nickname: ${appUser.nickname ?: ""}",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = "Bio: ${appUser.bio ?: ""}",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = "Age Information: ${
+                        when (appUser.ageInformation) {
+                            AgeInformation.LegalAgeReached -> ">= 16"
+                            AgeInformation.Underage -> "< 16>"
+                            null -> "Not checked"
+                        }
+                    }",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = "Avatar:",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                AsyncImage(
+                    modifier = Modifier
+                        .size(64.dp)
+                        .clip(CircleShape),
+                    model = when (val avatar = appUser.avatar) {
+                        is Image.Remote -> avatar.url
+                        is Image.Local -> avatar.uri
+                        else -> null
+                    },
+                    contentDescription = "Avatar",
+                    contentScale = ContentScale.Crop,
+                )
+            } else {
+                Text(
+                    text = "You are currently not logged in",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+            }
 
-        Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-        if (appUser == null) {
+            if (appUser == null) {
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = onLogin,
+                ) {
+                    Text("Login")
+                }
+            } else {
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = onEditUser,
+                ) {
+                    Text("Edit user")
+                }
+
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        onLogout()
+                    },
+                ) {
+                    Text("Logout")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
             Button(
                 modifier = Modifier.fillMaxWidth(),
-                onClick = onLogin,
+                onClick = onOpenOctopus
             ) {
-                Text("Login")
+                Text("Open Octopus")
             }
-        } else {
-            Button(
-                modifier = Modifier.fillMaxWidth(),
-                onClick = onEditUser,
-            ) {
-                Text("Edit user")
-            }
-
-            Button(
-                modifier = Modifier.fillMaxWidth(),
-                onClick = {
-                    onLogout()
-                },
-            ) {
-                Text("Logout")
-            }
-        }
-
-        Spacer(modifier = Modifier.height(32.dp))
-        Button(
-            modifier = Modifier.fillMaxWidth(),
-            onClick = onOpenOctopus
-        ) {
-            Text("Open Octopus")
         }
     }
 }
@@ -196,7 +194,6 @@ fun SSOMainScreen(
 @Composable
 private fun SSOMainScreenPreview() {
     SSOMainScreen(
-        appManagedFields = emptySet(),
         appUser = null,
         onLogin = {},
         onEditUser = {},

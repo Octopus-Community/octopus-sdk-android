@@ -1,4 +1,4 @@
-package com.octopuscommunity.sample.sso.hybrid.screens
+package com.octopuscommunity.sample.sso.octopus.screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -31,19 +31,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import com.octopuscommunity.sample.sso.hybrid.R
-import com.octopuscommunity.sample.sso.hybrid.data.AppUser
+import com.octopuscommunity.sample.sso.octopus.R
+import com.octopuscommunity.sample.sso.octopus.data.AppUser
 import com.octopuscommunity.sdk.domain.model.ClientUser.Profile.AgeInformation
 import com.octopuscommunity.sdk.domain.model.Image
-import com.octopuscommunity.sdk.domain.model.ProfileField
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SSOMainScreen(
     appUser: AppUser?,
-    appManagedFields: Set<ProfileField>,
     onLogin: () -> Unit,
-    onEditUser: () -> Unit,
     onLogout: () -> Unit,
     onOpenOctopus: () -> Unit
 ) {
@@ -78,21 +75,19 @@ fun SSOMainScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(
-                    text = "SSO Mode - Hybrid Profile",
+                    text = "SSO Mode - Octopus Profile",
                     style = MaterialTheme.typography.headlineSmall
                 )
                 Text(
-                    text = "Some profile fields are managed by your app. This means these fields are the ones " +
-                            "that will be used in the community. It also means that Octopus Community won't moderate those  " +
-                            "fields (nickname, bio, or picture profile). It also means that, if the nickname is part of " +
-                            "these fields, you have to ensure that it is unique.",
+                    text = "All profile fields are managed by Octopus Community. This means that the info you provide in " +
+                            "the connectUser are only used as prefilled values when the user creates its community profile. " +
+                            "After that, they are not synchronized between your app and the community profile.",
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Text(
                     text = "In order to test this scenario:\n" +
                             "- your community should be configured to use SSO authentication\n" +
-                            "- your community should be configured to have some app managed fields\n" +
-                            "- you must set those fields in the OctopusSDK.initialize() function",
+                            "- your community should be configured to have no app managed fields",
                     style = MaterialTheme.typography.bodySmall,
                     color = Color.Red
                 )
@@ -166,13 +161,6 @@ fun SSOMainScreen(
             } else {
                 Button(
                     modifier = Modifier.fillMaxWidth(),
-                    onClick = onEditUser,
-                ) {
-                    Text("Edit user")
-                }
-
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
                     onClick = {
                         onLogout()
                     },
@@ -196,10 +184,8 @@ fun SSOMainScreen(
 @Composable
 private fun SSOMainScreenPreview() {
     SSOMainScreen(
-        appManagedFields = emptySet(),
         appUser = null,
         onLogin = {},
-        onEditUser = {},
         onLogout = {},
         onOpenOctopus = {}
     )

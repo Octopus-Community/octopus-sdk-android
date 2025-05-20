@@ -25,9 +25,9 @@ import com.octopuscommunity.sample.sso.client.data.TokenProvider
 import com.octopuscommunity.sample.sso.client.data.clearStoredUser
 import com.octopuscommunity.sample.sso.client.data.getStoredUser
 import com.octopuscommunity.sample.sso.client.data.setStoredUser
-import com.octopuscommunity.sample.sso.client.screens.SSOEditUserScreen
-import com.octopuscommunity.sample.sso.client.screens.SSOLoginScreen
-import com.octopuscommunity.sample.sso.client.screens.SSOMainScreen
+import com.octopuscommunity.sample.sso.client.screen.SSOEditUserScreen
+import com.octopuscommunity.sample.sso.client.screen.SSOLoginScreen
+import com.octopuscommunity.sample.sso.client.screen.SSOMainScreen
 import com.octopuscommunity.sdk.OctopusSDK
 import com.octopuscommunity.sdk.domain.model.ClientUser
 import com.octopuscommunity.sdk.ui.OctopusDestination
@@ -96,7 +96,6 @@ class MainActivity : ComponentActivity() {
                     composable<SSOMainScreen> {
                         SSOMainScreen(
                             appUser = appUser,
-                            appManagedFields = OctopusSDK.connectionRepository.appManagedFields,
                             onLogin = { navController.navigate(SSOLoginScreen) },
                             onEditUser = {
                                 navController.navigate(EditUserScreen(displayAge = false))

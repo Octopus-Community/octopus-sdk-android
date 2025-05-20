@@ -1,4 +1,4 @@
-package com.octopuscommunity.sample.sso.client.screens
+package com.octopuscommunity.sample.sso.client.screen
 
 import android.content.ContentResolver
 import android.net.Uri

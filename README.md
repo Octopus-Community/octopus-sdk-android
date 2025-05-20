@@ -9,9 +9,9 @@ Add the dependencies to your `build.gradle` file:
 ```kotlin
 dependencies {
     // Core SDK functionalities
-    implementation("com.octopuscommunity:octopus-sdk:1.2.0")
+    implementation("com.octopuscommunity:octopus-sdk:1.2.1")
     // SDK UI Components (optional)
-    implementation("com.octopuscommunity:octopus-sdk-ui:1.2.0")
+    implementation("com.octopuscommunity:octopus-sdk-ui:1.2.1")
 }
 ```
 
@@ -22,7 +22,7 @@ dependencies {
 Add this line to the root project `local.properties` file:
 
  ```properties
- OCTOPUS_API_KEY=YOUR_API_KEY 
+ OCTOPUS_API_KEY=YOUR_API_KEY
  ```
 
 Replace `YOUR_API_KEY` with your own API key. See [Get an API Key](https://doc.octopuscommunity.com/) for more infos.

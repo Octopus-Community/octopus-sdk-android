@@ -1,4 +1,4 @@
-package com.octopuscommunity.sample.sso.octopus.screens
+package com.octopuscommunity.sample.sso.client.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -36,7 +36,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.octopuscommunity.sample.sso.octopus.data.AppUser
+import com.octopuscommunity.sample.sso.client.data.AppUser
 import com.octopuscommunity.sdk.domain.model.ProfileField
 
 @OptIn(ExperimentalMaterial3Api::class)
