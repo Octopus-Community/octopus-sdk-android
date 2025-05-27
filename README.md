@@ -8,10 +8,10 @@ Add the dependencies to your `build.gradle` file:
 
 ```kotlin
 dependencies {
-    // Core SDK functionalities
-    implementation("com.octopuscommunity:octopus-sdk:1.2.1")
-    // SDK UI Components (optional)
-    implementation("com.octopuscommunity:octopus-sdk-ui:1.2.1")
+  // Core SDK functionalities
+  implementation("com.octopuscommunity:octopus-sdk:1.3.0")
+  // SDK UI Components (optional)
+  implementation("com.octopuscommunity:octopus-sdk-ui:1.3.0")
 }
 ```
 
@@ -38,17 +38,17 @@ sample and documentation.
 
   Navigate to the `OctopusDestination.Home` just like any of your screens
 
-  - [Sample](/samples/standard/fullscreen)
+  - [Sample](/samples/octopus-auth/fullscreen)
   - [Documentation](https://doc.octopuscommunity.com/SDK/octopus-auth/android)
 
 OR
 
-- #### Embed OctopusHome Composable Content
+- #### Integrate OctopusHome Composable Content
 
-  Octopus can be integrated as a composable component within your existing app Screen.
+  Octopus can be embed as a composable component within your existing app Screen.
   Include the `OctopusHomeContent` or `OctopusHomeScreen` just like any other Composable and apply your own `Modifier` to it.
 
-  - [Sample](/samples/standard/embed)
+  - [Sample](/samples/octopus-auth/embed)
   - [Documentation](https://doc.octopuscommunity.com/SDK/octopus-auth/android)
 
 ### User Connection and Profile Mode
@@ -57,7 +57,7 @@ OR
 
   This method allows you to integrate Octopus quickly, with no backend development required. Octopus handles both user account creation and authentication.
 
-  - [Sample](/samples/standard/)
+  - [Sample](/samples/octopus-auth)
   - [Documentation](https://doc.octopuscommunity.com/SDK/octopus-auth/android)
 
 - #### SSO

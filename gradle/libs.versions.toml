@@ -1,25 +1,28 @@
 [versions]
-agp = "8.9.2"
+agp = "8.9.3"
 kotlin = "2.1.10"
 
 # Octopus
-octopusSdk = "1.2.1"
+octopusSdk = "1.3.0"
 
 # AndroidX
 coreKtx = "1.16.0"
 activityKtx = "1.10.1"
 
 # Compose
-composeBom = "2025.04.01"
+composeBom = "2025.05.01"
 
 # Activity Compose
 activityCompose = "1.10.1"
 
 # Navigation Compose
-navigationCompose = "2.8.9"
+navigationCompose = "2.9.0"
 
 # Serialization
-kotlinxSerialization = "1.6.3"
+kotlinxSerialization = "1.7.3"
+
+# DataStore
+datastore = "1.1.7"
 
 # Coil
 coil = "3.1.0"
@@ -48,6 +51,9 @@ navigation-compose = { group = "androidx.navigation", name = "navigation-compose
 
 # Serialization
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+
+# DataStore
+androidx-datastore = { module = "androidx.datastore:datastore", version.ref = "datastore" }
 
 # Coil
 coil-network = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }

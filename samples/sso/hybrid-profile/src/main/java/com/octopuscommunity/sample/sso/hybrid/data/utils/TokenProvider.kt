@@ -1,4 +1,4 @@
-package com.octopuscommunity.sample.sso.hybrid.data
+package com.octopuscommunity.sample.sso.hybrid.data.utils
 
 import android.util.Base64
 import com.octopuscommunity.sample.sso.hybrid.BuildConfig

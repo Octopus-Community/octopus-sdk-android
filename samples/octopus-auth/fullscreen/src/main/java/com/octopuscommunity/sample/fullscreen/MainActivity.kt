@@ -4,32 +4,42 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.octopuscommunity.sdk.ui.OctopusDestination
 import com.octopuscommunity.sdk.ui.OctopusTheme
+import com.octopuscommunity.sdk.ui.navigateToOctopusHome
 import com.octopuscommunity.sdk.ui.octopusDarkColorScheme
 import com.octopuscommunity.sdk.ui.octopusDrawables
 import com.octopuscommunity.sdk.ui.octopusLightColorScheme
 import com.octopuscommunity.sdk.ui.octopusNavigation
+import com.octopuscommunity.sdk.ui.octopusTypography
 import kotlinx.serialization.Serializable
 
 @Serializable
 data object MainScreen
 
 class MainActivity : ComponentActivity() {
+
+    private val viewModel by viewModels<MainViewModel>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -37,23 +47,38 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val navController = rememberNavController()
+            val state by viewModel.state.collectAsStateWithLifecycle()
             NavHost(
                 navController = navController,
                 startDestination = MainScreen
             ) {
                 composable<MainScreen> {
+                    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+                        viewModel.updateNotificationsCount()
+                    }
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(32.dp)
                     ) {
-                        Button(
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .align(Alignment.Center),
-                            onClick = { navController.navigate(OctopusDestination.Home) },
+                                .align(Alignment.Center)
                         ) {
-                            Text("Open Octopus")
+                            Button(
+                                modifier = Modifier
+                                    .fillMaxWidth(),
+                                onClick = { navController.navigateToOctopusHome() },
+                            ) {
+                                Text("Open Octopus")
+                            }
+                            if (state.unreadNotificationsCount > 0) {
+                                Badge(
+                                    modifier = Modifier.align(Alignment.TopEnd),
+                                    content = { Text(state.unreadNotificationsCount.toString()) }
+                                )
+                            }
                         }
                     }
                 }
@@ -78,6 +103,7 @@ class MainActivity : ComponentActivity() {
                                 onHover = Color(0xFFFFFFFF)
                             )
                         },
+                        typography = octopusTypography(),
                         drawables = octopusDrawables(logo = R.drawable.ic_logo),
                     ) {
                         content()

@@ -1,8 +1,8 @@
-package com.octopuscommunity.sample.sso.hybrid.screen
+package com.octopuscommunity.sample.sso.octopus.screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -22,29 +23,33 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import coil3.compose.AsyncImage
-import com.octopuscommunity.sample.sso.hybrid.R
-import com.octopuscommunity.sample.sso.hybrid.data.AppUser
-import com.octopuscommunity.sdk.domain.model.ClientUser.Profile.AgeInformation
-import com.octopuscommunity.sdk.domain.model.Image
+import com.octopuscommunity.sample.sso.octopus.R
+import com.octopuscommunity.sample.sso.octopus.data.model.User
+import com.octopuscommunity.sdk.ui.OctopusTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SSOMainScreen(
-    appUser: AppUser?,
+fun MainScreen(
+    user: User?,
+    unreadNotificationsCount: Int,
+    onResume: () -> Unit,
     onLogin: () -> Unit,
-    onEditUser: () -> Unit,
     onLogout: () -> Unit,
     onOpenOctopus: () -> Unit
 ) {
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { onResume() }
+
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
@@ -72,33 +77,14 @@ fun SSOMainScreen(
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            Column(
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Text(
-                    text = "SSO Mode - Hybrid Profile",
-                    style = MaterialTheme.typography.headlineSmall
-                )
-                Text(
-                    text = "Some profile fields are managed by your app. This means these fields are the ones " +
-                            "that will be used in the community. It also means that Octopus Community won't moderate those  " +
-                            "fields (nickname, bio, or picture profile). It also means that, if the nickname is part of " +
-                            "these fields, you have to ensure that it is unique.",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Text(
-                    text = "In order to test this scenario:\n" +
-                            "- your community should be configured to use SSO authentication\n" +
-                            "- your community should be configured to have some app managed fields\n" +
-                            "- you must set those fields in the OctopusSDK.initialize() function",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = Color.Red
-                )
-            }
+            Text(
+                text = "Octopus SDK Sample - SSO Octopus Profile",
+                style = MaterialTheme.typography.titleLarge
+            )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            if (appUser != null) {
+            if (user != null) {
                 Text(
                     text = "You are currently logged in as:",
                     style = MaterialTheme.typography.titleMedium.copy(
@@ -106,43 +92,37 @@ fun SSOMainScreen(
                     )
                 )
                 Text(
-                    text = "User Id: ${appUser.id ?: ""}",
+                    text = "User Id: ${user.id ?: ""}",
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Text(
-                    text = "Nickname: ${appUser.nickname ?: ""}",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Text(
-                    text = "Bio: ${appUser.bio ?: ""}",
+                    text = "Nickname: ${user.nickname ?: ""}",
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Text(
                     text = "Age Information: ${
-                        when (appUser.ageInformation) {
-                            AgeInformation.LegalAgeReached -> ">= 16"
-                            AgeInformation.Underage -> "< 16>"
+                        when (user.ageInformation) {
+                            User.AgeInformation.LEGAL_AGE_REACHED -> ">= 16"
+                            User.AgeInformation.UNDERAGE -> "< 16>"
                             null -> "Not checked"
                         }
                     }",
                     style = MaterialTheme.typography.bodyMedium
                 )
-                Text(
-                    text = "Avatar:",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                AsyncImage(
-                    modifier = Modifier
-                        .size(64.dp)
-                        .clip(CircleShape),
-                    model = when (val avatar = appUser.avatar) {
-                        is Image.Remote -> avatar.url
-                        is Image.Local -> avatar.uri
-                        else -> null
-                    },
-                    contentDescription = "Avatar",
-                    contentScale = ContentScale.Crop,
-                )
+                user.avatar?.let { avatar ->
+                    Text(
+                        text = "Avatar:",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    AsyncImage(
+                        modifier = Modifier
+                            .size(64.dp)
+                            .clip(CircleShape),
+                        model = avatar.data,
+                        contentDescription = "Avatar",
+                        contentScale = ContentScale.Crop,
+                    )
+                }
             } else {
                 Text(
                     text = "You are currently not logged in",
@@ -154,7 +134,7 @@ fun SSOMainScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            if (appUser == null) {
+            if (user == null) {
                 Button(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = onLogin,
@@ -162,13 +142,6 @@ fun SSOMainScreen(
                     Text("Login")
                 }
             } else {
-                Button(
-                    modifier = Modifier.fillMaxWidth(),
-                    onClick = onEditUser,
-                ) {
-                    Text("Edit user")
-                }
-
                 Button(
                     modifier = Modifier.fillMaxWidth(),
                     onClick = {
@@ -180,11 +153,32 @@ fun SSOMainScreen(
             }
 
             Spacer(modifier = Modifier.height(32.dp))
-            Button(
-                modifier = Modifier.fillMaxWidth(),
-                onClick = onOpenOctopus
-            ) {
-                Text("Open Octopus")
+
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = onOpenOctopus
+                ) {
+                    Text("Open Octopus")
+                }
+
+                if (unreadNotificationsCount > 0) {
+                    Badge(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd),
+                        containerColor = OctopusTheme.colorScheme.alert,
+                        contentColor = OctopusTheme.colorScheme.gray100,
+                        content = {
+                            Text(
+                                modifier = Modifier.padding(2.dp),
+                                text = when (unreadNotificationsCount) {
+                                    in 1..99 -> unreadNotificationsCount.toString()
+                                    else -> "+99"
+                                }
+                            )
+                        }
+                    )
+                }
             }
         }
     }
@@ -192,11 +186,12 @@ fun SSOMainScreen(
 
 @Preview
 @Composable
-private fun SSOMainScreenPreview() {
-    SSOMainScreen(
-        appUser = null,
+private fun MainScreenPreview() {
+    MainScreen(
+        user = User(),
+        unreadNotificationsCount = 10,
+        onResume = {},
         onLogin = {},
-        onEditUser = {},
         onLogout = {},
         onOpenOctopus = {}
     )

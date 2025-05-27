@@ -1,8 +1,9 @@
-package com.octopuscommunity.sample.sso.hybrid.screen
+package com.octopuscommunity.sample.sso.client.screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -36,17 +37,15 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.octopuscommunity.sample.sso.hybrid.data.AppUser
-import com.octopuscommunity.sdk.domain.model.ProfileField
+import com.octopuscommunity.sample.sso.client.data.model.User
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SSOLoginScreen(
-    initialAppUser: AppUser?,
-    onLogin: (AppUser) -> Unit,
+fun LoginScreen(
+    onLogin: (User) -> Unit,
     onBack: () -> Unit
 ) {
-    var appUser by remember(initialAppUser) { mutableStateOf(initialAppUser ?: AppUser()) }
+    var user by remember { mutableStateOf(User()) }
 
     Scaffold(
         modifier = Modifier
@@ -74,6 +73,7 @@ fun SSOLoginScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .consumeWindowInsets(innerPadding)
                 .padding(16.dp)
                 .imePadding()
                 .verticalScroll(rememberScrollState()),
@@ -81,7 +81,7 @@ fun SSOLoginScreen(
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                value = appUser.id ?: "",
+                value = user.id ?: "",
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Email,
                     imeAction = ImeAction.Next,
@@ -90,7 +90,7 @@ fun SSOLoginScreen(
                 ),
                 singleLine = true,
                 onValueChange = {
-                    appUser = appUser.copy(
+                    user = user.copy(
                         id = it.lowercase().ifEmpty { null }
                     )
                 },
@@ -100,18 +100,16 @@ fun SSOLoginScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             EditUserContent(
-                appUser = appUser,
-                visibleFields = ProfileField.ALL,
-                displayAge = true,
-                onAppUserChanged = { appUser = it }
+                user = user,
+                onUserChanged = { user = it }
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             Button(
                 modifier = Modifier.fillMaxWidth(),
-                enabled = appUser.id?.isNotEmpty() == true,
-                onClick = { onLogin(appUser) }
+                enabled = user.id?.isNotEmpty() == true,
+                onClick = { onLogin(user) }
             ) {
                 Text("Login")
             }
@@ -121,9 +119,8 @@ fun SSOLoginScreen(
 
 @Preview
 @Composable
-private fun SSOLoginScreenPreview() {
-    SSOLoginScreen(
-        initialAppUser = null,
+private fun LoginScreenPreview() {
+    LoginScreen(
         onLogin = {},
         onBack = {}
     )

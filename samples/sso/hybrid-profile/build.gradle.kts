@@ -95,6 +95,9 @@ dependencies {
     // Serialization
     implementation(libs.kotlinx.serialization.json)
 
+    // DataStore
+    implementation(libs.androidx.datastore)
+
     // Coil
     implementation(libs.coil.network)
     implementation(libs.coil.compose)

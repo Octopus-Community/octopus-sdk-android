@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -47,20 +48,18 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import com.octopuscommunity.sample.sso.octopus.data.AppUser
-import com.octopuscommunity.sdk.domain.model.ClientUser.Profile.AgeInformation
-import com.octopuscommunity.sdk.domain.model.Image
+import com.octopuscommunity.sample.sso.octopus.data.model.User
+import com.octopuscommunity.sdk.ui.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SSOLoginScreen(
-    initialAppUser: AppUser?,
-    onLogin: (AppUser) -> Unit,
+fun LoginScreen(
+    onLogin: (User) -> Unit,
     onBack: () -> Unit
 ) {
     val context = LocalContext.current
 
-    var appUser by remember(initialAppUser) { mutableStateOf(initialAppUser ?: AppUser()) }
+    var user by remember { mutableStateOf(User()) }
 
     Scaffold(
         modifier = Modifier
@@ -88,6 +87,7 @@ fun SSOLoginScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .consumeWindowInsets(innerPadding)
                 .padding(16.dp)
                 .imePadding()
                 .verticalScroll(rememberScrollState()),
@@ -95,7 +95,7 @@ fun SSOLoginScreen(
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                value = appUser.id ?: "",
+                value = user.id ?: "",
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Email,
                     imeAction = ImeAction.Next,
@@ -104,7 +104,7 @@ fun SSOLoginScreen(
                 ),
                 singleLine = true,
                 onValueChange = {
-                    appUser = appUser.copy(
+                    user = user.copy(
                         id = it.lowercase().ifEmpty { null }
                     )
                 },
@@ -116,7 +116,7 @@ fun SSOLoginScreen(
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                value = appUser.nickname ?: "",
+                value = user.nickname ?: "",
                 label = { Text("Nickname") },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
@@ -125,21 +125,7 @@ fun SSOLoginScreen(
                     autoCorrectEnabled = false
                 ),
                 singleLine = true,
-                onValueChange = { appUser = appUser.copy(nickname = it.ifEmpty { null }) },
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            OutlinedTextField(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                value = appUser.bio ?: "",
-                label = { Text("Bio") },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Text,
-                    capitalization = KeyboardCapitalization.Sentences
-                ),
-                onValueChange = { appUser = appUser.copy(bio = it.ifEmpty { null }) },
+                onValueChange = { user = user.copy(nickname = it.ifEmpty { null }) },
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -147,17 +133,20 @@ fun SSOLoginScreen(
             Text("Avatar")
             SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                 SegmentedButton(
-                    selected = appUser.avatar == null,
-                    onClick = { appUser = appUser.copy(avatar = null) },
+                    selected = user.avatar == null,
+                    onClick = { user = user.copy(avatar = null) },
                     shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3)
                 ) {
                     Text("None")
                 }
                 SegmentedButton(
-                    selected = appUser.avatar is Image.Remote,
+                    selected = user.avatar?.source == User.Avatar.Source.REMOTE,
                     onClick = {
-                        appUser = appUser.copy(
-                            avatar = Image.Remote("https://play-lh.googleusercontent.com/H6umM_74J78u2KrdnnnDwwLctekjZg5kghkx6LSSeQvt5plFI3E98bjWaLZm8lds0ixg=w480-h960-rw")
+                        user = user.copy(
+                            avatar = User.Avatar(
+                                source = User.Avatar.Source.REMOTE,
+                                data = "https://play-lh.googleusercontent.com/H6umM_74J78u2KrdnnnDwwLctekjZg5kghkx6LSSeQvt5plFI3E98bjWaLZm8lds0ixg=w480-h960-rw"
+                            )
                         )
                     },
                     shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3)
@@ -165,14 +154,15 @@ fun SSOLoginScreen(
                     Text("Url")
                 }
                 SegmentedButton(
-                    selected = appUser.avatar is Image.Local,
+                    selected = user.avatar?.source == User.Avatar.Source.LOCAL,
                     onClick = {
-                        appUser = appUser.copy(
-                            avatar = Image.Local(
-                                Uri.Builder()
+                        user = user.copy(
+                            avatar = User.Avatar(
+                                source = User.Avatar.Source.LOCAL,
+                                data = Uri.Builder()
                                     .scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
                                     .authority(context.packageName)
-                                    .path(com.octopuscommunity.sdk.ui.R.drawable.ic_bloc_user.toString())
+                                    .path(R.drawable.ic_bloc_user.toString())
                                     .build()
                             )
                         )
@@ -183,70 +173,69 @@ fun SSOLoginScreen(
                 }
             }
 
-            if (appUser.avatar != null) {
-                Spacer(modifier = Modifier.height(16.dp))
-
+            user.avatar?.let { avatar ->
                 AsyncImage(
                     modifier = Modifier
                         .size(96.dp)
                         .clip(CircleShape),
-                    model = when (val avatar = appUser.avatar) {
-                        is Image.Remote -> avatar.url
-                        is Image.Local -> avatar.uri
-                        else -> null
-                    },
+                    model = avatar.data,
                     contentDescription = "Avatar",
                     contentScale = ContentScale.Crop,
                 )
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text("Information about the age")
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                SegmentedButton(
+                    selected = user.ageInformation == null,
+                    onClick = { user = user.copy(ageInformation = null) },
+                    shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3)
+                ) {
+                    Text("Not checked")
+                }
+                SegmentedButton(
+                    selected = user.ageInformation == User.AgeInformation.LEGAL_AGE_REACHED,
+                    onClick = {
+                        user = user.copy(
+                            ageInformation = User.AgeInformation.LEGAL_AGE_REACHED
+                        )
+                    },
+                    shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3)
+                ) {
+                    Text(">= 16")
+                }
+                SegmentedButton(
+                    selected = user.ageInformation == User.AgeInformation.UNDERAGE,
+                    onClick = {
+                        user = user.copy(
+                            ageInformation = User.AgeInformation.UNDERAGE
+                        )
+                    },
+                    shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3)
+                ) {
+                    Text("< 16")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                modifier = Modifier.fillMaxWidth(),
+                enabled = user.id?.isNotEmpty() == true,
+                onClick = { onLogin(user) }
+            ) {
+                Text("Login")
+            }
         }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text("Information about the age")
-        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-            SegmentedButton(
-                selected = appUser.ageInformation == null,
-                onClick = { appUser = appUser.copy(ageInformation = null) },
-                shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3)
-            ) {
-                Text("Not checked")
-            }
-            SegmentedButton(
-                selected = appUser.ageInformation == AgeInformation.LegalAgeReached,
-                onClick = {
-                    appUser = appUser.copy(ageInformation = AgeInformation.LegalAgeReached)
-                },
-                shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3)
-            ) {
-                Text(">= 16")
-            }
-            SegmentedButton(
-                selected = appUser.ageInformation == AgeInformation.Underage,
-                onClick = { appUser = appUser.copy(ageInformation = AgeInformation.Underage) },
-                shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3)
-            ) {
-                Text("< 16")
-            }
-        }
-    }
-
-    Spacer(modifier = Modifier.height(32.dp))
-
-    Button(
-        modifier = Modifier.fillMaxWidth(),
-        enabled = appUser.id?.isNotEmpty() == true,
-        onClick = { onLogin(appUser) }
-    ) {
-        Text("Login")
     }
 }
 
 @Preview
 @Composable
-private fun SSOLoginScreenPreview() {
-    SSOLoginScreen(
-        initialAppUser = null,
+private fun LoginScreenPreview() {
+    LoginScreen(
         onLogin = {},
         onBack = {}
     )

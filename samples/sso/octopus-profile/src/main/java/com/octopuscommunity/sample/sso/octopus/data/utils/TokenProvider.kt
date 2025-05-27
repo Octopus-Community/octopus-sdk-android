@@ -1,7 +1,7 @@
-package com.octopuscommunity.sample.sso.client.data
+package com.octopuscommunity.sample.sso.octopus.data.utils
 
 import android.util.Base64
-import com.octopuscommunity.sample.sso.client.BuildConfig
+import com.octopuscommunity.sample.sso.octopus.BuildConfig
 import org.json.JSONObject
 import java.nio.charset.StandardCharsets
 import javax.crypto.Mac
