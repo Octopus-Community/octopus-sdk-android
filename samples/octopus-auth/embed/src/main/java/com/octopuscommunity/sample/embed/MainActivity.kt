@@ -19,17 +19,18 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.octopuscommunity.sdk.ui.OctopusDrawablesDefaults
 import com.octopuscommunity.sdk.ui.OctopusTheme
 import com.octopuscommunity.sdk.ui.home.OctopusHomeContent
+import com.octopuscommunity.sdk.ui.octopusComposables
 import com.octopuscommunity.sdk.ui.octopusDarkColorScheme
-import com.octopuscommunity.sdk.ui.octopusDrawables
 import com.octopuscommunity.sdk.ui.octopusLightColorScheme
-import com.octopuscommunity.sdk.ui.octopusNavigation
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -85,14 +86,11 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                 }
-                octopusNavigation(
-                    navController = navController,
-                    container = { content ->
-                        OctopusContainer {
-                            content()
-                        }
+                octopusComposables(navController) { backStackEntry, content ->
+                    OctopusContainer {
+                        content()
                     }
-                )
+                }
             }
         }
     }
@@ -120,7 +118,9 @@ fun OctopusContainer(content: @Composable () -> Unit) {
                 onHover = Color(0xFFFFFFFF)
             )
         },
-        drawables = octopusDrawables(logo = R.drawable.ic_logo)
+        drawables = OctopusDrawablesDefaults.drawables(
+            logo = painterResource(id = R.drawable.ic_logo)
+        )
     ) {
         content()
     }

@@ -12,7 +12,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -25,11 +25,11 @@ import com.octopuscommunity.sample.sso.client.screen.EditUserScreen
 import com.octopuscommunity.sample.sso.client.screen.LoginScreen
 import com.octopuscommunity.sample.sso.client.screen.MainScreen
 import com.octopuscommunity.sdk.ui.OctopusDestination
+import com.octopuscommunity.sdk.ui.OctopusDrawablesDefaults
 import com.octopuscommunity.sdk.ui.OctopusTheme
+import com.octopuscommunity.sdk.ui.octopusComposables
 import com.octopuscommunity.sdk.ui.octopusDarkColorScheme
-import com.octopuscommunity.sdk.ui.octopusDrawables
 import com.octopuscommunity.sdk.ui.octopusLightColorScheme
-import com.octopuscommunity.sdk.ui.octopusNavigation
 import kotlinx.serialization.Serializable
 
 /**
@@ -73,7 +73,6 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            val context = LocalContext.current
             val navController = rememberNavController()
             val state by viewModel.state.collectAsStateWithLifecycle()
 
@@ -147,13 +146,13 @@ class MainActivity : ComponentActivity() {
                     }
 
                     // Octopus SDK Navigation - integrates all Octopus screens
-                    octopusNavigation(
+                    octopusComposables(
                         navController = navController,
                         onNavigateToLogin = { navController.navigate(LoginScreen) },
                         onNavigateToProfileEdit = { fieldToEdit ->
                             navController.navigate(EditUserScreen)
                         },
-                        container = { content ->
+                        container = { backStackEntry, content ->
                             // Apply Octopus theming to match the rest of the app
                             OctopusTheme(
                                 colorScheme = if (isSystemInDarkTheme()) {
@@ -171,8 +170,8 @@ class MainActivity : ComponentActivity() {
                                         primaryHigh = Color(0xFF15D1A2)
                                     )
                                 },
-                                drawables = octopusDrawables(
-                                    logo = R.drawable.ic_logo
+                                drawables = OctopusDrawablesDefaults.drawables(
+                                    logo = painterResource(id = R.drawable.ic_logo)
                                 )
                             ) {
                                 content()

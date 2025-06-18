@@ -48,8 +48,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import com.octopuscommunity.sample.sso.client.R
 import com.octopuscommunity.sample.sso.client.data.model.User
-import com.octopuscommunity.sdk.ui.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -183,7 +183,7 @@ fun EditUserContent(
                                 data = Uri.Builder()
                                     .scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
                                     .authority(context.packageName)
-                                    .path(R.drawable.ic_bloc_user.toString())
+                                    .path(R.drawable.ic_avatar.toString())
                                     .build()
                             )
                         )
