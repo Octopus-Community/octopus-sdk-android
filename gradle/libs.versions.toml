@@ -3,14 +3,14 @@ agp = "8.10.1"
 kotlin = "2.1.10"
 
 # Octopus
-octopusSdk = "1.4.0"
+octopusSdk = "1.4.1"
 
 # AndroidX
 coreKtx = "1.16.0"
 activityKtx = "1.10.1"
 
 # Compose
-composeBom = "2025.06.00"
+composeBom = "2025.06.01"
 
 # Activity Compose
 activityCompose = "1.10.1"
