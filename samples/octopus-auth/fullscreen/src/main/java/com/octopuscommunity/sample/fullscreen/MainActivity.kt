@@ -1,17 +1,23 @@
 package com.octopuscommunity.sample.fullscreen
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Badge
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.darkColorScheme
@@ -32,6 +38,7 @@ import com.octopuscommunity.sdk.ui.OctopusDrawablesDefaults
 import com.octopuscommunity.sdk.ui.OctopusTheme
 import com.octopuscommunity.sdk.ui.OctopusTypographyDefaults
 import com.octopuscommunity.sdk.ui.navigateToOctopusHome
+import com.octopuscommunity.sdk.ui.navigateToOctopusPost
 import com.octopuscommunity.sdk.ui.octopusComposables
 import com.octopuscommunity.sdk.ui.octopusDarkColorScheme
 import com.octopuscommunity.sdk.ui.octopusLightColorScheme
@@ -67,19 +74,15 @@ class MainActivity : ComponentActivity() {
                         LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
                             viewModel.updateNotificationsCount()
                         }
-                        Box(
+                        Column(
                             modifier = Modifier
                                 .fillMaxSize()
-                                .padding(32.dp)
+                                .padding(32.dp),
+                            verticalArrangement = Arrangement.Center
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .align(Alignment.Center)
-                            ) {
+                            Box(modifier = Modifier.fillMaxWidth()) {
                                 Button(
-                                    modifier = Modifier
-                                        .fillMaxWidth(),
+                                    modifier = Modifier.fillMaxWidth(),
                                     onClick = { navController.navigateToOctopusHome() },
                                 ) {
                                     Text("Open Octopus")
@@ -91,9 +94,42 @@ class MainActivity : ComponentActivity() {
                                     )
                                 }
                             }
+
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Button(
+                                modifier = Modifier.fillMaxWidth(),
+                                onClick = {
+                                    state.bridgePost?.let { bridgePost ->
+                                        navController.navigateToOctopusPost(postId = bridgePost.id)
+                                    } ?: viewModel.createBridgePost()
+                                }
+                            ) {
+                                when {
+                                    state.isLoading -> CircularProgressIndicator(
+                                        modifier = Modifier.height(16.dp)
+                                    )
+
+                                    else -> Text(text = "Open Bridge Post")
+                                }
+                            }
+                            state.error?.let {
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = it.asString(),
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
                         }
                     }
-                    octopusComposables(navController) { backStackEntry, content ->
+                    octopusComposables(
+                        navController = navController,
+                        onNavigateToClientObject = {
+                            Toast.makeText(
+                                this@MainActivity,
+                                "Opening client object $it",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }) { backStackEntry, content ->
                         OctopusTheme(
                             colorScheme = if (isSystemInDarkTheme()) {
                                 octopusDarkColorScheme(
