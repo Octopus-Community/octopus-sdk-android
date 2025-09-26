@@ -133,18 +133,18 @@ fun LoginScreen(
             Text("Avatar")
             SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                 SegmentedButton(
-                    selected = user.avatar == null,
-                    onClick = { user = user.copy(avatar = null) },
+                    selected = user.picture == null,
+                    onClick = { user = user.copy(picture = null) },
                     shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3)
                 ) {
                     Text("None")
                 }
                 SegmentedButton(
-                    selected = user.avatar?.source == User.Avatar.Source.REMOTE,
+                    selected = user.picture?.source == User.Picture.Source.REMOTE,
                     onClick = {
                         user = user.copy(
-                            avatar = User.Avatar(
-                                source = User.Avatar.Source.REMOTE,
+                            picture = User.Picture(
+                                source = User.Picture.Source.REMOTE,
                                 data = "https://play-lh.googleusercontent.com/H6umM_74J78u2KrdnnnDwwLctekjZg5kghkx6LSSeQvt5plFI3E98bjWaLZm8lds0ixg=w480-h960-rw"
                             )
                         )
@@ -154,11 +154,11 @@ fun LoginScreen(
                     Text("Url")
                 }
                 SegmentedButton(
-                    selected = user.avatar?.source == User.Avatar.Source.LOCAL,
+                    selected = user.picture?.source == User.Picture.Source.LOCAL,
                     onClick = {
                         user = user.copy(
-                            avatar = User.Avatar(
-                                source = User.Avatar.Source.LOCAL,
+                            picture = User.Picture(
+                                source = User.Picture.Source.LOCAL,
                                 data = Uri.Builder()
                                     .scheme(ContentResolver.SCHEME_ANDROID_RESOURCE)
                                     .authority(context.packageName)
@@ -173,7 +173,7 @@ fun LoginScreen(
                 }
             }
 
-            user.avatar?.let { avatar ->
+            user.picture?.let { avatar ->
                 AsyncImage(
                     modifier = Modifier
                         .size(96.dp)
@@ -182,41 +182,6 @@ fun LoginScreen(
                     contentDescription = "Avatar",
                     contentScale = ContentScale.Crop,
                 )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text("Information about the age")
-            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                SegmentedButton(
-                    selected = user.ageInformation == null,
-                    onClick = { user = user.copy(ageInformation = null) },
-                    shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3)
-                ) {
-                    Text("Not checked")
-                }
-                SegmentedButton(
-                    selected = user.ageInformation == User.AgeInformation.LEGAL_AGE_REACHED,
-                    onClick = {
-                        user = user.copy(
-                            ageInformation = User.AgeInformation.LEGAL_AGE_REACHED
-                        )
-                    },
-                    shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3)
-                ) {
-                    Text(">= 16")
-                }
-                SegmentedButton(
-                    selected = user.ageInformation == User.AgeInformation.UNDERAGE,
-                    onClick = {
-                        user = user.copy(
-                            ageInformation = User.AgeInformation.UNDERAGE
-                        )
-                    },
-                    shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3)
-                ) {
-                    Text("< 16")
-                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))

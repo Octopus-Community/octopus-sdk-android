@@ -173,7 +173,7 @@ class MainActivity : ComponentActivity() {
                                 )
                             },
                             drawables = OctopusDrawablesDefaults.drawables(
-                                logo = painterResource(id = R.drawable.ic_logo)
+                                logo = R.drawable.ic_logo
                             )
                         ) {
                             content()

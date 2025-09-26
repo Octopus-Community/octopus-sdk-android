@@ -104,17 +104,7 @@ fun MainScreen(
                     text = "Bio: ${user.bio ?: ""}",
                     style = MaterialTheme.typography.bodyMedium
                 )
-                Text(
-                    text = "Age Information: ${
-                        when (user.ageInformation) {
-                            User.AgeInformation.LEGAL_AGE_REACHED -> ">= 16"
-                            User.AgeInformation.UNDERAGE -> "< 16>"
-                            null -> "Not checked"
-                        }
-                    }",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                user.avatar?.let { avatar ->
+                user.picture?.let { avatar ->
                     Text(
                         text = "Avatar:",
                         style = MaterialTheme.typography.bodyMedium

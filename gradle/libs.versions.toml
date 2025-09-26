@@ -3,7 +3,7 @@ agp = "8.11.1"
 kotlin = "2.1.10"
 
 # Octopus
-octopusSdk = "1.5.1"
+octopusSdk = "1.6.0"
 
 # AndroidX
 coreKtx = "1.16.0"

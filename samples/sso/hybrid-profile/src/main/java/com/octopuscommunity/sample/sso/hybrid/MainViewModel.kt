@@ -43,16 +43,11 @@ class MainViewModel(private val userDataStore: UserDataStore) : ViewModel() {
                             userId = user.id ?: "",
                             profile = ClientUser.Profile(
                                 nickname = user.nickname,
-                                avatar = user.avatar?.let { avatar ->
+                                picture = user.picture?.let { avatar ->
                                     when (avatar.source) {
-                                        User.Avatar.Source.LOCAL -> Image.Local(avatar.data)
-                                        User.Avatar.Source.REMOTE -> Image.Remote(avatar.data)
+                                        User.Picture.Source.LOCAL -> Image.Local(avatar.data)
+                                        User.Picture.Source.REMOTE -> Image.Remote(avatar.data)
                                     }
-                                },
-                                ageInformation = when (user.ageInformation) {
-                                    User.AgeInformation.LEGAL_AGE_REACHED -> ClientUser.Profile.AgeInformation.LegalAgeReached
-                                    User.AgeInformation.UNDERAGE -> ClientUser.Profile.AgeInformation.Underage
-                                    null -> null
                                 }
                             )
                         ),

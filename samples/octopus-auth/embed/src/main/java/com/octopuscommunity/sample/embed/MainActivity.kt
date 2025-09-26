@@ -19,7 +19,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
@@ -119,7 +118,7 @@ fun OctopusContainer(content: @Composable () -> Unit) {
             )
         },
         drawables = OctopusDrawablesDefaults.drawables(
-            logo = painterResource(id = R.drawable.ic_logo)
+            logo = R.drawable.ic_logo
         )
     ) {
         content()

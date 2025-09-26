@@ -4,8 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.octopuscommunity.sample.sso.octopus.data.datastore.UserDataStore
 import com.octopuscommunity.sample.sso.octopus.data.model.User
-import com.octopuscommunity.sample.sso.octopus.data.model.User.AgeInformation
-import com.octopuscommunity.sample.sso.octopus.data.model.User.Avatar
+import com.octopuscommunity.sample.sso.octopus.data.model.User.Picture
 import com.octopuscommunity.sample.sso.octopus.data.utils.TokenProvider
 import com.octopuscommunity.sdk.OctopusSDK
 import com.octopuscommunity.sdk.domain.model.ClientUser
@@ -45,16 +44,11 @@ class MainViewModel(private val userDataStore: UserDataStore) : ViewModel() {
                             userId = user.id ?: "",
                             profile = ClientUser.Profile(
                                 nickname = user.nickname,
-                                avatar = user.avatar?.let { avatar ->
+                                picture = user.picture?.let { avatar ->
                                     when (avatar.source) {
-                                        Avatar.Source.LOCAL -> Image.Local(avatar.data)
-                                        Avatar.Source.REMOTE -> Image.Remote(avatar.data)
+                                        Picture.Source.LOCAL -> Image.Local(avatar.data)
+                                        Picture.Source.REMOTE -> Image.Remote(avatar.data)
                                     }
-                                },
-                                ageInformation = when (user.ageInformation) {
-                                    AgeInformation.LEGAL_AGE_REACHED -> ClientUser.Profile.AgeInformation.LegalAgeReached
-                                    AgeInformation.UNDERAGE -> ClientUser.Profile.AgeInformation.Underage
-                                    null -> null
                                 }
                             )
                         ),

@@ -12,7 +12,6 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -171,7 +170,7 @@ class MainActivity : ComponentActivity() {
                                     )
                                 },
                                 drawables = OctopusDrawablesDefaults.drawables(
-                                    logo = painterResource(id = R.drawable.ic_logo)
+                                    logo = R.drawable.ic_logo
                                 )
                             ) {
                                 content()

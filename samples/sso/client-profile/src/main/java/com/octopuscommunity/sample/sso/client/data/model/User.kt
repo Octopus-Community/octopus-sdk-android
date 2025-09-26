@@ -16,17 +16,12 @@ data class User(
     /** The bio for this user */
     val bio: String? = null,
     /** A profile picture */
-    val avatar: Avatar? = null,
-    /** Age information about this user */
-    val ageInformation: AgeInformation? = null
+    val picture: Picture? = null
 ) {
     @Serializable
-    data class Avatar(val source: Source, val data: String) {
+    data class Picture(val source: Source, val data: String) {
         enum class Source { LOCAL, REMOTE }
 
         constructor(source: Source, data: Uri) : this(source, data.toString())
     }
-
-    @Serializable
-    enum class AgeInformation { LEGAL_AGE_REACHED, UNDERAGE }
 }
