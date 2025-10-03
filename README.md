@@ -9,9 +9,9 @@ Add the dependencies to your `build.gradle` file:
 ```kotlin
 dependencies {
   // Core SDK functionalities
-  implementation("com.octopuscommunity:octopus-sdk:1.6.0")
+  implementation("com.octopuscommunity:octopus-sdk:1.6.1")
   // SDK UI Components (optional)
-  implementation("com.octopuscommunity:octopus-sdk-ui:1.6.0")
+  implementation("com.octopuscommunity:octopus-sdk-ui:1.6.1")
 }
 ```
 
@@ -19,103 +19,96 @@ dependencies {
 
 ## How to use the samples
 
-Add this line to the root project `local.properties` file:
+### Local properties
 
- ```properties
- OCTOPUS_API_KEY=YOUR_API_KEY
- ```
+- Add this line to the root project `local.properties` file:
+
+```properties
+OCTOPUS_API_KEY=YOUR_API_KEY
+```
 
 Replace `YOUR_API_KEY` with your own API key. See [Get an API Key](https://doc.octopuscommunity.com/) for more infos.
 
-## Use cases
+- To test SSO connection mode, provide a Client User Token Secret in the root project `local.properties` file:
 
-Depending on your targeted UI integration and user connection mode/profile, choose the corresponding
-sample and documentation.
+```properties
+OCTOPUS_SSO_CLIENT_USER_TOKEN_SECRET=YOUR_USER_TOKEN_SECRET
+```
+
+Replace `YOUR_USER_TOKEN_SECRET` with your own Client User Token Secret. See [Generate a signed JWT for SSO](https://doc.octopuscommunity.com/backend/sso) for more info.
 
 ### UI Integration Mode
 
-- #### Launch the Octopus Home from an action
+Depending on your targeted UI integration, choose how you want to integrate the Octopus Community UI into your app:
 
-  Navigate to the `OctopusDestination.Home` just like any of your screens
+#### 1. Full Screen Navigation
 
-  - [Sample](/samples/octopus-auth/fullscreen)
-  - [Documentation](https://doc.octopuscommunity.com/SDK/octopus-auth/android)
+Display the `OctopusHomeContent` on a dedicated full-screen route, just like any other composable in your other screens.
 
-OR
+**Best for:** Apps where community is a primary feature with equal prominence to other main sections.
 
-- #### Integrate OctopusHome Composable Content
+- [Sample](/samples/src/fullscreen)
 
-  Octopus can be embed as a composable component within your existing app Screen.
-  Include the `OctopusHomeContent` or `OctopusHomeScreen` just like any other Composable and apply your own `Modifier` to it.
+#### 2. Bottom Navigation Tabs
 
-  - [Sample](/samples/octopus-auth/embed)
-  - [Documentation](https://doc.octopuscommunity.com/SDK/octopus-auth/android)
+Integrate community as a tab content in a bottom navigation alongside your other main sections.
 
-### User Connection and Profile Mode
+**Best for:** Apps with 2-5 main sections where community deserves a dedicated, always-accessible tab.
 
-- #### Octopus Authentication
+- [Sample](/samples/src/bottomnavigationbar)
 
-  This method allows you to integrate Octopus quickly, with no backend development required. Octopus handles both user account creation and authentication.
+#### 3. Floating Bottom Navigation 
 
-  - [Sample](/samples/octopus-auth)
-  - [Documentation](https://doc.octopuscommunity.com/SDK/octopus-auth/android)
+Similar to bottom navigation tabs but with content padding to add padding around the edges of the content.
 
-- #### SSO
+**Best for:** Apps requiring custom navigation bar styling that matches a specific design system.
 
-  This integration mode allows users to be automatically logged into the community within your mobile application. If a user has an account in your application and is already logged in, they won’t need to authenticate again to access the community.
+- [Sample](/samples/src/contentpadding)
 
-  - Provide a Client User Token Secret
+#### 4. Modal Bottom Sheet
 
-    If you want to test the SSO connection mode, you need to provide a Client User Token Secret in the
-root project `local.properties` file
+Display the community in a modal bottom sheet that overlays your content. Users can swipe down to dismiss.
 
-    ```properties
-    OCTOPUS_SSO_CLIENT_USER_TOKEN_SECRET=YOUR_USER_TOKEN_SECRET
-    ```
-    Replace `YOUR_USER_TOKEN_SECRET` with your own Client User Token Secret. See [Generate a signed JWT for SSO](https://doc.octopuscommunity.com/backend/sso)
-for more infos.
+**Best for:** Apps where community is a secondary feature accessed occasionally, without disrupting the main flow.
 
-  - You need to know the app managed fields (also called as associated fields) that your community is configured for.
-    - ##### SSO without any app managed fields
+- [Sample](/samples/src/modalbottomsheet)
 
-      All profile fields are managed by Octopus Community. This means that the info you provide in
-      the connectUser are only used as prefilled values when the user creates its community profile.
-      After that, they are not synchronized between your app and the community profile.
+---
 
-      - [Sample](/samples/sso/octopus-profile)
-      - [Documentation](https://doc.octopuscommunity.com/SDK/sso/android)
+### Profile Management Options
 
-      In order to test this scenario:
-      - your community should be configured to have no app managed fields
+You need to configure which profile fields are managed by your app vs. Octopus Community:
+Edit the `appManagedFields` list on the OctopusSDK.initialise() call in the [SampleApplication](/samples/src/main/java/com/octopuscommunity/sample/SampleApplication.kt)
 
-    - ##### SSO with some app managed fields
+#### Option 1: Octopus-Managed Profile (No App-Managed Fields)
 
-      Some profile fields are managed by your app. This means these fields are the ones
-      that will be used in the community. It also means that Octopus Community won't moderate those
-      fields (nickname, bio, or picture profile). It also means that, if the nickname is part of
-      these fields, you have to ensure that it is unique.
+All profile fields are managed by Octopus Community. Info you provide in `connectUser` is only used as prefilled values when the user creates their community profile. Fields are not synchronized between your app and community profile.
 
-        - [Sample](/samples/sso/hybrid-profile)
-        - [Documentation](https://doc.octopuscommunity.com/SDK/sso/android)
+- [Documentation](https://doc.octopuscommunity.com/SDK/sso/android)
 
-      In order to test this scenario:
-        - your community should be configured to have some app managed fields
-        - you must set those fields in the OctopusSDK.initialize() function
+**Requirements:**
+- Your community must be configured with no app-managed fields
 
-    - ##### SSO with all app managed fields
+#### Option 2: Hybrid Profile (Some App-Managed Fields)
 
-      All profile fields are managed by your app. This means that your user profile is the one that
-      will be used in the community. It also means that Octopus Community won't moderate the content
-      of the profile (nickname, bio, and picture profile). It also means that you have to ensure
-      that the nickname is unique.
+Some profile fields are managed by your app. These fields will be used in the community. Octopus Community won't moderate app-managed fields. If nickname is app-managed, you must ensure it's unique.
 
-        - [Sample](/samples/sso/client-profile)
-        - [Documentation](https://doc.octopuscommunity.com/SDK/sso/android)
+- [Documentation](https://doc.octopuscommunity.com/SDK/sso/android)
 
-      In order to test this scenario:
-        - your community should be configured to have all fields as app managed
-        - you must set those fields in the OctopusSDK.initialize() function
+**Requirements:**
+- Your community must be configured with some app-managed fields
+- You must specify these fields in `OctopusSDK.initialize()`
+
+#### Option 3: Client-Managed Profile (All App-Managed Fields)
+
+All profile fields are managed by your app. Your user profile is used directly in the community. Octopus Community won't moderate any profile content. You must ensure nickname uniqueness.
+
+- [Documentation](https://doc.octopuscommunity.com/SDK/sso/android)
+
+**Requirements:**
+- Your community must be configured with all fields as app-managed
+- You must set all fields in `OctopusSDK.initialize()`
 
 ## Architecture
 
-If you want to know more about how the SDK's architecture, [here is a document](ARCHITECTURE.md) that explains it.
+If you want to know more about the SDK's architecture, [here is a document](ARCHITECTURE.md) that explains it.
