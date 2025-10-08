@@ -22,7 +22,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "Octopus SDK Samples"
-include(
-    ":samples"
-)
- 
+include(":samples")
+include(":tools")

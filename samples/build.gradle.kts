@@ -65,6 +65,10 @@ android {
             dimension = "mode"
             versionNameSuffix = "-modalbottomsheet"
         }
+        create("singleactivity") {
+            dimension = "mode"
+            versionNameSuffix = "-singleactivity"
+        }
     }
 
     buildTypes {
