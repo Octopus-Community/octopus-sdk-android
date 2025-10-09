@@ -14,7 +14,8 @@
         <activity
             android:name="com.octopuscommunity.sample.CommunityActivity"
             android:exported="true"
-            android:theme="@style/Theme.OctopusCommunity">
+            android:theme="@style/Theme.OctopusCommunity"
+            android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

@@ -10,7 +10,7 @@ coreKtx = "1.16.0"
 activityKtx = "1.10.1"
 
 # Compose
-composeBom = "2025.06.01"
+composeBom = "2025.10.00"
 
 # Activity Compose
 activityCompose = "1.10.1"
@@ -19,18 +19,18 @@ activityCompose = "1.10.1"
 navigationCompose = "2.9.1"
 
 # Serialization
-kotlinxSerialization = "1.7.3"
+kotlinxSerialization = "1.9.0"
 
 # DataStore
 datastore = "1.1.7"
 
 # Coil
-coil = "3.1.0"
+coil = "3.3.0"
 
 [libraries]
 # Octopus
-octopus-sdk = { module = "com.octopuscommunity:octopus-sdk", version.ref = "octopusSdk" }
-octopus-sdk-ui = { module = "com.octopuscommunity:octopus-sdk-ui", version.ref = "octopusSdk" }
+octopus-sdk = { group = "com.octopuscommunity", name = "octopus-sdk", version.ref = "octopusSdk" }
+octopus-sdk-ui = { group = "com.octopuscommunity", name = "octopus-sdk-ui", version.ref = "octopusSdk" }
 
 # AndroidX
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -40,8 +40,6 @@ androidx-activity-ktx = { group = "androidx.activity", name = "activity-ktx", ve
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
-# Material3
-androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 
 # Activity Compose
 activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
@@ -49,18 +47,25 @@ activity-compose = { group = "androidx.activity", name = "activity-compose", ver
 # Navigation Compose
 navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 
+# Material3
+androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
+
+# Icons
+androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
+
 # Serialization
-kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 
 # DataStore
-androidx-datastore = { module = "androidx.datastore:datastore", version.ref = "datastore" }
+androidx-datastore = { group = "androidx.datastore", name = "datastore", version.ref = "datastore" }
 
 # Coil
-coil-network = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
-coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+coil-network = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
+coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 
 # Compose

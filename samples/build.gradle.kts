@@ -72,8 +72,14 @@ android {
     }
 
     buildTypes {
-        release {
-            isMinifyEnabled = false
+        debug {
+        }
+        create("minified") {
+            initWith(getByName("debug"))
+            matchingFallbacks += listOf("debug")
+            isDebuggable = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -107,14 +113,18 @@ dependencies {
     implementation(platform(libs.compose.bom))
     implementation(libs.ui.tooling)
     implementation(libs.ui.tooling.preview)
-    // Material3
-    implementation(libs.androidx.material3)
 
     // Activity Compose
     implementation(libs.activity.compose)
 
     // Navigation Compose
     implementation(libs.navigation.compose)
+
+    // Material3
+    implementation(libs.androidx.material3)
+
+    // Icons
+    implementation(libs.androidx.material.icons.extended)
 
     // Serialization
     implementation(libs.kotlinx.serialization.json)
