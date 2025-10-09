@@ -1,6 +1,6 @@
 package com.octopuscommunity.tools
 
-import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.content.res.Configuration
 import android.util.Size
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -13,6 +13,7 @@ import androidx.navigation.compose.rememberNavController
 import com.octopuscommunity.sdk.domain.model.Comment
 import com.octopuscommunity.sdk.test.mock.MockComments
 import com.octopuscommunity.sdk.test.mock.MockPosts
+import com.octopuscommunity.sdk.test.mock.MockProfiles
 import com.octopuscommunity.sdk.ui.OctopusDrawablesDefaults
 import com.octopuscommunity.sdk.ui.OctopusTheme
 import com.octopuscommunity.sdk.ui.OctopusTypographyDefaults
@@ -32,6 +33,8 @@ import com.octopuscommunity.sdk.ui.posts.details.PostDetailsScreen
 import com.octopuscommunity.sdk.ui.profile.current.edit.CurrentUserProfileEditScreen
 import com.octopuscommunity.sdk.ui.profile.current.nickname.ValidateNicknameScreen
 import com.octopuscommunity.sdk.ui.profile.current.summary.CurrentUserProfileSummaryScreen
+import com.octopuscommunity.sdk.ui.report.content.ReportContentScreen
+import com.octopuscommunity.sdk.ui.report.user.ReportUserScreen
 import com.octopuscommunity.sdk.ui.settings.SettingsScreen
 
 /**
@@ -51,13 +54,13 @@ import com.octopuscommunity.sdk.ui.settings.SettingsScreen
  * - UI_MODE_NIGHT_YES: Dark mode enabled
  * - UI_MODE_NIGHT_NO: Light mode enabled
  */
-const val uiMode = UI_MODE_NIGHT_YES
+const val uiMode = Configuration.UI_MODE_NIGHT_NO
 
 /**
  * Device type for preview rendering
  * Options: Devices.PHONE, Devices.TABLET, Devices.FOLDABLE, etc.
  */
-const val device = Devices.TABLET
+const val device = Devices.PIXEL_9
 
 /**
  * Locale for preview (ISO 639-1 language code)
@@ -71,12 +74,12 @@ const val locale = "fr"
  * - 1.5f: 150% larger (useful for accessibility testing)
  * - 0.85f: Smaller text
  */
-const val fontScale = 1.5f
+const val fontScale = 1f
 
 /**
  * Whether to show system UI (status bar, navigation bar) in previews
  */
-const val showUi = false
+const val showUi = true
 
 
 // ================================================================================================
@@ -235,7 +238,13 @@ private fun OctopusHomePreview() {
  *
  * Shows the user onboarding flow for first-time users.
  */
-@Preview
+@Preview(
+    showSystemUi = showUi,
+    locale = locale,
+    device = device,
+    uiMode = uiMode,
+    fontScale = fontScale
+)
 @Composable
 private fun OctopusOnboardingPreview() {
     CommunityTheme {
@@ -249,7 +258,13 @@ private fun OctopusOnboardingPreview() {
  * Displays a detailed view of a single post with comments.
  * Uses a random mock post from MockPosts.all for demonstration.
  */
-@Preview
+@Preview(
+    showSystemUi = showUi,
+    locale = locale,
+    device = device,
+    uiMode = uiMode,
+    fontScale = fontScale
+)
 @Composable
 private fun OctopusPostDetailsPreview() {
     CommunityTheme {
@@ -265,7 +280,13 @@ private fun OctopusPostDetailsPreview() {
  *
  * Shows the interface for creating a new post with text and media.
  */
-@Preview
+@Preview(
+    showSystemUi = showUi,
+    locale = locale,
+    device = device,
+    uiMode = uiMode,
+    fontScale = fontScale
+)
 @Composable
 private fun OctopusCreatePostPreview() {
     CommunityTheme {
@@ -281,7 +302,13 @@ private fun OctopusCreatePostPreview() {
  * Displays a detailed view of a single comment with replies.
  * Uses the default mock comment for demonstration.
  */
-@Preview
+@Preview(
+    showSystemUi = showUi,
+    locale = locale,
+    device = device,
+    uiMode = uiMode,
+    fontScale = fontScale
+)
 @Composable
 private fun OctopusCommentDetailsPreview() {
     CommunityTheme {
@@ -298,7 +325,13 @@ private fun OctopusCommentDetailsPreview() {
  * Shows the current user's profile with the posts tab selected (index 0).
  * Displays user information and their created posts.
  */
-@Preview
+@Preview(
+    showSystemUi = showUi,
+    locale = locale,
+    device = device,
+    uiMode = uiMode,
+    fontScale = fontScale
+)
 @Composable
 private fun OctopusCurrentUserProfileSummaryPostsPreview() {
     CommunityTheme {
@@ -315,7 +348,13 @@ private fun OctopusCurrentUserProfileSummaryPostsPreview() {
  * Shows the current user's profile with the notifications tab selected (index 1).
  * Displays user notifications and activity updates.
  */
-@Preview
+@Preview(
+    showSystemUi = showUi,
+    locale = locale,
+    device = device,
+    uiMode = uiMode,
+    fontScale = fontScale
+)
 @Composable
 private fun OctopusCurrentUserProfileSummaryNotificationsPreview() {
     CommunityTheme {
@@ -332,7 +371,13 @@ private fun OctopusCurrentUserProfileSummaryNotificationsPreview() {
  * Shows the interface for editing the current user's profile information,
  * including avatar, bio, and other personal details.
  */
-@Preview
+@Preview(
+    showSystemUi = showUi,
+    locale = locale,
+    device = device,
+    uiMode = uiMode,
+    fontScale = fontScale
+)
 @Composable
 private fun OctopusCurrentUserProfileEditPreview() {
     CommunityTheme {
@@ -347,7 +392,13 @@ private fun OctopusCurrentUserProfileEditPreview() {
  *
  * Displays the app settings and preferences interface.
  */
-@Preview
+@Preview(
+    showSystemUi = showUi,
+    locale = locale,
+    device = device,
+    uiMode = uiMode,
+    fontScale = fontScale
+)
 @Composable
 private fun OctopusSettingsPreview() {
     CommunityTheme {
@@ -362,12 +413,52 @@ private fun OctopusSettingsPreview() {
  *
  * Shows the interface for validating and setting a user nickname.
  */
-@Preview
+@Preview(
+    showSystemUi = showUi,
+    locale = locale,
+    device = device,
+    uiMode = uiMode,
+    fontScale = fontScale
+)
 @Composable
 private fun OctopusValidateNicknamePreview() {
     CommunityTheme {
         ValidateNicknameScreen(
             navController = rememberNavController(),
+        )
+    }
+}
+
+@Preview(
+    showSystemUi = showUi,
+    locale = locale,
+    device = device,
+    uiMode = uiMode,
+    fontScale = fontScale
+)
+@Composable
+private fun OctopusReportContentScreenPreview() {
+    CommunityTheme {
+        ReportContentScreen(
+            navController = rememberNavController(),
+            contentId = MockPosts.all.random().id
+        )
+    }
+}
+
+@Preview(
+    showSystemUi = showUi,
+    locale = locale,
+    device = device,
+    uiMode = uiMode,
+    fontScale = fontScale
+)
+@Composable
+private fun OctopusReportUserScreenPreview() {
+    CommunityTheme {
+        ReportUserScreen(
+            navController = rememberNavController(),
+            userId = MockProfiles.all.random().userId
         )
     }
 }
@@ -383,7 +474,13 @@ private fun OctopusValidateNicknamePreview() {
  *
  * Useful for testing error states and validation feedback.
  */
-@Preview
+@Preview(
+    showSystemUi = showUi,
+    locale = locale,
+    device = device,
+    uiMode = uiMode,
+    fontScale = fontScale
+)
 @Composable
 private fun OctopusItemInputFieldShortTextPreview() {
     OctopusTheme {
@@ -419,7 +516,13 @@ private fun OctopusItemInputFieldShortTextPreview() {
  *
  * Useful for testing the loading/sending state of the input field.
  */
-@Preview
+@Preview(
+    showSystemUi = showUi,
+    locale = locale,
+    device = device,
+    uiMode = uiMode,
+    fontScale = fontScale
+)
 @Composable
 private fun OctopusItemInputFieldMultilinePreview() {
     OctopusTheme {
