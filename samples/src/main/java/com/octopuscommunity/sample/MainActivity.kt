@@ -13,8 +13,10 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.toRoute
 import com.octopuscommunity.sample.data.datastore.UserDataStore
 import com.octopuscommunity.sample.screens.MainScreen
+import com.octopuscommunity.sample.screens.bridge.CommunityPostScreen
 import com.octopuscommunity.sample.screens.community.CommunityScreen
 import com.octopuscommunity.sample.screens.login.LoginScreen
 import com.octopuscommunity.sample.screens.profile.EditProfileScreen
@@ -48,6 +50,9 @@ data object EditUserRoute
  */
 @Serializable
 data object CommunityRoute
+
+@Serializable
+data class CommunityPostRoute(val octopusPostId: String)
 
 @Serializable
 data object SettingsRoute
@@ -87,9 +92,7 @@ class MainActivity : ComponentActivity() {
                         MainScreen(
                             mainNavController = navController,
                             state = state,
-                            onLogout = { viewModel.updateUser(null) },
-                            onUpdateNotificationsCount = viewModel::updateNotificationsCount,
-                            onChangeCommunityAccess = viewModel::updateCommunityAccess
+                            onLogout = { viewModel.updateUser(null) }
                         )
                     }
 
@@ -126,6 +129,17 @@ class MainActivity : ComponentActivity() {
                     composable<CommunityRoute> {
                         CommunityScreen(
                             navController = navController,
+                            onLogin = { navController.navigate(LoginRoute) },
+                            onEditUser = { navController.navigate(EditUserRoute) },
+                            onBack = { navController.navigateUp() }
+                        )
+                    }
+
+                    composable<CommunityPostRoute> { backStackEntry ->
+                        val route = backStackEntry.toRoute<CommunityPostRoute>()
+                        CommunityPostScreen(
+                            navController = navController,
+                            octopusPostId = route.octopusPostId,
                             onLogin = { navController.navigate(LoginRoute) },
                             onEditUser = { navController.navigate(EditUserRoute) },
                             onBack = { navController.navigateUp() }

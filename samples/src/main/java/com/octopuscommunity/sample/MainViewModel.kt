@@ -3,11 +3,14 @@ package com.octopuscommunity.sample
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.octopuscommunity.sample.data.datastore.UserDataStore
+import com.octopuscommunity.sample.data.model.ClientObject
 import com.octopuscommunity.sample.data.model.User
 import com.octopuscommunity.sample.data.utils.TokenProvider
 import com.octopuscommunity.sdk.OctopusSDK
+import com.octopuscommunity.sdk.domain.model.ClientPost
 import com.octopuscommunity.sdk.domain.model.ClientUser
 import com.octopuscommunity.sdk.domain.model.Image
+import com.octopuscommunity.sdk.domain.model.OctopusPost
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -26,12 +29,15 @@ class MainViewModel(private val userDataStore: UserDataStore) : ViewModel() {
     data class State(
         val user: User? = null,
         val unreadNotificationsCount: Int = 0,
+        val octopusPost: OctopusPost? = null,
         val hasAccessToCommunity: Boolean = true,
-        val isUpdatingCommunityAccess: Boolean = false
+        val isUpdatingCommunityAccess: Boolean = false,
     )
 
     private val _state = MutableStateFlow(State())
     val state = _state.asStateFlow()
+
+    val clientObject = ClientObject.default
 
     init {
         viewModelScope.launch {
@@ -65,6 +71,13 @@ class MainViewModel(private val userDataStore: UserDataStore) : ViewModel() {
             }
         }
         viewModelScope.launch {
+            OctopusSDK.hasAccessToCommunity.collectLatest { hasAccessToCommunity ->
+                _state.update {
+                    it.copy(hasAccessToCommunity = hasAccessToCommunity)
+                }
+            }
+        }
+        viewModelScope.launch {
             OctopusSDK.notSeenNotificationsCount.collectLatest { unreadNotificationsCount ->
                 _state.update {
                     it.copy(unreadNotificationsCount = unreadNotificationsCount)
@@ -72,20 +85,28 @@ class MainViewModel(private val userDataStore: UserDataStore) : ViewModel() {
             }
         }
         viewModelScope.launch {
-            OctopusSDK.hasAccessToCommunity.collectLatest { hasAccessToCommunity ->
-                _state.update {
-                    it.copy(hasAccessToCommunity = hasAccessToCommunity)
+            OctopusSDK.getClientObjectRelatedPostFlow(ClientObject.default.id)
+                .collectLatest { octopusPost ->
+                    _state.update {
+                        it.copy(octopusPost = octopusPost)
+                    }
                 }
-            }
         }
-    }
 
-    /**
-     * Updates the unread notifications count by calling the Octopus SDK
-     */
-    fun updateNotificationsCount() {
         viewModelScope.launch {
             OctopusSDK.updateNotSeenNotificationsCount()
+
+            OctopusSDK.fetchOrCreateClientObjectRelatedPost(
+                clientPost = ClientPost(
+                    objectId = clientObject.id,
+                    text = clientObject.title ?: "",
+                    attachment = clientObject.imageUrl?.let { Image.Remote(url = it) },
+                    catchPhrase = clientObject.octopusCatchPhrase,
+                    viewObjectButtonText = clientObject.octopusViewClientObjectButtonText,
+                    topicId = clientObject.octopusTopicId,
+                    signature = null
+                )
+            )
         }
     }
 

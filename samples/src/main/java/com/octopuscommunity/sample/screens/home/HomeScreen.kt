@@ -47,6 +47,7 @@ fun HomeScreen(
     onEditUser: () -> Unit,
     onLogout: () -> Unit,
     onOpenCommunity: () -> Unit,
+    onOpenBridgePost: () -> Unit,
     onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -77,6 +78,7 @@ fun HomeScreen(
             onEditUser = onEditUser,
             onLogout = onLogout,
             onOpenCommunity = onOpenCommunity,
+            onOpenBridgePost = onOpenBridgePost,
             onOpenSettings = onOpenSettings
         )
     }
@@ -90,6 +92,7 @@ fun HomeContent(
     onEditUser: () -> Unit,
     onLogout: () -> Unit,
     onOpenCommunity: () -> Unit,
+    onOpenBridgePost: () -> Unit,
     onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -199,6 +202,15 @@ fun HomeContent(
 
         Button(
             modifier = Modifier.fillMaxWidth(),
+            onClick = onOpenBridgePost,
+        ) {
+            Text("Bridge Post")
+        }
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 32.dp))
+
+        Button(
+            modifier = Modifier.fillMaxWidth(),
             onClick = onOpenSettings,
         ) {
             Text("Settings")
@@ -215,7 +227,8 @@ private fun HomeScreenPreview() {
         onLogin = {},
         onEditUser = {},
         onLogout = {},
-        onOpenSettings = {},
-        onOpenCommunity = {}
+        onOpenCommunity = {},
+        onOpenBridgePost = {},
+        onOpenSettings = {}
     )
 }

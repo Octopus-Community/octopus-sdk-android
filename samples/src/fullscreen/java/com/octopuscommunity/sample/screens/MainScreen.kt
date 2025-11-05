@@ -12,10 +12,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.octopuscommunity.sample.CommunityPostRoute
 import com.octopuscommunity.sample.CommunityRoute
 import com.octopuscommunity.sample.EditUserRoute
 import com.octopuscommunity.sample.LoginRoute
@@ -29,15 +28,8 @@ import com.octopuscommunity.sample.screens.home.HomeContent
 fun MainScreen(
     mainNavController: NavHostController,
     state: MainViewModel.State,
-    onLogout: () -> Unit,
-    onUpdateNotificationsCount: () -> Unit,
-    onChangeCommunityAccess: (Boolean) -> Unit
+    onLogout: () -> Unit
 ) {
-    LifecycleEventEffect(
-        event = Lifecycle.Event.ON_RESUME,
-        onEvent = onUpdateNotificationsCount
-    )
-
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -58,6 +50,11 @@ fun MainScreen(
             onEditUser = { mainNavController.navigate(EditUserRoute) },
             onLogout = onLogout,
             onOpenCommunity = { mainNavController.navigate(CommunityRoute) },
+            onOpenBridgePost = {
+                state.octopusPost?.let { octopusPost ->
+                    mainNavController.navigate(CommunityPostRoute(octopusPost.id))
+                }
+            },
             onOpenSettings = { mainNavController.navigate(SettingsRoute) }
         )
     }
@@ -69,8 +66,6 @@ private fun MainScreenPreview() {
     MainScreen(
         mainNavController = rememberNavController(),
         state = MainViewModel.State(),
-        onLogout = {},
-        onUpdateNotificationsCount = {},
-        onChangeCommunityAccess = {}
+        onLogout = {}
     )
 }
