@@ -125,6 +125,12 @@ class MainViewModel(private val userDataStore: UserDataStore) : ViewModel() {
         }
     }
 
+    fun updateNotSeenNotificationsCount() {
+        viewModelScope.launch {
+            OctopusSDK.updateNotSeenNotificationsCount()
+        }
+    }
+
     fun updateCommunityAccess(hasAccess: Boolean) {
         viewModelScope.launch {
             _state.update { it.copy(isUpdatingCommunityAccess = true) }

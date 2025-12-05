@@ -92,7 +92,9 @@ class MainActivity : ComponentActivity() {
                         MainScreen(
                             mainNavController = navController,
                             state = state,
-                            onLogout = { viewModel.updateUser(null) }
+                            onLogout = { viewModel.updateUser(null) },
+                            onUpdateNotificationsCount = viewModel::updateNotSeenNotificationsCount,
+                            onChangeCommunityAccess = viewModel::updateCommunityAccess
                         )
                     }
 
