@@ -7,6 +7,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
@@ -14,7 +15,7 @@ import com.octopuscommunity.sdk.domain.model.Comment
 import com.octopuscommunity.sdk.test.mock.MockComments
 import com.octopuscommunity.sdk.test.mock.MockPosts
 import com.octopuscommunity.sdk.test.mock.MockProfiles
-import com.octopuscommunity.sdk.ui.OctopusDrawablesDefaults
+import com.octopuscommunity.sdk.ui.OctopusImagesDefaults
 import com.octopuscommunity.sdk.ui.OctopusTheme
 import com.octopuscommunity.sdk.ui.OctopusTypographyDefaults
 import com.octopuscommunity.sdk.ui.comments.components.OctopusItemInputField
@@ -27,7 +28,6 @@ import com.octopuscommunity.sdk.ui.home.OctopusHomeContent
 import com.octopuscommunity.sdk.ui.home.OctopusHomeDefaults
 import com.octopuscommunity.sdk.ui.octopusDarkColorScheme
 import com.octopuscommunity.sdk.ui.octopusLightColorScheme
-import com.octopuscommunity.sdk.ui.onboarding.OnboardingContent
 import com.octopuscommunity.sdk.ui.posts.create.CreatePostScreen
 import com.octopuscommunity.sdk.ui.posts.details.PostDetailsScreen
 import com.octopuscommunity.sdk.ui.profile.current.edit.CurrentUserProfileEditScreen
@@ -79,7 +79,7 @@ const val fontScale = 1f
 /**
  * Whether to show system UI (status bar, navigation bar) in previews
  */
-const val showUi = true
+const val showUi = false
 
 
 // ================================================================================================
@@ -195,9 +195,9 @@ fun CommunityTheme(content: @Composable () -> Unit) {
                 // Change colors properties here
             )
         ),
-        drawables = OctopusDrawablesDefaults.drawables(
+        images = OctopusImagesDefaults.images(
             // Define your own logo here
-            logo = R.drawable.ic_logo
+            logo = painterResource(R.drawable.ic_logo)
         )
     ) {
         content()
@@ -230,25 +230,6 @@ private fun OctopusHomePreview() {
             onNavigateToLogin = {},
             onNavigateToProfileEdit = {}
         )
-    }
-}
-
-/**
- * Preview: Onboarding Screen
- *
- * Shows the user onboarding flow for first-time users.
- */
-@Preview(
-    showSystemUi = showUi,
-    locale = locale,
-    device = device,
-    uiMode = uiMode,
-    fontScale = fontScale
-)
-@Composable
-private fun OctopusOnboardingPreview() {
-    CommunityTheme {
-        OnboardingContent()
     }
 }
 
@@ -488,20 +469,23 @@ private fun OctopusItemInputFieldShortTextPreview() {
             state = OctopusItemInputFieldViewModel.UiState(
                 item = Comment.Draft(
                     post = MockPosts.default,
-                    text = MockComments.shortText.text,
+                    text = MockComments.withShortText.text.getText(false),
                     media = MockComments.default.medias?.images?.firstOrNull()
                 ),
                 textError = ValidateText().invoke(
                     maxLength = 2,
-                    text = MockComments.shortText.text
+                    text = MockComments.withShortText.text.getText(false)
                 ),
                 mediaError = ValidateImage().invoke(Size(45000, 4500))
             ),
             placeholder = "Add a comment",
             onTextChanged = {},
-            onImageChanged = {},
+            onImageUpdated = {},
             onFocused = {},
-            onSend = {}
+            onSend = {},
+            onNavigateToTermsOfUse = {},
+            onNavigateToPrivacyPolicy = {},
+            onNavigateToCommunityGuidelines = {}
         )
     }
 }
@@ -530,15 +514,18 @@ private fun OctopusItemInputFieldMultilinePreview() {
             state = OctopusItemInputFieldViewModel.UiState(
                 item = Comment.Draft(
                     post = MockPosts.default,
-                    text = MockComments.default.text
+                    text = MockComments.default.text.getText(false)
                 ),
                 isSending = true
             ),
             placeholder = "Add a comment",
             onTextChanged = {},
-            onImageChanged = {},
+            onImageUpdated = {},
             onFocused = {},
-            onSend = {}
+            onSend = {},
+            onNavigateToTermsOfUse = {},
+            onNavigateToPrivacyPolicy = {},
+            onNavigateToCommunityGuidelines = {}
         )
     }
 }

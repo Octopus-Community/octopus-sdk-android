@@ -6,8 +6,9 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import com.octopuscommunity.sample.R
-import com.octopuscommunity.sdk.ui.OctopusDrawablesDefaults
+import com.octopuscommunity.sdk.ui.OctopusImagesDefaults
 import com.octopuscommunity.sdk.ui.OctopusTheme
 import com.octopuscommunity.sdk.ui.octopusDarkColorScheme
 import com.octopuscommunity.sdk.ui.octopusLightColorScheme
@@ -60,8 +61,8 @@ fun CommunityTheme(content: @Composable () -> Unit) {
                 onHover = Color(0xFFFFFFFF)
             )
         },
-        drawables = OctopusDrawablesDefaults.drawables(
-            logo = R.drawable.ic_logo
+        images = OctopusImagesDefaults.images(
+            logo = painterResource(R.drawable.ic_logo)
         ),
         content = content
     )
