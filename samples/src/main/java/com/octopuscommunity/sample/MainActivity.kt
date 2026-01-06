@@ -1,15 +1,19 @@
 package com.octopuscommunity.sample
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.core.util.Consumer
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.navigation.NavOptions
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -82,6 +86,22 @@ class MainActivity : ComponentActivity() {
         setContent {
             val navController = rememberNavController()
             val state by viewModel.state.collectAsStateWithLifecycle()
+
+            DisposableEffect(Unit) {
+                val listener = Consumer<Intent> { intent ->
+                    intent.data?.let { uri ->
+                        navController.navigate(
+                            deepLink = uri,
+                            navOptions = NavOptions.Builder()
+                                .setLaunchSingleTop(true)
+                                .setRestoreState(true)
+                                .build()
+                        )
+                    }
+                }
+                addOnNewIntentListener(listener)
+                onDispose { removeOnNewIntentListener(listener) }
+            }
 
             AppTheme {
                 NavHost(

@@ -20,7 +20,7 @@ android {
 
     defaultConfig {
         applicationId = "com.octopuscommunity.sample"
-        minSdk = 21
+        minSdk = 23
         targetSdk = 35
         versionCode = 1
         versionName = "1.0.0"
@@ -135,4 +135,8 @@ dependencies {
     // Coil
     implementation(libs.coil.network)
     implementation(libs.coil.compose)
+
+    // Firebase
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
 }

@@ -27,6 +27,9 @@ datastore = "1.1.7"
 # Coil
 coil = "3.3.0"
 
+# Firebase
+firebase = "34.3.0"
+
 [libraries]
 # Octopus
 octopus-sdk = { group = "com.octopuscommunity", name = "octopus-sdk", version.ref = "octopusSdk" }
@@ -62,6 +65,10 @@ androidx-datastore = { group = "androidx.datastore", name = "datastore", version
 # Coil
 coil-network = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
+
+# Firebase
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase" }
+firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
