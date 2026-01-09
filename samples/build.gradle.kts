@@ -65,6 +65,10 @@ android {
             dimension = "mode"
             versionNameSuffix = "-modalbottomsheet"
         }
+        create("nestednavigation") {
+            dimension = "mode"
+            versionNameSuffix = "-nestednavigation"
+        }
         create("singleactivity") {
             dimension = "mode"
             versionNameSuffix = "-singleactivity"

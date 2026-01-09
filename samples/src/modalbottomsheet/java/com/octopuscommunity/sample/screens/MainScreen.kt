@@ -26,6 +26,7 @@ import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.octopuscommunity.sample.CommunityPostRoute
 import com.octopuscommunity.sample.EditUserRoute
 import com.octopuscommunity.sample.LoginRoute
 import com.octopuscommunity.sample.MainViewModel
@@ -88,6 +89,11 @@ fun MainScreen(
             onLogout = onLogout,
             onOpenCommunity = {
                 showCommunitySheet = true
+            },
+            onOpenBridgePost = {
+                state.octopusPost?.let { octopusPost ->
+                    mainNavController.navigate(CommunityPostRoute(octopusPost.id))
+                }
             },
             onOpenSettings = { mainNavController.navigate(SettingsRoute) }
         )

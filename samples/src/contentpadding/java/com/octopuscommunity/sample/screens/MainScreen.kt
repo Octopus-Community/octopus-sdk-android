@@ -39,6 +39,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.octopuscommunity.sample.CommunityPostRoute
 import com.octopuscommunity.sample.EditUserRoute
 import com.octopuscommunity.sample.LoginRoute
 import com.octopuscommunity.sample.MainViewModel
@@ -72,7 +73,6 @@ fun MainScreen(
     mainNavController: NavHostController,
     state: MainViewModel.State,
     onLogout: () -> Unit,
-    onUpdateNotificationsCount: () -> Unit,
     onChangeCommunityAccess: (Boolean) -> Unit
 ) {
     val tabsNavController = rememberNavController()
@@ -185,6 +185,11 @@ fun MainScreen(
                         tabsNavController.navigate(CommunityTabRoute) {
                             popUpTo(CommunityTabRoute) { saveState = true }
                             launchSingleTop = true
+                        }
+                    },
+                    onOpenBridgePost = {
+                        state.octopusPost?.let { octopusPost ->
+                            mainNavController.navigate(CommunityPostRoute(octopusPost.id))
                         }
                     },
                     onOpenSettings = {

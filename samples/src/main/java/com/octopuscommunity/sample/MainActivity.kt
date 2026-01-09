@@ -151,9 +151,10 @@ class MainActivity : ComponentActivity() {
                     composable<CommunityRoute> {
                         CommunityScreen(
                             navController = navController,
+                            backButton = true,
                             onLogin = { navController.navigate(LoginRoute) },
                             onEditUser = { navController.navigate(EditUserRoute) },
-                            onBack = { navController.navigateUp() }
+                            onBack = navController::navigateUp
                         )
                     }
 
@@ -164,15 +165,16 @@ class MainActivity : ComponentActivity() {
                             octopusPostId = route.octopusPostId,
                             onLogin = { navController.navigate(LoginRoute) },
                             onEditUser = { navController.navigate(EditUserRoute) },
-                            onBack = { navController.navigateUp() }
+                            onBack = navController::navigateUp
                         )
                     }
 
                     composable<SettingsRoute> {
                         SettingsScreen(
                             state = state,
+                            backButton = true,
                             onChangeCommunityAccess = viewModel::updateCommunityAccess,
-                            onBack = { navController.navigateUp() }
+                            onBack = navController::navigateUp
                         )
                     }
 

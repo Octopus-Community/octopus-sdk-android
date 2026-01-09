@@ -12,6 +12,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.octopuscommunity.sample.CommunityPostRoute
@@ -28,8 +30,15 @@ import com.octopuscommunity.sample.screens.home.HomeContent
 fun MainScreen(
     mainNavController: NavHostController,
     state: MainViewModel.State,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onUpdateNotificationsCount: () -> Unit,
+    onChangeCommunityAccess: (Boolean) -> Unit
 ) {
+    LifecycleEventEffect(
+        event = Lifecycle.Event.ON_RESUME,
+        onEvent = onUpdateNotificationsCount
+    )
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -66,6 +75,8 @@ private fun MainScreenPreview() {
     MainScreen(
         mainNavController = rememberNavController(),
         state = MainViewModel.State(),
-        onLogout = {}
+        onLogout = {},
+        onUpdateNotificationsCount = {},
+        onChangeCommunityAccess = {}
     )
 }

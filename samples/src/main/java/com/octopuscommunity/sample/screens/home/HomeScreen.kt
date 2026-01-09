@@ -31,8 +31,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LifecycleEventEffect
 import coil3.compose.AsyncImage
 import com.octopuscommunity.sample.MainViewModel
 import com.octopuscommunity.sample.R
@@ -42,7 +40,6 @@ import com.octopuscommunity.sdk.ui.OctopusTheme
 @Composable
 fun HomeScreen(
     state: MainViewModel.State,
-    onUpdateNotificationsCount: () -> Unit,
     onLogin: () -> Unit,
     onEditUser: () -> Unit,
     onLogout: () -> Unit,
@@ -51,11 +48,6 @@ fun HomeScreen(
     onOpenSettings: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LifecycleEventEffect(
-        event = Lifecycle.Event.ON_RESUME,
-        onEvent = onUpdateNotificationsCount
-    )
-
     Scaffold(
         modifier = modifier
             .background(MaterialTheme.colorScheme.background)
@@ -223,7 +215,6 @@ fun HomeContent(
 private fun HomeScreenPreview() {
     HomeScreen(
         state = MainViewModel.State(),
-        onUpdateNotificationsCount = {},
         onLogin = {},
         onEditUser = {},
         onLogout = {},

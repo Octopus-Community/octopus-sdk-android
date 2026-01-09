@@ -35,9 +35,10 @@ import com.octopuscommunity.sample.MainViewModel
 @Composable
 fun SettingsScreen(
     state: MainViewModel.State,
+    backButton: Boolean,
     onChangeCommunityAccess: (hasAccess: Boolean) -> Unit,
-    onBack: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onBack: () -> Unit = {}
 ) {
     Scaffold(
         modifier = modifier
@@ -47,11 +48,13 @@ fun SettingsScreen(
             TopAppBar(
                 title = { Text("Settings") },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
+                    if (backButton) {
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back"
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -133,7 +136,7 @@ fun SettingsContent(
 private fun SettingsScreenPreview() {
     SettingsScreen(
         state = MainViewModel.State(),
-        onChangeCommunityAccess = {},
-        onBack = {}
+        backButton = false,
+        onChangeCommunityAccess = {}
     )
 }

@@ -2,9 +2,11 @@ package com.octopuscommunity.sample.screens.community
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -28,24 +30,27 @@ import com.octopuscommunity.sdk.ui.home.OctopusHomeDefaults
 @Composable
 fun CommunityScreen(
     navController: NavHostController,
+    backButton: Boolean,
     onLogin: () -> Unit,
     onEditUser: () -> Unit,
-    onBack: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onBack: () -> Unit
 ) {
     Scaffold(
         modifier = modifier
-            .background(MaterialTheme.colorScheme.background)
-            .systemBarsPadding(),
+            .background(MaterialTheme.colorScheme.background),
+        contentWindowInsets = WindowInsets(),
         topBar = {
             TopAppBar(
                 title = { Text("Community") },
                 navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
+                    if (backButton) {
+                        IconButton(onClick = onBack) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back"
+                            )
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -57,7 +62,8 @@ fun CommunityScreen(
         CommunityContent(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding)
+                .consumeWindowInsets(innerPadding),
             navController = navController,
             onLogin = onLogin,
             onEditUser = onEditUser
@@ -92,6 +98,7 @@ fun CommunityContent(
 private fun CommunityScreenPreview() {
     CommunityScreen(
         navController = rememberNavController(),
+        backButton = true,
         onLogin = {},
         onEditUser = {},
         onBack = {}

@@ -9,9 +9,9 @@ Add the dependencies to your `build.gradle` file:
 ```kotlin
 dependencies {
     // Core SDK functionalities
-    implementation("com.octopuscommunity:octopus-sdk:1.8.0")
+    implementation("com.octopuscommunity:octopus-sdk:1.8.1")
     // SDK UI Components (optional)
-    implementation("com.octopuscommunity:octopus-sdk-ui:1.8.0")
+    implementation("com.octopuscommunity:octopus-sdk-ui:1.8.1")
 }
 ```
 
@@ -46,17 +46,29 @@ Add the `OctopusHomeContent` `@Composable` to a dedicated full-screen route, jus
 
 - [FullScreen Sample](/samples/src/fullscreen/java/com/octopuscommunity/sample/screens/MainScreen.kt)
 
-#### 2. Bottom Navigation Tabs
+#### 2. Bottom Navigation Tabs + Full Screen Sub Navigation
 
 Integrate the community as a tab content in a bottom navigation alongside your other main sections.
+Launch Octopus sub screens in full screen
 
-[Bottom Navigation Tabs](https://github.com/user-attachments/assets/a10e201c-7e83-40e9-b8f9-ba1ddbd35af1)
+[Bottom Navigation Tabs + Full Screen](https://github.com/user-attachments/assets/a10e201c-7e83-40e9-b8f9-ba1ddbd35af1)
 
 **Best for:** Apps with 2-5 main sections where community deserves a dedicated, always-accessible tab.
 
-- [Bottom Navigation Tabs Sample](/samples/src/bottomnavigationbar/java/com/octopuscommunity/sample/screens/MainScreen.kt)
+- [Bottom Navigation Tabs + Full Screen Sample](/samples/src/bottomnavigationbar/java/com/octopuscommunity/sample/screens/MainScreen.kt)
 
-#### 3. Floating Bottom Navigation
+#### 3. Bottom Navigation Tabs + Nested Sub Navigation
+
+Integrate the community as a tab content in a bottom navigation alongside your other main sections.
+Launch Octopus sub screens in the same `NavHost
+
+[Bottom Navigation Tabs + Nested Navigation](https://github.com/user-attachments/assets/2c59e8b6-e786-4b8b-9c59-f2459649156a)
+
+**Best for:** Apps with 2-5 main sections where community deserves a dedicated, always-accessible tab.
+
+- [Bottom Navigation Tabs + Nested Navigation Sample](/samples/src/nestednavigation/java/com/octopuscommunity/sample/screens/MainScreen.kt)
+
+#### 4. Floating Bottom Navigation
 
 Similar to bottom navigation tabs but with content padding to add padding around the edges of the content.
 
@@ -66,7 +78,7 @@ Similar to bottom navigation tabs but with content padding to add padding around
 
 - [Floating Bottom Navigation Sample](/samples/src/contentpadding/java/com/octopuscommunity/sample/screens/MainScreen.kt)
 
-#### 4. Modal Bottom Sheet
+#### 5. Modal Bottom Sheet
 
 Display the community in a modal bottom sheet that overlays your content. Users can swipe down to dismiss.
 
