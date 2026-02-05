@@ -9,8 +9,8 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.octopuscommunity.sample.theme.AppTheme
 import com.octopuscommunity.sample.theme.CommunityTheme
-import com.octopuscommunity.sdk.ui.OctopusTheme
 import com.octopuscommunity.sdk.ui.OctopusTransitionsDefaults
 import com.octopuscommunity.sdk.ui.home.OctopusHomeScreen
 import com.octopuscommunity.sdk.ui.octopusComposables
@@ -31,42 +31,43 @@ class CommunityActivity : ComponentActivity() {
         setContent {
             val navController = rememberNavController()
 
-            OctopusTheme(
-                // Configure the community theme here
-            ) {
-                NavHost(
-                    navController = navController,
-                    startDestination = "Home"
-                ) {
-                    composable("Home") {
-                        OctopusHomeScreen(
-                            modifier = Modifier.fillMaxSize(),
+            AppTheme {
+                CommunityTheme {
+                    NavHost(
+                        navController = navController,
+                        startDestination = "Home"
+                    ) {
+                        composable("Home") {
+                            OctopusHomeScreen(
+                                modifier = Modifier.fillMaxSize(),
+                                navController = navController,
+                                backIcon = false,
+                                onNavigateToLogin = {
+                                    // Start your Login Activity
+                                },
+                                onNavigateToProfileEdit = {
+                                    // Start your Profile Edit Activity
+                                },
+                                onBack = {
+                                    finish()
+                                }
+                            )
+                        }
+
+                        octopusComposables(
                             navController = navController,
+                            transitions = OctopusTransitionsDefaults(),
                             onNavigateToLogin = {
                                 // Start your Login Activity
                             },
-                            onNavigateToProfileEdit = {
+                            onNavigateToProfileEdit = { fieldToEdit ->
                                 // Start your Profile Edit Activity
                             },
-                            onBack = {
-                                finish()
+                            container = { backStackEntry, content ->
+                                CommunityTheme(content = content)
                             }
                         )
                     }
-
-                    octopusComposables(
-                        navController = navController,
-                        transitions = OctopusTransitionsDefaults(),
-                        onNavigateToLogin = {
-                            // Start your Login Activity
-                        },
-                        onNavigateToProfileEdit = { fieldToEdit ->
-                            // Start your Profile Edit Activity
-                        },
-                        container = { backStackEntry, content ->
-                            CommunityTheme(content = content)
-                        }
-                    )
                 }
             }
         }

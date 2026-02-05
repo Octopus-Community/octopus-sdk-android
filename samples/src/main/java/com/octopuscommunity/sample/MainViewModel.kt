@@ -9,8 +9,8 @@ import com.octopuscommunity.sample.data.utils.TokenProvider
 import com.octopuscommunity.sdk.OctopusSDK
 import com.octopuscommunity.sdk.domain.model.ClientPost
 import com.octopuscommunity.sdk.domain.model.ClientUser
-import com.octopuscommunity.sdk.domain.model.Image
 import com.octopuscommunity.sdk.domain.model.OctopusPost
+import com.octopuscommunity.sdk.domain.model.Resource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -54,8 +54,8 @@ class MainViewModel(private val userDataStore: UserDataStore) : ViewModel() {
                                 bio = user.bio,
                                 picture = user.picture?.let { avatar ->
                                     when (avatar.source) {
-                                        User.Picture.Source.LOCAL -> Image.Local(avatar.data)
-                                        User.Picture.Source.REMOTE -> Image.Remote(avatar.data)
+                                        User.Picture.Source.LOCAL -> Resource.Local(avatar.data)
+                                        User.Picture.Source.REMOTE -> Resource.Remote(avatar.data)
                                     }
                                 }
                             )
@@ -100,7 +100,7 @@ class MainViewModel(private val userDataStore: UserDataStore) : ViewModel() {
                 clientPost = ClientPost(
                     objectId = clientObject.id,
                     text = clientObject.title ?: "",
-                    attachment = clientObject.imageUrl?.let { Image.Remote(url = it) },
+                    attachment = clientObject.imageUrl?.let { Resource.Remote(url = it) },
                     catchPhrase = clientObject.octopusCatchPhrase,
                     viewObjectButtonText = clientObject.octopusViewClientObjectButtonText,
                     topicId = clientObject.octopusTopicId,

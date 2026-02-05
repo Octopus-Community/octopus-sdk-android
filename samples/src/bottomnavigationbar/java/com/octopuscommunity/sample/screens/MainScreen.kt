@@ -31,8 +31,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -70,15 +68,9 @@ fun MainScreen(
     mainNavController: NavHostController,
     state: MainViewModel.State,
     onLogout: () -> Unit,
-    onUpdateNotificationsCount: () -> Unit,
     onChangeCommunityAccess: (Boolean) -> Unit
 ) {
     val tabsNavController = rememberNavController()
-
-    LifecycleEventEffect(
-        event = Lifecycle.Event.ON_RESUME,
-        onEvent = onUpdateNotificationsCount
-    )
 
     val items = remember(state.unreadNotificationsCount) {
         listOf(
@@ -224,7 +216,6 @@ private fun MainScreenPreview() {
         mainNavController = rememberNavController(),
         state = MainViewModel.State(),
         onLogout = {},
-        onUpdateNotificationsCount = {},
         onChangeCommunityAccess = {}
     )
 }

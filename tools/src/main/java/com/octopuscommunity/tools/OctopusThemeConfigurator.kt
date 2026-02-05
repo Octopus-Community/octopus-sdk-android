@@ -12,6 +12,7 @@ import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.rememberNavController
 import com.octopuscommunity.sdk.domain.model.Comment
+import com.octopuscommunity.sdk.domain.model.OctopusItem
 import com.octopuscommunity.sdk.test.mock.MockComments
 import com.octopuscommunity.sdk.test.mock.MockPosts
 import com.octopuscommunity.sdk.test.mock.MockProfiles
@@ -422,7 +423,8 @@ private fun OctopusReportContentScreenPreview() {
     CommunityTheme {
         ReportContentScreen(
             navController = rememberNavController(),
-            contentId = MockPosts.all.random().id
+            contentId = MockPosts.all.random().id,
+            contentKind = OctopusItem.ContentKind.POST
         )
     }
 }

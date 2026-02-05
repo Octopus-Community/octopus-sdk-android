@@ -12,7 +12,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
@@ -21,9 +20,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LifecycleEventEffect
-import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.octopuscommunity.sample.CommunityPostRoute
@@ -34,7 +30,6 @@ import com.octopuscommunity.sample.R
 import com.octopuscommunity.sample.SettingsRoute
 import com.octopuscommunity.sample.screens.community.CommunityContent
 import com.octopuscommunity.sample.screens.home.HomeContent
-import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,7 +37,6 @@ fun MainScreen(
     mainNavController: NavHostController,
     state: MainViewModel.State,
     onLogout: () -> Unit,
-    onUpdateNotificationsCount: () -> Unit,
     onChangeCommunityAccess: (Boolean) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
@@ -51,22 +45,19 @@ fun MainScreen(
     )
     var showCommunitySheet by rememberSaveable { mutableStateOf(false) }
 
-    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
-        onUpdateNotificationsCount()
-    }
-
-    val hideModal = NavController.OnDestinationChangedListener { _, _, _ ->
-        coroutineScope.launch {
-            sheetState.hide()
-        }
-    }
-
-    DisposableEffect(mainNavController) {
-        mainNavController.addOnDestinationChangedListener(hideModal)
-        onDispose {
-            mainNavController.removeOnDestinationChangedListener(hideModal)
-        }
-    }
+    // In case you want to hide the modal on community navigation
+//    val hideModal = NavController.OnDestinationChangedListener { _, _, _ ->
+//        coroutineScope.launch {
+//            sheetState.hide()
+//        }
+//    }
+//
+//    DisposableEffect(mainNavController) {
+//        mainNavController.addOnDestinationChangedListener(hideModal)
+//        onDispose {
+//            mainNavController.removeOnDestinationChangedListener(hideModal)
+//        }
+//    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -132,7 +123,6 @@ private fun MainScreenPreview() {
         mainNavController = rememberNavController(),
         state = MainViewModel.State(),
         onLogout = {},
-        onUpdateNotificationsCount = {},
         onChangeCommunityAccess = {}
     )
 }

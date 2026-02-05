@@ -30,8 +30,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -71,15 +69,9 @@ fun MainScreen(
     mainNavController: NavHostController,
     state: MainViewModel.State,
     onLogout: () -> Unit,
-    onUpdateNotificationsCount: () -> Unit,
     onChangeCommunityAccess: (Boolean) -> Unit
 ) {
     val tabsNavController = rememberNavController()
-
-    LifecycleEventEffect(
-        event = Lifecycle.Event.ON_RESUME,
-        onEvent = onUpdateNotificationsCount
-    )
 
     val items = remember(state.unreadNotificationsCount) {
         listOf(
@@ -225,17 +217,16 @@ fun MainScreen(
                 onNavigateToLogin = { mainNavController.navigate(LoginRoute) },
                 onNavigateToProfileEdit = { fieldToEdit ->
                     mainNavController.navigate(EditUserRoute)
-                },
-                container = { backStackEntry, content ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .consumeWindowInsets(WindowInsets.systemBars)
-                    ) {
-                        CommunityTheme(content = content)
-                    }
                 }
-            )
+            ) { backStackEntry, content ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .consumeWindowInsets(WindowInsets.systemBars)
+                ) {
+                    CommunityTheme(content = content)
+                }
+            }
         }
     }
 }
@@ -247,7 +238,6 @@ private fun MainScreenPreview() {
         mainNavController = rememberNavController(),
         state = MainViewModel.State(),
         onLogout = {},
-        onUpdateNotificationsCount = {},
         onChangeCommunityAccess = {}
     )
 }

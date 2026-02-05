@@ -10,6 +10,8 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.core.util.Consumer
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
@@ -27,6 +29,7 @@ import com.octopuscommunity.sample.screens.profile.EditProfileScreen
 import com.octopuscommunity.sample.screens.settings.SettingsScreen
 import com.octopuscommunity.sample.theme.AppTheme
 import com.octopuscommunity.sample.theme.CommunityTheme
+import com.octopuscommunity.sample.utils.UrlHandler
 import com.octopuscommunity.sdk.ui.OctopusTransitionsDefaults
 import com.octopuscommunity.sdk.ui.octopusComposables
 import kotlinx.serialization.Serializable
@@ -109,11 +112,14 @@ class MainActivity : ComponentActivity() {
                     startDestination = MainRoute
                 ) {
                     composable<MainRoute> {
+                        LifecycleEventEffect(
+                            event = Lifecycle.Event.ON_RESUME,
+                            onEvent = viewModel::updateNotSeenNotificationsCount
+                        )
                         MainScreen(
                             mainNavController = navController,
                             state = state,
                             onLogout = { viewModel.updateUser(null) },
-                            onUpdateNotificationsCount = viewModel::updateNotSeenNotificationsCount,
                             onChangeCommunityAccess = viewModel::updateCommunityAccess
                         )
                     }
@@ -184,6 +190,9 @@ class MainActivity : ComponentActivity() {
                         onNavigateToLogin = { navController.navigate(LoginRoute) },
                         onNavigateToProfileEdit = { fieldToEdit ->
                             navController.navigate(EditUserRoute)
+                        },
+                        onNavigateToUrl = { url ->
+                            UrlHandler.navigateToUrl(this@MainActivity, url)
                         },
                         container = { backStackEntry, content ->
                             CommunityTheme(content = content)

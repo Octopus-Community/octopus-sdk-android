@@ -92,7 +92,7 @@ fun MainScreen(
             badgeCount = state.unreadNotificationsCount
         ),
         BottomNavigationItem(
-            route = CommunityTabRoute,
+            route = SettingsTabRoute,
             label = "Settings",
             selectedIcon = Icons.Filled.Settings,
             unselectedIcon = Icons.Outlined.Settings
@@ -239,7 +239,6 @@ private fun MainScreenPreview() {
     MainScreen(
         mainNavController = rememberNavController(),
         state = MainViewModel.State(),
-        onUpdateNotificationsCount = {},
         onLogout = {},
         onChangeCommunityAccess = {}
     )

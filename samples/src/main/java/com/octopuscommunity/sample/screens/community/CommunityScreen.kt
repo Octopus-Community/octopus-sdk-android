@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -19,10 +18,12 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.octopuscommunity.sample.theme.CommunityTheme
+import com.octopuscommunity.sample.utils.UrlHandler
 import com.octopuscommunity.sdk.ui.home.OctopusHomeContent
 import com.octopuscommunity.sdk.ui.home.OctopusHomeDefaults
 
@@ -80,6 +81,7 @@ fun CommunityContent(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = OctopusHomeDefaults.contentPadding(),
 ) {
+    val context = LocalContext.current
     CommunityTheme {
         OctopusHomeContent(
             modifier = modifier,
@@ -88,6 +90,9 @@ fun CommunityContent(
             onNavigateToLogin = onLogin,
             onNavigateToProfileEdit = { profileField ->
                 onEditUser()
+            },
+            onNavigateToUrl = { url ->
+                UrlHandler.navigateToUrl(context = context, url = url)
             }
         )
     }

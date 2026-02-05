@@ -7,7 +7,6 @@ fun MainScreen(
     mainNavController: NavHostController,
     state: MainViewModel.State,
     onLogout: () -> Unit,
-    onUpdateNotificationsCount: () -> Unit,
     onChangeCommunityAccess: (Boolean) -> Unit
 ) {
 }
