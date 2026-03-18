@@ -101,14 +101,6 @@ fun MainScreen(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {},
-//        topBar = {
-//            TopAppBar(
-//                title = { Text(stringResource(R.string.app_name)) },
-//                colors = TopAppBarDefaults.topAppBarColors(
-//                    containerColor = MaterialTheme.colorScheme.background
-//                )
-//            )
-//        },
         bottomBar = {
             NavigationBar {
                 items.forEachIndexed { index, item ->

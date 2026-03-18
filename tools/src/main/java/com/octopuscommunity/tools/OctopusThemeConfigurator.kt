@@ -29,14 +29,24 @@ import com.octopuscommunity.sdk.ui.home.OctopusHomeContent
 import com.octopuscommunity.sdk.ui.home.OctopusHomeDefaults
 import com.octopuscommunity.sdk.ui.octopusDarkColorScheme
 import com.octopuscommunity.sdk.ui.octopusLightColorScheme
+import com.octopuscommunity.sdk.ui.connection.confirm.MagicLinkConfirmationScreen
+import com.octopuscommunity.sdk.ui.connection.email.MagicLinkEmailScreen
+import com.octopuscommunity.sdk.ui.groups.GroupsScreen
+import com.octopuscommunity.sdk.ui.notifications.list.NotificationsList
 import com.octopuscommunity.sdk.ui.posts.create.CreatePostScreen
-import com.octopuscommunity.sdk.ui.posts.details.PostDetailsScreen
+import com.octopuscommunity.sdk.ui.posts.details.OctopusPostDetailsScreen
+import com.octopuscommunity.sdk.ui.profile.avatar.ProfileAvatarScreen
 import com.octopuscommunity.sdk.ui.profile.current.edit.CurrentUserProfileEditScreen
 import com.octopuscommunity.sdk.ui.profile.current.nickname.ValidateNicknameScreen
 import com.octopuscommunity.sdk.ui.profile.current.summary.CurrentUserProfileSummaryScreen
+import com.octopuscommunity.sdk.ui.profile.others.summary.ProfileSummaryScreen
 import com.octopuscommunity.sdk.ui.report.content.ReportContentScreen
 import com.octopuscommunity.sdk.ui.report.user.ReportUserScreen
 import com.octopuscommunity.sdk.ui.settings.SettingsScreen
+import com.octopuscommunity.sdk.ui.settings.about.AboutScreen
+import com.octopuscommunity.sdk.ui.settings.profile.ProfileSettingsScreen
+import com.octopuscommunity.sdk.ui.settings.profile.delete.DeleteAccountScreen
+import com.octopuscommunity.sdk.ui.settings.report.HowToReportContentScreen
 
 /**
  * Theme Configuration and Preview Tools
@@ -67,7 +77,7 @@ const val device = Devices.PIXEL_9
  * Locale for preview (ISO 639-1 language code)
  * Examples: "en", "fr", "es", "de"
  */
-const val locale = "fr"
+const val locale = "en"
 
 /**
  * Font scale multiplier for accessibility testing
@@ -139,21 +149,21 @@ fun CommunityTheme(content: @Composable () -> Unit) {
     OctopusTheme(
         colorScheme = if (isSystemInDarkTheme()) {
             octopusDarkColorScheme(
-                primary = Color(0xFF3AD9B1),
-                primaryLow = Color(0xFF083B2F),
-                primaryHigh = Color(0xFFD8F4F1),
-                onPrimary = Color(0xFF141414),
-                background = Color(0xFF141414),
-                onHover = Color(0xFF242526),
+                primary = Color(0xFF818CF8),
+                primaryLow = Color(0xFF1E1B4B),
+                primaryHigh = Color(0xFFC7D2FE),
+                onPrimary = Color(0xFF1E1B4B),
+                background = Color(0xFF111118),
+                onHover = Color(0xFF1C1C24),
                 // Possibly complete with more fine grained values
             )
         } else {
             octopusLightColorScheme(
-                primary = Color(0xFF068677),
-                primaryLow = Color(0xFFD8F4F1),
-                primaryHigh = Color(0xFF15D1A2),
+                primary = Color(0xFF4F46E5),
+                primaryLow = Color(0xFFE0E7FF),
+                primaryHigh = Color(0xFF6366F1),
                 onPrimary = Color(0xFFFFFFFF),
-                background = Color(0xFFFFFFFF),
+                background = Color(0xFFFAFAFA),
                 onHover = Color(0xFFFFFFFF)
                 // Possibly complete with more fine grained values
             )
@@ -198,7 +208,7 @@ fun CommunityTheme(content: @Composable () -> Unit) {
         ),
         images = OctopusImagesDefaults.images(
             // Define your own logo here
-            logo = painterResource(R.drawable.ic_logo)
+            logo = { painterResource(R.drawable.ic_logo) }
         )
     ) {
         content()
@@ -230,29 +240,6 @@ private fun OctopusHomePreview() {
             contentPadding = OctopusHomeDefaults.contentPadding(),
             onNavigateToLogin = {},
             onNavigateToProfileEdit = {}
-        )
-    }
-}
-
-/**
- * Preview: Post Details Screen
- *
- * Displays a detailed view of a single post with comments.
- * Uses a random mock post from MockPosts.all for demonstration.
- */
-@Preview(
-    showSystemUi = showUi,
-    locale = locale,
-    device = device,
-    uiMode = uiMode,
-    fontScale = fontScale
-)
-@Composable
-private fun OctopusPostDetailsPreview() {
-    CommunityTheme {
-        PostDetailsScreen(
-            navController = rememberNavController(),
-            postId = MockPosts.all.random().id
         )
     }
 }
@@ -442,6 +429,239 @@ private fun OctopusReportUserScreenPreview() {
         ReportUserScreen(
             navController = rememberNavController(),
             userId = MockProfiles.all.random().userId
+        )
+    }
+}
+
+/**
+ * Preview: Post Details Screen
+ *
+ * Displays a detailed view of a single post with comments.
+ * Uses a random mock post from MockPosts.all for demonstration.
+ */
+@Preview(
+    showSystemUi = showUi,
+    locale = locale,
+    device = device,
+    uiMode = uiMode,
+    fontScale = fontScale
+)
+@Composable
+private fun OctopusPostDetailsPreview() {
+    CommunityTheme {
+        OctopusPostDetailsScreen(
+            navController = rememberNavController(),
+            postId = MockPosts.all.random().id
+        )
+    }
+}
+
+/**
+ * Preview: Other User Profile Screen
+ *
+ * Displays another user's profile summary with their posts and information.
+ */
+@Preview(
+    showSystemUi = showUi,
+    locale = locale,
+    device = device,
+    uiMode = uiMode,
+    fontScale = fontScale
+)
+@Composable
+private fun OctopusProfileSummaryPreview() {
+    CommunityTheme {
+        ProfileSummaryScreen(
+            navController = rememberNavController(),
+            userId = MockProfiles.all.random().userId
+        )
+    }
+}
+
+/**
+ * Preview: Profile Avatar Screen
+ *
+ * Displays a full-screen view of a user's profile avatar.
+ */
+@Preview(
+    showSystemUi = showUi,
+    locale = locale,
+    device = device,
+    uiMode = uiMode,
+    fontScale = fontScale
+)
+@Composable
+private fun OctopusProfileAvatarPreview() {
+    CommunityTheme {
+        ProfileAvatarScreen(
+            navController = rememberNavController(),
+            userId = MockProfiles.all.random().userId
+        )
+    }
+}
+
+/**
+ * Preview: Groups Screen
+ *
+ * Displays the list of available groups/topics in the community.
+ */
+@Preview(
+    showSystemUi = showUi,
+    locale = locale,
+    device = device,
+    uiMode = uiMode,
+    fontScale = fontScale
+)
+@Composable
+private fun OctopusGroupsPreview() {
+    CommunityTheme {
+        GroupsScreen(
+            navController = rememberNavController()
+        )
+    }
+}
+
+/**
+ * Preview: Magic Link Email Screen
+ *
+ * Displays the email input screen for magic link authentication.
+ */
+@Preview(
+    showSystemUi = showUi,
+    locale = locale,
+    device = device,
+    uiMode = uiMode,
+    fontScale = fontScale
+)
+@Composable
+private fun OctopusMagicLinkEmailPreview() {
+    CommunityTheme {
+        MagicLinkEmailScreen(
+            navController = rememberNavController()
+        )
+    }
+}
+
+/**
+ * Preview: Magic Link Confirmation Screen
+ *
+ * Displays the confirmation screen after a magic link has been sent.
+ */
+@Preview(
+    showSystemUi = showUi,
+    locale = locale,
+    device = device,
+    uiMode = uiMode,
+    fontScale = fontScale
+)
+@Composable
+private fun OctopusMagicLinkConfirmationPreview() {
+    CommunityTheme {
+        MagicLinkConfirmationScreen(
+            navController = rememberNavController()
+        )
+    }
+}
+
+/**
+ * Preview: Notifications List
+ *
+ * Displays the standalone notifications list component.
+ */
+@Preview(
+    showSystemUi = showUi,
+    locale = locale,
+    device = device,
+    uiMode = uiMode,
+    fontScale = fontScale
+)
+@Composable
+private fun OctopusNotificationsListPreview() {
+    CommunityTheme {
+        NotificationsList()
+    }
+}
+
+/**
+ * Preview: Profile Settings Screen
+ *
+ * Displays the profile settings interface with account management options.
+ */
+@Preview(
+    showSystemUi = showUi,
+    locale = locale,
+    device = device,
+    uiMode = uiMode,
+    fontScale = fontScale
+)
+@Composable
+private fun OctopusProfileSettingsPreview() {
+    CommunityTheme {
+        ProfileSettingsScreen(
+            navController = rememberNavController()
+        )
+    }
+}
+
+/**
+ * Preview: About Screen
+ *
+ * Displays the about page with app and SDK information.
+ */
+@Preview(
+    showSystemUi = showUi,
+    locale = locale,
+    device = device,
+    uiMode = uiMode,
+    fontScale = fontScale
+)
+@Composable
+private fun OctopusAboutPreview() {
+    CommunityTheme {
+        AboutScreen(
+            navController = rememberNavController()
+        )
+    }
+}
+
+/**
+ * Preview: Delete Account Screen
+ *
+ * Displays the account deletion confirmation interface.
+ */
+@Preview(
+    showSystemUi = showUi,
+    locale = locale,
+    device = device,
+    uiMode = uiMode,
+    fontScale = fontScale
+)
+@Composable
+private fun OctopusDeleteAccountPreview() {
+    CommunityTheme {
+        DeleteAccountScreen(
+            navController = rememberNavController()
+        )
+    }
+}
+
+/**
+ * Preview: How To Report Content Screen
+ *
+ * Displays instructions on how to report inappropriate content.
+ */
+@Preview(
+    showSystemUi = showUi,
+    locale = locale,
+    device = device,
+    uiMode = uiMode,
+    fontScale = fontScale
+)
+@Composable
+private fun OctopusHowToReportContentPreview() {
+    CommunityTheme {
+        HowToReportContentScreen(
+            navController = rememberNavController()
         )
     }
 }

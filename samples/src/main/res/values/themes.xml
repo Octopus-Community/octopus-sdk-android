@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.OctopusCommunity" parent="android:Theme.Material.Light.NoActionBar">
-        <item name="android:colorBackground">@android:color/white</item>
-        <item name="android:colorAccent">#FF3AD9B1</item>
+        <item name="android:colorBackground">#FFFAFAFA</item>
+        <item name="android:colorAccent">#FF4F46E5</item>
     </style>
 </resources>

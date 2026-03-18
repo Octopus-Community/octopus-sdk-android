@@ -9,9 +9,9 @@ Add the dependencies to your `build.gradle` file:
 ```kotlin
 dependencies {
     // Core SDK functionalities
-    implementation("com.octopuscommunity:octopus-sdk:1.9.1")
+    implementation("com.octopuscommunity:octopus-sdk:1.10.0")
     // SDK UI Components (optional)
-    implementation("com.octopuscommunity:octopus-sdk-ui:1.9.1")
+    implementation("com.octopuscommunity:octopus-sdk-ui:1.10.0")
 }
 ```
 
@@ -34,59 +34,93 @@ OCTOPUS_SSO_CLIENT_USER_TOKEN_SECRET=YOUR_USER_TOKEN_SECRET
 
 ### 2. Choose the build variant corresponding to your UI Integration Mode
 
-Depending on your targeted UI integration, choose how you want to integrate the Octopus Community UI into your app:
+Depending on your targeted UI integration, choose how you want to integrate the Octopus Community UI into your app.
 
-#### 1. Full Screen Navigation
+The SDK provides two main composables:
+- **`OctopusHomeScreen`** — A complete screen with its own Scaffold and top bar. Drop it in and you're done.
+- **`OctopusHomeContent`** — Just the content, without a Scaffold. Embed it inside your own layout (tabs, sheets, custom scaffolds).
 
-Add the `OctopusHomeContent` `@Composable` to a dedicated full-screen route, just like any other composable in your other screens.
+Pick the pattern below that best matches your app's navigation:
 
-[Full Screen Navigation](https://github.com/user-attachments/assets/f37e7bbe-7b4f-40d9-af79-c2ed9e09fc46)
+---
+
+#### 1. Single Activity (Standalone Community)
+
+Use `OctopusHomeScreen` as the sole content of a dedicated Activity. Best when the community IS the app or is launched as a standalone screen.
+
+<img src="docs/images/singleactivity.png" width="300" alt="Single Activity">
+
+**Best for:** Apps where the community is the primary (or only) feature.
+
+- [Single Activity Sample](/samples/src/singleactivity/java/com/octopuscommunity/sample/CommunityActivity.kt)
+
+---
+
+#### 2. Full Screen Navigation
+
+Add `OctopusHomeContent` to a dedicated full-screen route, just like any other composable screen in your app.
+
+<img src="docs/images/fullscreen.png" width="300" alt="Full Screen Navigation">
 
 **Best for:** Apps where community is a primary feature with equal prominence to other main sections.
 
-- [FullScreen Sample](/samples/src/fullscreen/java/com/octopuscommunity/sample/screens/MainScreen.kt)
+- [Full Screen Sample](/samples/src/fullscreen/java/com/octopuscommunity/sample/screens/MainScreen.kt)
 
-#### 2. Bottom Navigation Tabs + Full Screen Sub Navigation
+---
 
-Integrate the community as a tab content in a bottom navigation alongside your other main sections.
-Launch Octopus sub screens in full screen
+#### 3. Bottom Navigation Tabs + Full Screen Sub Navigation
 
-[Bottom Navigation Tabs + Full Screen](https://github.com/user-attachments/assets/a10e201c-7e83-40e9-b8f9-ba1ddbd35af1)
+Integrate the community as a tab in a bottom navigation alongside your other main sections. Octopus sub-screens launch in full screen.
+
+<img src="docs/images/bottomnavigationbar.png" width="300" alt="Bottom Navigation Tabs + Full Screen"> <img src="docs/images/bottomnavigationbar_subscreen.png" width="300" alt="Full Screen Sub Navigation — post detail without bottom bar">
 
 **Best for:** Apps with 2-5 main sections where community deserves a dedicated, always-accessible tab.
 
 - [Bottom Navigation Tabs + Full Screen Sample](/samples/src/bottomnavigationbar/java/com/octopuscommunity/sample/screens/MainScreen.kt)
 
-#### 3. Bottom Navigation Tabs + Nested Sub Navigation
+---
 
-Integrate the community as a tab content in a bottom navigation alongside your other main sections.
-Launch Octopus sub screens in the same `NavHost
+#### 4. Bottom Navigation Tabs + Nested Sub Navigation
 
-[Bottom Navigation Tabs + Nested Navigation](https://github.com/user-attachments/assets/2c59e8b6-e786-4b8b-9c59-f2459649156a)
+Integrate the community as a tab in a bottom navigation alongside your other main sections. Octopus sub-screens navigate within the same `NavHost` using `octopusComposables()`.
 
-**Best for:** Apps with 2-5 main sections where community deserves a dedicated, always-accessible tab.
+<img src="docs/images/nestednavigation.png" width="300" alt="Bottom Navigation Tabs + Nested Navigation"> <img src="docs/images/nestednavigation_subscreen.png" width="300" alt="Nested Sub Navigation — post detail with bottom bar still visible">
+
+**Best for:** Apps that want full control over navigation transitions and need SDK screens to coexist in the same navigation graph.
 
 - [Bottom Navigation Tabs + Nested Navigation Sample](/samples/src/nestednavigation/java/com/octopuscommunity/sample/screens/MainScreen.kt)
 
-#### 4. Floating Bottom Navigation
+---
 
-Similar to bottom navigation tabs but with content padding to add padding around the edges of the content.
+#### 5. Floating Bottom Navigation
 
-[Floating Bottom Navigation](https://github.com/user-attachments/assets/7d27d77b-cdf6-498b-8748-f79fb8a5e31d)
+Similar to bottom navigation tabs but with custom content padding to add space around the edges of the content (e.g., rounded navigation bar with margins).
+
+<img src="docs/images/contentpadding.png" width="300" alt="Floating Bottom Navigation">
 
 **Best for:** Apps requiring custom navigation bar styling that matches a specific design system.
 
 - [Floating Bottom Navigation Sample](/samples/src/contentpadding/java/com/octopuscommunity/sample/screens/MainScreen.kt)
 
-#### 5. Modal Bottom Sheet
+---
+
+#### 6. Modal Bottom Sheet
 
 Display the community in a modal bottom sheet that overlays your content. Users can swipe down to dismiss.
 
-[Modal Bottom Sheet](https://github.com/user-attachments/assets/c7775f4c-5f0f-44ee-a669-606fecedab1e)
+<img src="docs/images/modalbottomsheet.png" width="300" alt="Modal Bottom Sheet">
 
 **Best for:** Apps where community is a secondary feature accessed occasionally, without disrupting the main flow.
 
 - [Modal Bottom Sheet Sample](/samples/src/modalbottomsheet/java/com/octopuscommunity/sample/screens/MainScreen.kt)
+
+---
+
+#### Embedding Post Details (Bridge Posts)
+
+You can embed an Octopus post detail view inside your own app Scaffold using `OctopusPostDetailsContent`. This is useful for "bridge posts" — linking an app object (e.g., a product, article) to a community post.
+
+- [Bridge Post Sample](/samples/src/main/java/com/octopuscommunity/sample/screens/bridge/CommunityPostScreen.kt)
 
 ### 3. Edit the `appManagedFields` depending on your profile management
 
@@ -122,6 +156,22 @@ All profile fields are managed by your app. Your user profile is used directly i
 - Your community must be configured with all fields as app-managed
 - You must set all fields in `OctopusSDK.initialize()`
 
+## Push Notifications
+
+To receive Octopus push notifications, register the `FirebaseMessagingService` in your `AndroidManifest.xml`:
+
+```xml
+<service
+    android:name="com.octopuscommunity.sample.messaging.MessagingService"
+    android:exported="false">
+    <intent-filter>
+        <action android:name="com.google.firebase.MESSAGING_EVENT" />
+    </intent-filter>
+</service>
+```
+
+See the [MessagingService implementation](/samples/src/main/java/com/octopuscommunity/sample/messaging/MessagingService.kt) for details on handling notifications and token refresh.
+
 ## Customizing the Theme
 
 The Octopus SDK UI is fully customizable to match your app's branding. Use the `OctopusThemeConfigurator.kt` file to customize colors, typography, and other visual elements.
@@ -129,6 +179,12 @@ The Octopus SDK UI is fully customizable to match your app's branding. Use the `
 1. **Locate the configurator file**: [`/tools/src/main/java/com/octopuscommunity/tools/OctopusThemeConfigurator.kt`](/tools/src/main/java/com/octopuscommunity/tools/OctopusThemeConfigurator.kt)
 
 2. **Customize your theme** by editing the `CommunityTheme` composable:
+   - **Color Scheme** — Override `octopusLightColorScheme()` / `octopusDarkColorScheme()` with your brand colors
+   - **Typography** — Customize `title1`, `title2`, `body1`, `body2`, `caption1`, `caption2` text styles
+   - **Top App Bar** — Customize title, navigation icon, actions, and colors
+   - **Logo** — Replace the logo composable in `OctopusImagesDefaults.images()`
+
+3. **Preview your customizations** using the built-in `@Preview` functions in the same file. All SDK screens are available as previews.
 
 For more detailed theming documentation, visit [Octopus Documentation](https://doc.octopuscommunity.com/).
 

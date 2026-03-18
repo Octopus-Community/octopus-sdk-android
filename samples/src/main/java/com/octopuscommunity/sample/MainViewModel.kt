@@ -103,8 +103,7 @@ class MainViewModel(private val userDataStore: UserDataStore) : ViewModel() {
                     attachment = clientObject.imageUrl?.let { Resource.Remote(url = it) },
                     catchPhrase = clientObject.octopusCatchPhrase,
                     viewObjectButtonText = clientObject.octopusViewClientObjectButtonText,
-                    topicId = clientObject.octopusTopicId,
-                    signature = null
+                    topicId = clientObject.octopusTopicId
                 )
             )
         }

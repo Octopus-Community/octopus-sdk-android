@@ -13,26 +13,34 @@ import com.octopuscommunity.sdk.ui.OctopusTheme
 import com.octopuscommunity.sdk.ui.octopusDarkColorScheme
 import com.octopuscommunity.sdk.ui.octopusLightColorScheme
 
+// Brand colors — change these to match your app's identity
+private val BrandPrimary = Color(0xFF4F46E5)       // Indigo
+private val BrandPrimaryDark = Color(0xFF818CF8)    // Indigo light (for dark mode)
+private val BrandBackground = Color(0xFFFAFAFA)     // Warm off-white
+private val BrandBackgroundDark = Color(0xFF111118)  // Deep charcoal
+private val BrandSurface = Color(0xFFFFFFFF)
+private val BrandSurfaceDark = Color(0xFF1C1C24)
+
 @Composable
 fun AppTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = if (isSystemInDarkTheme()) {
             darkColorScheme(
-                primary = Color(0xFF3AD9B1),
-                onPrimary = Color(0xFF141414),
-                secondaryContainer = Color(0xFF3AD9B1),
-                onSecondaryContainer = Color(0xFF141414),
-                surface = Color(0xFF141414),
-                background = Color(0xFF141414)
+                primary = BrandPrimaryDark,
+                onPrimary = Color(0xFF1E1B4B),
+                secondaryContainer = Color(0xFF312E81),
+                onSecondaryContainer = Color(0xFFC7D2FE),
+                surface = BrandSurfaceDark,
+                background = BrandBackgroundDark
             )
         } else {
             lightColorScheme(
-                primary = Color(0xFF068677),
-                onPrimary = Color(0xFFFFFFFF),
-                secondaryContainer = Color(0xFF068677),
-                onSecondaryContainer = Color(0xFFFFFFFF),
-                surface = Color(0xFFFFFFFF),
-                background = Color(0xFFFFFFFF)
+                primary = BrandPrimary,
+                onPrimary = Color.White,
+                secondaryContainer = Color(0xFFE0E7FF),
+                onSecondaryContainer = Color(0xFF312E81),
+                surface = BrandSurface,
+                background = BrandBackground
             )
         },
         content = content
@@ -44,25 +52,25 @@ fun CommunityTheme(content: @Composable () -> Unit) {
     OctopusTheme(
         colorScheme = if (isSystemInDarkTheme()) {
             octopusDarkColorScheme(
-                primary = Color(0xFF3AD9B1),
-                primaryLow = Color(0xFF083B2F),
-                primaryHigh = Color(0xFFD8F4F1),
-                onPrimary = Color(0xFF141414),
-                background = Color(0xFF141414),
-                onHover = Color(0xFF242526)
+                primary = BrandPrimaryDark,
+                primaryLow = Color(0xFF1E1B4B),
+                primaryHigh = Color(0xFFC7D2FE),
+                onPrimary = Color(0xFF1E1B4B),
+                background = BrandBackgroundDark,
+                onHover = Color(0xFF1C1C24)
             )
         } else {
             octopusLightColorScheme(
-                primary = Color(0xFF068677),
-                primaryLow = Color(0xFFD8F4F1),
-                primaryHigh = Color(0xFF15D1A2),
-                onPrimary = Color(0xFFFFFFFF),
-                background = Color(0xFFFFFFFF),
-                onHover = Color(0xFFFFFFFF)
+                primary = BrandPrimary,
+                primaryLow = Color(0xFFE0E7FF),
+                primaryHigh = Color(0xFF6366F1),
+                onPrimary = Color.White,
+                background = BrandBackground,
+                onHover = Color.White
             )
         },
         images = OctopusImagesDefaults.images(
-            logo = painterResource(R.drawable.ic_logo)
+            logo = { painterResource(R.drawable.ic_logo) }
         ),
         content = content
     )
