@@ -131,7 +131,7 @@ Edit the `appManagedFields` list parameter on the `OctopusSDK.initialise()` call
 
 All profile fields are managed by Octopus Community. Info you provide in `connectUser` is only used as prefilled values when the user creates their community profile. Fields are not synchronized between your app and community profile.
 
-- [Documentation](https://doc.octopuscommunity.com/SDK/sso/android)
+- [Documentation](https://doc.octopuscommunity.com/SDK/sso?platform=android)
 
 **Requirements:**
 - Your community must be configured with no app-managed fields
@@ -140,7 +140,7 @@ All profile fields are managed by Octopus Community. Info you provide in `connec
 
 Some profile fields are managed by your app. These fields will be used in the community. Octopus Community won't moderate app-managed fields. If nickname is app-managed, you must ensure it's unique.
 
-- [Documentation](https://doc.octopuscommunity.com/SDK/sso/android)
+- [Documentation](https://doc.octopuscommunity.com/SDK/sso?platform=android)
 
 **Requirements:**
 - Your community must be configured with some app-managed fields
@@ -150,7 +150,7 @@ Some profile fields are managed by your app. These fields will be used in the co
 
 All profile fields are managed by your app. Your user profile is used directly in the community. Octopus Community won't moderate any profile content. You must ensure nickname uniqueness.
 
-- [Documentation](https://doc.octopuscommunity.com/SDK/sso/android)
+- [Documentation](https://doc.octopuscommunity.com/SDK/sso?platform=android)
 
 **Requirements:**
 - Your community must be configured with all fields as app-managed
