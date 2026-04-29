@@ -11,6 +11,8 @@ import com.octopuscommunity.sdk.domain.model.ClientPost
 import com.octopuscommunity.sdk.domain.model.ClientUser
 import com.octopuscommunity.sdk.domain.model.OctopusPost
 import com.octopuscommunity.sdk.domain.model.Resource
+import com.octopuscommunity.sdk.domain.model.SyncFollowGroupAction
+import java.util.Date
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
@@ -103,7 +105,7 @@ class MainViewModel(private val userDataStore: UserDataStore) : ViewModel() {
                     attachment = clientObject.imageUrl?.let { Resource.Remote(url = it) },
                     catchPhrase = clientObject.octopusCatchPhrase,
                     viewObjectButtonText = clientObject.octopusViewClientObjectButtonText,
-                    topicId = clientObject.octopusTopicId
+                    groupId = clientObject.octopusGroupId
                 )
             )
         }
@@ -135,6 +137,26 @@ class MainViewModel(private val userDataStore: UserDataStore) : ViewModel() {
             _state.update { it.copy(isUpdatingCommunityAccess = true) }
             OctopusSDK.overrideCommunityAccess(hasAccess)
             _state.update { it.copy(isUpdatingCommunityAccess = false) }
+        }
+    }
+
+    /**
+     * Pushes the groups the user has followed in *your* app to Octopus, so the
+     * Octopus feed mirrors that selection.
+     *
+     * Call this any time the user changes their group preferences in your own UI
+     * (e.g. on login, or when they toggle a category in your settings).
+     *
+     * The current date is used as the action date so the backend can resolve
+     * conflicts when multiple devices push divergent preferences for the same
+     * group.
+     */
+    fun syncFollowedGroups(followedGroupIds: List<String>) {
+        viewModelScope.launch {
+            val actions = followedGroupIds.map {
+                SyncFollowGroupAction(groupId = it, followed = true, actionDate = Date())
+            }
+            OctopusSDK.syncFollowGroups(actions)
         }
     }
 }

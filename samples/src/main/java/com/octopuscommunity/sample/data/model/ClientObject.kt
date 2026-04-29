@@ -16,7 +16,7 @@ data class ClientObject(
     val cta: String? = null,
     val octopusCatchPhrase: String? = null,
     val octopusViewClientObjectButtonText: String? = null,
-    val octopusTopicId: String? = null,
+    val octopusGroupId: String? = null,
     val signed: Boolean = true
 ) {
     companion object {
