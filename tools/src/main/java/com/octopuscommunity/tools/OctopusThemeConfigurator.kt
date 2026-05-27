@@ -40,8 +40,6 @@ import com.octopuscommunity.sdk.ui.profile.current.edit.CurrentUserProfileEditSc
 import com.octopuscommunity.sdk.ui.profile.current.nickname.ValidateNicknameScreen
 import com.octopuscommunity.sdk.ui.profile.current.summary.CurrentUserProfileSummaryScreen
 import com.octopuscommunity.sdk.ui.profile.others.summary.ProfileSummaryScreen
-import com.octopuscommunity.sdk.ui.report.content.ReportContentScreen
-import com.octopuscommunity.sdk.ui.report.user.ReportUserScreen
 import com.octopuscommunity.sdk.ui.settings.SettingsScreen
 import com.octopuscommunity.sdk.ui.settings.about.AboutScreen
 import com.octopuscommunity.sdk.ui.settings.profile.ProfileSettingsScreen
@@ -398,40 +396,9 @@ private fun OctopusValidateNicknamePreview() {
     }
 }
 
-@Preview(
-    showSystemUi = showUi,
-    locale = locale,
-    device = device,
-    uiMode = uiMode,
-    fontScale = fontScale
-)
-@Composable
-private fun OctopusReportContentScreenPreview() {
-    CommunityTheme {
-        ReportContentScreen(
-            navController = rememberNavController(),
-            contentId = MockPosts.all.random().id,
-            contentKind = OctopusItem.ContentKind.POST
-        )
-    }
-}
-
-@Preview(
-    showSystemUi = showUi,
-    locale = locale,
-    device = device,
-    uiMode = uiMode,
-    fontScale = fontScale
-)
-@Composable
-private fun OctopusReportUserScreenPreview() {
-    CommunityTheme {
-        ReportUserScreen(
-            navController = rememberNavController(),
-            userId = MockProfiles.all.random().userId
-        )
-    }
-}
+// Note: Report-content and Report-user screens were removed in SDK v1.12.0 (OCT-1339).
+// Reporting is now a bottom sheet hosted by the parent screen and triggered via
+// `Event.OpenReport(target: ReportTarget)`. No standalone preview to show here.
 
 /**
  * Preview: Post Details Screen
