@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compile:
+    name: Compile samples and tools
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Compile (debug Kotlin, all sample flavors + tools)
+        run: |
+          ./gradlew --no-daemon \
+            :samples:compileBottomnavigationbarDebugKotlin \
+            :samples:compileContentpaddingDebugKotlin \
+            :samples:compileFullscreenDebugKotlin \
+            :samples:compileModalbottomsheetDebugKotlin \
+            :samples:compileNestednavigationDebugKotlin \
+            :samples:compileSingleactivityDebugKotlin \
+            :tools:compileDebugKotlin
