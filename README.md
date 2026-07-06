@@ -1,5 +1,9 @@
 # Octopus SDK for Android
 
+[![Maven Central](https://img.shields.io/maven-central/v/com.octopuscommunity/octopus-sdk?label=Maven%20Central)](https://central.sonatype.com/artifact/com.octopuscommunity/octopus-sdk)
+[![Platform](https://img.shields.io/badge/platform-Android-3DDC84?logo=android&logoColor=white)](https://developer.android.com)
+[![API](https://img.shields.io/badge/minSdk-21-blue)](https://developer.android.com/tools/releases/platforms)
+
 Octopus is an SDK that enables you to **integrate a fully customizable social network** into your app, perfectly **aligned with your branding**.
 
 ## Dependencies
