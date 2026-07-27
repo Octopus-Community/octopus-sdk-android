@@ -21,7 +21,6 @@ import com.octopuscommunity.sdk.ui.OctopusTheme
 import com.octopuscommunity.sdk.ui.OctopusTypographyDefaults
 import com.octopuscommunity.sdk.ui.comments.components.OctopusItemInputField
 import com.octopuscommunity.sdk.ui.comments.components.OctopusItemInputFieldViewModel
-import com.octopuscommunity.sdk.ui.comments.details.CommentDetailsScreen
 import com.octopuscommunity.sdk.ui.common.validation.ValidateImage
 import com.octopuscommunity.sdk.ui.common.validation.ValidateText
 import com.octopuscommunity.sdk.ui.components.OctopusTopAppBarDefaults
@@ -36,12 +35,10 @@ import com.octopuscommunity.sdk.ui.notifications.list.NotificationsList
 import com.octopuscommunity.sdk.ui.posts.create.CreatePostScreen
 import com.octopuscommunity.sdk.ui.posts.details.OctopusPostDetailsScreen
 import com.octopuscommunity.sdk.ui.profile.avatar.ProfileAvatarScreen
-import com.octopuscommunity.sdk.ui.profile.current.edit.CurrentUserProfileEditScreen
 import com.octopuscommunity.sdk.ui.profile.current.nickname.ValidateNicknameScreen
 import com.octopuscommunity.sdk.ui.profile.current.summary.CurrentUserProfileSummaryScreen
 import com.octopuscommunity.sdk.ui.profile.others.summary.ProfileSummaryScreen
 import com.octopuscommunity.sdk.ui.settings.SettingsScreen
-import com.octopuscommunity.sdk.ui.settings.about.AboutScreen
 import com.octopuscommunity.sdk.ui.settings.profile.ProfileSettingsScreen
 import com.octopuscommunity.sdk.ui.settings.profile.delete.DeleteAccountScreen
 import com.octopuscommunity.sdk.ui.settings.report.HowToReportContentScreen
@@ -264,29 +261,6 @@ private fun OctopusCreatePostPreview() {
 }
 
 /**
- * Preview: Comment Details Screen
- *
- * Displays a detailed view of a single comment with replies.
- * Uses the default mock comment for demonstration.
- */
-@Preview(
-    showSystemUi = showUi,
-    locale = locale,
-    device = device,
-    uiMode = uiMode,
-    fontScale = fontScale
-)
-@Composable
-private fun OctopusCommentDetailsPreview() {
-    CommunityTheme {
-        CommentDetailsScreen(
-            navController = rememberNavController(),
-            commentId = MockComments.default.id
-        )
-    }
-}
-
-/**
  * Preview: Current User Profile - Posts Tab
  *
  * Shows the current user's profile with the posts tab selected (index 0).
@@ -328,28 +302,6 @@ private fun OctopusCurrentUserProfileSummaryNotificationsPreview() {
         CurrentUserProfileSummaryScreen(
             navController = rememberNavController(),
             selectedTabIndex = 1
-        )
-    }
-}
-
-/**
- * Preview: Edit Profile Screen
- *
- * Shows the interface for editing the current user's profile information,
- * including avatar, bio, and other personal details.
- */
-@Preview(
-    showSystemUi = showUi,
-    locale = locale,
-    device = device,
-    uiMode = uiMode,
-    fontScale = fontScale
-)
-@Composable
-private fun OctopusCurrentUserProfileEditPreview() {
-    CommunityTheme {
-        CurrentUserProfileEditScreen(
-            navController = rememberNavController(),
         )
     }
 }
@@ -565,27 +517,6 @@ private fun OctopusNotificationsListPreview() {
 private fun OctopusProfileSettingsPreview() {
     CommunityTheme {
         ProfileSettingsScreen(
-            navController = rememberNavController()
-        )
-    }
-}
-
-/**
- * Preview: About Screen
- *
- * Displays the about page with app and SDK information.
- */
-@Preview(
-    showSystemUi = showUi,
-    locale = locale,
-    device = device,
-    uiMode = uiMode,
-    fontScale = fontScale
-)
-@Composable
-private fun OctopusAboutPreview() {
-    CommunityTheme {
-        AboutScreen(
             navController = rememberNavController()
         )
     }
