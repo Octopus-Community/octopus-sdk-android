@@ -9,6 +9,36 @@ For upgrade instructions across breaking changes, see [MIGRATING.md](MIGRATING.m
 
 ## Unreleased
 
+## [1.13.1](https://github.com/Octopus-Community/octopus-sdk-android/releases/tag/v1.13.1) — 2026-07-29
+
+### Fixed
+- Dropdown and popup menus (most visibly the profile overflow menu) rendered with a transparent background in host apps whose Material theme does not set `surfaceContainer` — SDK menus now always use their own opaque surface.
+
+## [1.13.0](https://github.com/Octopus-Community/octopus-sdk-android/releases/tag/v1.13.0) — 2026-07-24
+
+### Breaking
+- `OctopusSDK.grpcClient` removed — it exposed the SDK's internal gRPC client and was never a supported integration point. See [MIGRATING.md](MIGRATING.md).
+- `OctopusDestination.About` and `OctopusEvent.ScreenDisplayed.SettingsAbout` removed along with the "About the community" screen — its legal links are already in the Activity and profile overflow menus. See [MIGRATING.md](MIGRATING.md).
+- `CommentDetailsScreen` / `CommentDetailsContent` and `CurrentUserProfileEditScreen` / `CurrentUserProfileEditContent` are now `internal` — they were public by accident and had no supported bridge usage. See [MIGRATING.md](MIGRATING.md).
+
+### Added
+- Unified Profile — hand member-profile taps back to your app and enrich your own screens with community data: `onNavigateToProfile` callback (passing a non-null callback is the activation switch), read-only `OctopusCommunityData` / `OctopusGamification` via `OctopusSDK.communityDataFlow` and `OctopusSDK.fetchCommunityData`, `OctopusDestination.Activity` with `NavController.navigateToOctopusActivity(userId)` and `navigateToOctopusProfile(userId)`, plus the `…ByClientUserId` variants that address members by your host app's own user id. It activates only when the backend exposes client user ids **and** the host wired `onNavigateToProfile`; otherwise the SDK's native profile screens are kept. Includes an automatic local database migration on upgrade.
+- Explicit terms acceptance: `CommunityConfig.termsAcceptanceMode` (`TermsAcceptanceMode.IMPLICIT`, the default, `EXPLICIT_MULTI_CHECKBOX`, `EXPLICIT_SINGLE_CHECKBOX`) — a community can require explicit consent to its legal documents through a sheet shown at the first contribution.
+- "View group" entry in first position of the post "⋯" menu, navigating to the post's group, with the new themeable icon `OctopusIcons.Groups.viewGroup`.
+- Theming: the link (URL) color and the community background color are customizable through the SDK color scheme.
+- 15 new languages — including Arabic with right-to-left layout — bringing the total to 24.
+- Large-screen support: content is capped and centered on tablets and other large screens instead of stretching edge-to-edge.
+
+### Changed
+- Design-system polish: 24px line height on body content, refreshed notification-bell (Activity) icon, current-user profile overflow menu uniformized with the Activity one (leading icons, visible dividers, legal links reordered).
+
+### Fixed
+- Bridge back navigation: the back chevron and system back now route to the host's `onBack` on bridge entry points (post details, group details, activity, current-user profile, post editor), and the `Octopus*Content` wrappers take an `onBack` parameter. Screens embedded directly outside `octopusComposables` no longer swallow system back.
+- `OctopusGroupDetailsContent` rendered a blank screen.
+- Guests no longer see "View my profile" / "Edit my profile" in the Activity overflow menu.
+- Media viewer draws edge-to-edge behind the system bars.
+- The New Post composer shows the author's avatar (display-only) instead of the clickable Activity bell in Unified Profile mode.
+
 ## [1.12.1](https://github.com/Octopus-Community/octopus-sdk-android/releases/tag/v1.12.1) — 2026-06-25
 
 ### Added

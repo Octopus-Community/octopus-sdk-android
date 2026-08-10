@@ -9,8 +9,85 @@ Full release notes (including the additive API surface of each release) live on
 [GitHub Releases](https://github.com/Octopus-Community/octopus-sdk-android/releases),
 and a condensed history in [CHANGELOG.md](CHANGELOG.md).
 
+- [To 1.13.0 (from 1.12.x)](#to-1130-from-112x)
 - [To 1.12.0 (from 1.11.x)](#to-1120-from-111x)
 - [To 1.11.0 (from 1.10.x)](#to-1110-from-110x)
+
+---
+
+## To 1.13.0 (from 1.12.x)
+
+> **Known limitation (non-breaking)** — `OctopusDestination.ProfileSummary` and
+> `OctopusDestination.Activity` gained a `clientUserId` parameter, turning their
+> single required `userId` path argument into optional query arguments. This is
+> source- and binary-compatible, so existing calls keep working with no change.
+> The only theoretical edge case: such a destination persisted on the saved back
+> stack under 1.12.x, restored after an in-place upgrade to 1.13.0 following a
+> process death, could fail to restore. No action needed unless observed.
+
+### Breaking — `OctopusSDK.grpcClient` removed
+
+`OctopusSDK.grpcClient` exposed the SDK's internal gRPC client. It was public by
+accident and was never a supported integration point: there is no supported way
+to call the community gRPC API directly. It is now private.
+
+```kotlin
+// Before (1.12.x) — never a supported use case
+val client = OctopusSDK.grpcClient
+
+// After (1.13.0)
+// No replacement — use the public OctopusSDK API surface instead.
+```
+
+### Breaking — "About the community" screen removed (`OctopusDestination.About` + `ScreenDisplayed.SettingsAbout`)
+
+The standalone About screen was a redundant hop: its three legal links
+(Community Guidelines, Privacy Policy, Terms of Use) were already duplicated in
+both the Activity and the current-user Profile overflow menus. The screen, its
+`OctopusDestination.About` navigation destination (with its `settings/about`
+deep link), and its `OctopusEvent.ScreenDisplayed.SettingsAbout` analytics event
+are all gone.
+
+```kotlin
+// Before (1.12.x)
+navController.navigate(OctopusDestination.About)
+
+// After (1.13.0) — no replacement call needed: the legal links are already
+// reachable from the Activity / current-user Profile "…" overflow menus.
+```
+
+If you branch on `ScreenDisplayed` in an analytics listener, drop the
+`SettingsAbout` case — it no longer exists:
+
+```kotlin
+// Before (1.12.x)
+when (event) {
+    is OctopusEvent.ScreenDisplayed.SettingsAbout -> track("about")
+    // …
+}
+
+// After (1.13.0) — the case is gone; remove it from your `when`.
+```
+
+### Breaking — `CommentDetailsContent` / `CurrentUserProfileEditContent` are now internal
+
+`CommentDetailsScreen` / `CommentDetailsContent` and
+`CurrentUserProfileEditScreen` / `CurrentUserProfileEditContent` were public by
+accident — leftovers that pre-date the `Octopus*` bridge wrapper pattern
+(`OctopusGroupDetailsContent`, `OctopusPostDetailsContent`,
+`OctopusCreatePostScreen`, …). They required an internal `NavHostController`
+wired to the SDK's own navigation graph and had no supported bridge usage. They
+are now `internal`.
+
+```kotlin
+// Before (1.12.x) — never a supported use case
+CommentDetailsContent(navController = navController, commentId = commentId)
+CurrentUserProfileEditContent(navController = navController)
+
+// After (1.13.0)
+// No replacement — these were reached exclusively through the SDK's own
+// navigation destinations, which is still the supported way to display them.
+```
 
 ---
 
