@@ -9,9 +9,58 @@ Full release notes (including the additive API surface of each release) live on
 [GitHub Releases](https://github.com/Octopus-Community/octopus-sdk-android/releases),
 and a condensed history in [CHANGELOG.md](CHANGELOG.md).
 
+- [To 1.13.2 (from 1.13.x)](#to-1132-from-113x)
 - [To 1.13.0 (from 1.12.x)](#to-1130-from-112x)
 - [To 1.12.0 (from 1.11.x)](#to-1120-from-111x)
 - [To 1.11.0 (from 1.10.x)](#to-1110-from-110x)
+
+---
+
+## To 1.13.2 (from 1.13.x)
+
+### Breaking — `OctopusDateField` removed
+
+`OctopusDateField` was public by accident. It backed the birth-date input of the
+"consent over 16" profile-creation screen and has had no caller since that screen
+was removed in 1.6.0. It sat on the SDK's field-primitive layer, which is
+internal by design, and was never a supported entry point: Octopus screens are
+composed through navigation destinations and the `Octopus*` wrappers, not through
+individual field composables.
+
+```kotlin
+// Before (1.13.x) — never a supported use case
+OctopusDateField(value = date, onValueChange = { date = it })
+
+// After
+// No replacement. Material3's DatePickerDialog is the underlying picker, but it is
+// not a drop-in: the removed component also applied the Octopus typography and
+// colors, wrapped the dialog in the SDK's locale override (a dialog opens its own
+// window, which does not inherit it), and used the SDK's localized OK/Cancel
+// labels. Reproduce whichever of those you need.
+```
+
+### Breaking — `ValidateDate`, `DateValidationError` and `Date.calculateAge()` removed
+
+All three were leftovers of that same age-consent flow, `public` but unreachable
+from any supported integration point. `Date.calculateAge()` was additionally
+`@RequiresApi(26)` in a library whose `minSdk` is 21, so it could not be called
+safely across the supported range.
+
+```kotlin
+// Before (1.13.x) — never a supported use case
+val error = ValidateDate()(date = birthDate, minAge = 16)
+val age = birthDate.calculateAge()
+
+// After
+// No replacement — the age-consent flow itself was removed in 1.6.0.
+```
+
+If your app needs an age computation, it is app-side code now: `calculateAge()`
+was a one-line `ChronoUnit.YEARS.between(...)`, which is API 26+ — below that,
+compute it from `Calendar` fields.
+
+`ValidationError` and the other validators (`ValidateEmail`, `ValidateImage`,
+`ValidateText`) are unaffected.
 
 ---
 

@@ -9,6 +9,20 @@ For upgrade instructions across breaking changes, see [MIGRATING.md](MIGRATING.m
 
 ## Unreleased
 
+## [1.13.2](https://github.com/Octopus-Community/octopus-sdk-android/releases/tag/v1.13.2) — 2026-08-13
+
+### Breaking
+- `OctopusDateField` removed from `octopus-sdk-ui` — an unused public composable, orphaned when the "consent over 16" profile-creation screen was deleted in 1.6.0. See [MIGRATING.md](MIGRATING.md).
+- `ValidateDate`, `DateValidationError` (with its `Missing` / `TooYoung` subtypes) and the `Date.calculateAge()` extension removed from `octopus-sdk-ui` — dead code from that same removed flow. See [MIGRATING.md](MIGRATING.md).
+
+### Fixed
+- Public Flows collected before `OctopusSDK.initialize()` never saw the real state. `connectionState`, `isUserConnected`, `profile`, `notSeenNotificationsCount`, `hasAccessToCommunity`, `groups` / `topics` and `events` bound to the SDK's Compose-preview fakes for the whole lifetime of the collection, so a later successful `connectUser()` stayed invisible to that collector. They now bind to the SDK's active dependency container: nothing is emitted while there is none, then the real state is mirrored, and the Flow re-binds itself on every re-initialization — `switchCommunity()` included, which therefore no longer requires the Flows to be re-collected. Collecting before `initialize()` needs no ordering guard on the host side.
+- Chrome Custom Tabs could be painted with a dark toolbar and light content, or the reverse, leaving the page title unreadable. Nothing told Chrome which color scheme the Octopus colors belonged to, so it took its own decision from the device setting — breaking any theme decoupled from the OS. The scheme is now pinned to the palette the toolbar is painted from, and picked by which of Chrome's own content colors stays legible on it. One deliberate consequence: an already-open tab no longer re-themes itself when the system setting flips mid-session.
+- Links now open with the palette the SDK screens are actually painted with. A host passing an explicit `OctopusColorScheme` to `octopusComposables(container = …)` — the shape an in-app theme toggle takes — had its links opened with the host's Material-theme colors instead.
+- A `background` or `primary` slot left translucent, or never wired, is no longer forwarded to Chrome. Custom Tabs take raw ARGB and do not composite alpha, so such a slot rendered as a see-through — in practice black — toolbar; Chrome now falls back to its own default for it.
+- Unreadable text on Material3 components in host apps whose Material theme darkens `background` without redefining its content colors — most visibly the profile overflow menu, where the labels were invisible. `onBackground`, `onSurface` and `onSurfaceVariant` now follow the resolved Octopus palette, which also covers unstyled leading icons and radio buttons.
+- Invisible alert dialog titles, info snackbars and video controls in the same configuration. The host's `surfaceContainerHigh` is still adopted as `onHover`, but only when it is opaque and keeps both palette grays above the WCAG AA 4.5:1 contrast ratio; otherwise the palette's own elevated surface is used.
+
 ## [1.13.1](https://github.com/Octopus-Community/octopus-sdk-android/releases/tag/v1.13.1) — 2026-07-29
 
 ### Fixed
