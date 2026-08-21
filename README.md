@@ -32,9 +32,9 @@ Add the dependencies to your module's `build.gradle.kts`:
 ```kotlin
 dependencies {
     // Core SDK functionalities
-    implementation("com.octopuscommunity:octopus-sdk:1.13.1")
+    implementation("com.octopuscommunity:octopus-sdk:1.13.2")
     // SDK UI Components (optional)
-    implementation("com.octopuscommunity:octopus-sdk-ui:1.13.1")
+    implementation("com.octopuscommunity:octopus-sdk-ui:1.13.2")
 }
 ```
 
@@ -62,10 +62,9 @@ class MyApplication : Application() {
         OctopusSDK.initialize(
             context = this,
             apiKey = BuildConfig.OCTOPUS_API_KEY,
-            connectionMode = ConnectionMode.SSO(
-                // The fields your app owns — see "Profile management" below
-                appManagedFields = ProfileField.ALL
-            )
+            // Octopus manages the whole profile by default. If your app owns some
+            // profile fields, pass them — see "Profile management" below.
+            connectionMode = ConnectionMode.SSO()
         )
     }
 }
