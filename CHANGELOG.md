@@ -9,6 +9,23 @@ For upgrade instructions across breaking changes, see [MIGRATING.md](MIGRATING.m
 
 ## Unreleased
 
+## [1.13.4](https://github.com/Octopus-Community/octopus-sdk-android/releases/tag/v1.13.4) — 2026-09-04
+
+Two-fix patch over 1.13.3. No API change, no migration.
+
+### Fixed
+- The Octopus UI no longer crashes when Android restores a host activity in a process where
+  `OctopusSDK.initialize()` has not run yet (a recreation after a low-memory kill, before the host
+  has initialised the SDK — routine when the host boots an engine such as Unity or Flutter first).
+  The screen used to bring the process down with `lateinit property koinApp has not been
+  initialized`; it now logs a warning and renders nothing until the host initialises the SDK, then
+  the content appears on its own. Apps that initialise before showing Octopus UI see no difference.
+- The SDK no longer dies at `OctopusSDK.initialize()` in a host app that minifies its build. The
+  consumer R8 rules kept gRPC but not the Guava it calls at runtime, so a shrunk host hit
+  `NoSuchMethodError … com.google.common.base.Strings.isNullOrEmpty` from `io.grpc.internal.GrpcUtil`
+  followed by `NoClassDefFoundError: io.grpc.LoadBalancerRegistry`. The SDK now ships the Guava
+  keep rules itself; nothing to add on the host side. Hosts that do not minify were never affected.
+
 ## [1.13.3](https://github.com/Octopus-Community/octopus-sdk-android/releases/tag/v1.13.3) — 2026-09-04
 
 Single-fix patch over 1.13.2. No API change, no migration.
