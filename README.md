@@ -32,9 +32,9 @@ Add the dependencies to your module's `build.gradle.kts`:
 ```kotlin
 dependencies {
     // Core SDK functionalities
-    implementation("com.octopuscommunity:octopus-sdk:1.13.2")
+    implementation("com.octopuscommunity:octopus-sdk:1.13.3")
     // SDK UI Components (optional)
-    implementation("com.octopuscommunity:octopus-sdk-ui:1.13.2")
+    implementation("com.octopuscommunity:octopus-sdk-ui:1.13.3")
 }
 ```
 

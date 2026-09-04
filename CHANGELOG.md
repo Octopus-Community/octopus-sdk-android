@@ -9,6 +9,17 @@ For upgrade instructions across breaking changes, see [MIGRATING.md](MIGRATING.m
 
 ## Unreleased
 
+## [1.13.3](https://github.com/Octopus-Community/octopus-sdk-android/releases/tag/v1.13.3) — 2026-09-04
+
+Single-fix patch over 1.13.2. No API change, no migration.
+
+### Fixed
+- Text-selection "process text" actions (Translate and any other app-provided action) and the fullscreen
+  image viewer crashed `OctopusActivity` when `overrideDefaultLocale` was set: the locale override
+  composed the SDK screens against a context that did not lead back to the host Activity. The override
+  now keeps the Activity reachable while resources still resolve in the overridden locale. If your app
+  stopped setting `overrideDefaultLocale` to avoid the crash, you can set it again.
+
 ## [1.13.2](https://github.com/Octopus-Community/octopus-sdk-android/releases/tag/v1.13.2) — 2026-08-13
 
 ### Breaking
