@@ -1,0 +1,71 @@
+name: PR
+
+# The only CI this repository runs, and the only one it should run.
+#
+# A published mirror does not re-run the source repository's checks: the code
+# was already gated there before the sync pushed it, so a copy would catch
+# nothing new. What this workflow covers is the content that exists ONLY here —
+# the integration samples under `samples/` and the `tools/` module — which no
+# other pipeline compiles. That is what earns it a place.
+#
+# Hosted runner, always. This is a public repository: a job that can be
+# triggered from a fork must never be scheduled on an organisation runner.
+#
+# Renamed from `ci.yml` / `name: CI` so the file matches its role (one role, one
+# file). The `compile` job id and its `Compile samples and tools` name are
+# UNCHANGED, deliberately — that name is the branch-protection context, and it
+# is matched as a string, so renaming it would silently un-gate the branch.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  # Kept, unlike on the source repository, where a separate workflow covers the
+  # trunk. There is no such workflow here, so dropping this would leave every
+  # push to `main` — including a sync push — completely unchecked.
+  push:
+    branches: [main]
+
+# Least privilege: this workflow only reads the tree and compiles it. No job
+# needs more, so there is no per-job elevation anywhere below.
+permissions:
+  contents: read
+
+concurrency:
+  # Keyed on the PR number when there is one, so a force-push supersedes the
+  # run it replaces instead of racing it; falls back to the ref for the `push`
+  # trigger above.
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compile:
+    # Do NOT rename — this string is the required status check on `main`.
+    name: Compile samples and tools
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      # Every third-party action is pinned by full commit SHA with the tag it
+      # corresponds to in a trailing comment. A moving tag (`@v4`) is a
+      # supply-chain hole: whoever can move the tag can run code in this job.
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@dd06d9cba3e5552c54d9f8ea23572deb30010f7c # v6.0.0
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
+
+      - name: Compile (debug Kotlin, all sample flavors + tools)
+        run: |
+          ./gradlew --no-daemon \
+            :samples:compileBottomnavigationbarDebugKotlin \
+            :samples:compileContentpaddingDebugKotlin \
+            :samples:compileFullscreenDebugKotlin \
+            :samples:compileModalbottomsheetDebugKotlin \
+            :samples:compileNestednavigationDebugKotlin \
+            :samples:compileSingleactivityDebugKotlin \
+            :tools:compileDebugKotlin
