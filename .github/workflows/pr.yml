@@ -59,6 +59,31 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
 
+      # The install snippet in README.md hard-codes a version, and nothing used
+      # to check it against the one the samples actually build against. A stale
+      # pin breaks no build — Maven Central serves whatever a build asks for —
+      # it silently tells every new integrator that the latest release is an
+      # older one. Both files live here, so the assertion is three lines; it
+      # runs before the compile so a mismatch fails in seconds.
+      #
+      # This is the mirror half of the guard. It reports after a release has
+      # been pushed here, which is late but not useless: the release commit is
+      # still amendable for a few minutes, and this is the only place both
+      # files exist. The upstream half — asserting the pin before the tag —
+      # is Octopus-Community/octopus-sdk-android-private#415.
+      - name: Check the README install pins match libs.versions.toml
+        run: |
+          set -eu
+          pinned=$(sed -nE 's/^octopusSdk = "(.*)"$/\1/p' gradle/libs.versions.toml)
+          [ -n "$pinned" ] || { echo "::error::No octopusSdk version in gradle/libs.versions.toml"; exit 1; }
+          stale=$(grep -nE 'com\.octopuscommunity:[a-z-]+:[0-9]' README.md | grep -v ":${pinned}\"" || true)
+          if [ -n "$stale" ]; then
+            echo "::error::README install pin(s) disagree with octopusSdk=${pinned}:"
+            echo "$stale"
+            exit 1
+          fi
+          echo "README install pins agree with octopusSdk=${pinned}."
+
       - name: Compile (debug Kotlin, all sample flavors + tools)
         run: |
           ./gradlew --no-daemon \
