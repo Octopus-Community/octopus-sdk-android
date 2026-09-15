@@ -69,14 +69,16 @@ jobs:
       # This is the mirror half of the guard. It reports after a release has
       # been pushed here, which is late but not useless: the release commit is
       # still amendable for a few minutes, and this is the only place both
-      # files exist. The upstream half — asserting the pin before the tag —
-      # is Octopus-Community/octopus-sdk-android-private#415.
+      # files exist. The upstream half — asserting the pin before the tag is
+      # pushed — is tracked in the source repository.
       - name: Check the README install pins match libs.versions.toml
         run: |
           set -eu
           pinned=$(sed -nE 's/^octopusSdk = "(.*)"$/\1/p' gradle/libs.versions.toml)
           [ -n "$pinned" ] || { echo "::error::No octopusSdk version in gradle/libs.versions.toml"; exit 1; }
-          stale=$(grep -nE 'com\.octopuscommunity:[a-z-]+:[0-9]' README.md | grep -v ":${pinned}\"" || true)
+          # -o so each pin is compared on its own: matching whole LINES would let a
+          # stale pin hide behind a correct one written on the same line.
+          stale=$(grep -noE 'com\.octopuscommunity:[a-z-]+:[0-9][0-9A-Za-z.+-]*' README.md | grep -v ":${pinned}$" || true)
           if [ -n "$stale" ]; then
             echo "::error::README install pin(s) disagree with octopusSdk=${pinned}:"
             echo "$stale"
