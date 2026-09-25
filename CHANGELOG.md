@@ -9,6 +9,17 @@ For upgrade instructions across breaking changes, see [MIGRATING.md](MIGRATING.m
 
 ## Unreleased
 
+## [1.14.1](https://github.com/Octopus-Community/octopus-sdk-android/releases/tag/v1.14.1) — 2026-09-25
+
+Single-fix patch over 1.14.0. No API change, no migration.
+
+### Fixed
+- Calling `OctopusSDK.stop()` — directly, through `switchCommunity()`, or through a second
+  `initialize()` — while the SDK was still starting up could crash the host app with a Koin
+  `ClosedScopeException` (wrapped in `InstanceCreationException`, typically for
+  `StartCollectingDrivenLoginUseCase`) reported on a background thread. The SDK now drops that
+  teardown race; any other failure still surfaces. Present since at least 1.12.
+
 ## [1.14.0](https://github.com/Octopus-Community/octopus-sdk-android/releases/tag/v1.14.0) — 2026-09-24
 
 ### Breaking
