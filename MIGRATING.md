@@ -9,10 +9,93 @@ Full release notes (including the additive API surface of each release) live on
 [GitHub Releases](https://github.com/Octopus-Community/octopus-sdk-android/releases),
 and a condensed history in [CHANGELOG.md](CHANGELOG.md).
 
+- [To 1.14.0 (from 1.13.x)](#to-1140-from-113x)
 - [To 1.13.2 (from 1.13.x)](#to-1132-from-113x)
 - [To 1.13.0 (from 1.12.x)](#to-1130-from-112x)
 - [To 1.12.0 (from 1.11.x)](#to-1120-from-111x)
 - [To 1.11.0 (from 1.10.x)](#to-1110-from-110x)
+
+---
+
+## To 1.14.0 (from 1.13.x)
+
+### Breaking — `GuestError` gained a `UserBanned` variant
+
+`connectAsGuest()` can now fail with `GuestError.UserBanned` when the member is
+banned. Its `errorMessage` is written and localized by the server, and is meant
+to be shown as-is. `GuestError` used to have a single variant, so an exhaustive
+`when` over it compiled with one branch; it no longer does.
+
+```kotlin
+// Before (1.13.x)
+val message = when (error) {
+    is GuestError.Unknown -> genericRetryMessage()
+}
+
+// After
+val message = when (error) {
+    is GuestError.UserBanned -> error.errorMessage // display verbatim
+    is GuestError.Unknown -> genericRetryMessage()
+}
+```
+
+Use `else ->` if you do not want to track future variants. Code compiled against
+1.13.x with an exhaustive `when` expression throws `NoWhenBranchMatchedException`
+once a ban is reported, so rebuild it.
+
+### Breaking (binary only) — recompile against 1.14.0
+
+These types gained a trailing parameter with a default value:
+
+| Type | New trailing parameter |
+|---|---|
+| `CommunityConfig` | `showCommentsOnOtherProfiles` |
+| `CurrentUserProfile` | `commentsFeeds` |
+| `OtherUserProfile` | `commentsFeeds` |
+| `OctopusIcons` and `OctopusIconsDefaults.icons()` | `screenStates` |
+
+Kotlin source that builds or copies them compiles unchanged:
+
+```kotlin
+// Compiles against 1.13.x and 1.14.0 alike — the new parameter takes its default.
+val profile = fakeProfile.copy(nickname = "Ada")
+```
+
+A binary compiled against 1.13.x — test fixtures, previews, or a prebuilt
+library depending on the SDK — throws `NoSuchMethodError` on the first such call
+once 1.14.0 is on the classpath: recompile it. Java callers pass the new argument
+explicitly. The `Profile` interface also gained `commentsFeeds`; a class of yours
+implementing it must be recompiled (and a Java one must add `getCommentsFeeds()`).
+
+### Behaviour change — profile and Activity tab indices shifted
+
+The new Comments tab sits in the middle of both tab bars:
+
+| Destination | 0 | 1 | 2 |
+|---|---|---|---|
+| `CurrentUserProfileSummary` (before) | Posts | Notifications | — |
+| `CurrentUserProfileSummary` (after) | Posts | **Comments** | Notifications |
+| `Activity` (before) | Notifications | Posts | — |
+| `Activity` (after) | Notifications | **Comments** | Posts |
+
+Nothing fails to compile, but a raw index lands on a different tab:
+
+```kotlin
+// Before: opened Notifications. After: opens Comments.
+navController.navigate(OctopusDestination.CurrentUserProfileSummary(selectedTabIndex = 1))
+
+// Do this instead — stable across releases:
+navController.navigate(OctopusDestination.CurrentUserProfileSummary.Notifications)
+```
+
+### Removed string resources
+
+If you override SDK strings, these nine keys are no longer used and their
+overrides can be deleted: `notifications_list_empty`,
+`post_create_incentive_button1`, `post_create_incentive_button2`,
+`post_create_incentive_button3`, `post_create_incentive_button4`,
+`post_create_incentive_button6`, `post_create_incentive_explanation`,
+`post_list_empty`, `post_list_other_user_empty`.
 
 ---
 

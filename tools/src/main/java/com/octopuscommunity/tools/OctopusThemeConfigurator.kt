@@ -16,6 +16,7 @@ import com.octopuscommunity.sdk.domain.model.OctopusItem
 import com.octopuscommunity.sdk.test.mock.MockComments
 import com.octopuscommunity.sdk.test.mock.MockPosts
 import com.octopuscommunity.sdk.test.mock.MockProfiles
+import com.octopuscommunity.sdk.ui.OctopusDestination
 import com.octopuscommunity.sdk.ui.OctopusImagesDefaults
 import com.octopuscommunity.sdk.ui.OctopusTheme
 import com.octopuscommunity.sdk.ui.OctopusTypographyDefaults
@@ -263,7 +264,7 @@ private fun OctopusCreatePostPreview() {
 /**
  * Preview: Current User Profile - Posts Tab
  *
- * Shows the current user's profile with the posts tab selected (index 0).
+ * Shows the current user's profile with the posts tab selected.
  * Displays user information and their created posts.
  */
 @Preview(
@@ -278,7 +279,7 @@ private fun OctopusCurrentUserProfileSummaryPostsPreview() {
     CommunityTheme {
         CurrentUserProfileSummaryScreen(
             navController = rememberNavController(),
-            selectedTabIndex = 0
+            selectedTabIndex = OctopusDestination.CurrentUserProfileSummary.Posts.selectedTabIndex
         )
     }
 }
@@ -286,7 +287,8 @@ private fun OctopusCurrentUserProfileSummaryPostsPreview() {
 /**
  * Preview: Current User Profile - Notifications Tab
  *
- * Shows the current user's profile with the notifications tab selected (index 1).
+ * Shows the current user's profile with the notifications tab selected. Uses the
+ * predefined destination rather than a raw index: the tab order changed in 1.14.0.
  * Displays user notifications and activity updates.
  */
 @Preview(
@@ -301,7 +303,7 @@ private fun OctopusCurrentUserProfileSummaryNotificationsPreview() {
     CommunityTheme {
         CurrentUserProfileSummaryScreen(
             navController = rememberNavController(),
-            selectedTabIndex = 1
+            selectedTabIndex = OctopusDestination.CurrentUserProfileSummary.Notifications.selectedTabIndex
         )
     }
 }

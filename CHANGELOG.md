@@ -9,6 +9,35 @@ For upgrade instructions across breaking changes, see [MIGRATING.md](MIGRATING.m
 
 ## Unreleased
 
+## [1.14.0](https://github.com/Octopus-Community/octopus-sdk-android/releases/tag/v1.14.0) — 2026-09-24
+
+### Breaking
+- `GuestError` gained a `UserBanned` variant, carrying the server's localized ban reason in `errorMessage`: `connectAsGuest()` now fails with it when the member is banned. An exhaustive `when` over `GuestError` must handle it. See [MIGRATING.md](MIGRATING.md).
+- Binary-only: `CommunityConfig`, `CurrentUserProfile`, `OtherUserProfile`, `OctopusIcons` and `OctopusIconsDefaults.icons()` gained a trailing defaulted parameter, and the `Profile` interface gained `commentsFeeds`. Kotlin source compiles unchanged; code compiled against 1.13.x (test fixtures, previews, prebuilt libraries) must be recompiled. See [MIGRATING.md](MIGRATING.md).
+- Profile and Activity tab indices shifted for the new Comments tab: `CurrentUserProfileSummary` is Posts=0, Comments=1, Notifications=2; `Activity` is Notifications=0, Comments=1, Posts=2. Use the predefined instances rather than raw indices. See [MIGRATING.md](MIGRATING.md).
+- Nine string resources removed (replaced by the screen states below) — an override of `notifications_list_empty`, `post_create_incentive_button1`–`4`, `post_create_incentive_button6`, `post_create_incentive_explanation`, `post_list_empty` or `post_list_other_user_empty` is now unused.
+
+### Added
+- Who reacted: tapping the reaction counters under a post or comment lists the members who reacted, with an "All" tab plus one tab per reaction type. Reacting stays on the like button. New `ReactionsRepository`, `ProfileReaction`, `ReactionsPage` and `FakeReactionsRepository`.
+- Comments tab on the profile and Activity screens: a member's comments and replies, each with the post (and parent comment) it belongs to. Always shown on the connected user's own profile; on another member's profile when the community enables `CommunityConfig.showCommentsOnOtherProfiles`. New `OctopusSDK.userCommentRepository`, `UserComment`, `UserCommentsPage`, `Profile.commentsFeeds`, `FakeUserCommentRepository` and `OctopusDestination.CurrentUserProfileSummary.Comments`.
+- Empty, loading and error screen states on every list and detail screen, with a Retry on the offline and generic error states. When content is already displayed, a failed refresh shows a snackbar with Retry instead of replacing it.
+- Theming: `OctopusIcons.ScreenStates` (`emptyContent`, `emptyNotifications`, `networkError`, `error`) through the new `screenStates` parameter of `OctopusIconsDefaults.icons()`. The illustrations keep their own colors.
+
+### Changed
+- Links in post and comment bodies are tappable in feeds, not only on the detail screen, and feeds render markdown like the detail screens do.
+
+### Deprecated
+- The `error` property of the list ViewModels' `UiState` (`PostsListViewModel`, `NotificationsListViewModel`, `GroupsListViewModel`, `OctopusItemsListViewModel`) — no longer set; removed in the next major.
+
+### Fixed
+- `OctopusSDK.registerNotificationsToken()` called before `OctopusSDK.initialize()` crashed and lost the token; the SDK now keeps it and registers it on the next `initialize()`. `OctopusSDK.trackAccessToCommunity()` no longer crashes before `initialize()`.
+- An image the SDK cannot read or encode now fails the call with the existing `FileError` / `PictureError` cases instead of being published missing; an SSO avatar that cannot be encoded no longer resets the member's picture.
+- `OctopusEvent.PostCreated` could omit an attachment the member did publish.
+- Time spent in the app and in the community was reported inaccurately to analytics.
+- A right-to-left `overrideDefaultLocale` on a left-to-right device did not mirror the layout, and reaction counts showed their digits reversed in right-to-left languages.
+- A URL containing two underscores opened the wrong page, and "See more" could appear on content with nothing more to read.
+- Icons and text shown above the SDK's first surface could inherit the host app's colors.
+
 ## [1.13.4](https://github.com/Octopus-Community/octopus-sdk-android/releases/tag/v1.13.4) — 2026-09-04
 
 Two-fix patch over 1.13.3. No API change, no migration.
