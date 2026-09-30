@@ -9,6 +9,36 @@ For upgrade instructions across breaking changes, see [MIGRATING.md](MIGRATING.m
 
 ## Unreleased
 
+## [1.14.2](https://github.com/Octopus-Community/octopus-sdk-android/releases/tag/v1.14.2) — 2026-09-30
+
+Patch over 1.14.1: SSO and SDK lifecycle fixes, plus one additive API. No breaking change, no
+migration. The minimum Android API stays at 21.
+
+### Added
+- `SsoBanState` and `ConnectionRepository.getUserBannedMessage()` read the ban message returned at
+  the last SSO connection, without refreshing the profile. `FakeConnectionRepository` implements it.
+
+### Fixed
+- A banned SSO user who keeps a guest profile now sees the server's ban message before posting,
+  commenting, replying or opening their own profile, whatever `forceLoginOnStrongActions` says —
+  matching iOS. Reactions, votes, reporting and blocking stay available.
+- SSO profile sync no longer asks the backend for a generated nickname when the host nickname is
+  unchanged, so a bio or avatar update can no longer replace the member's nickname.
+- SSO login no longer fails on an empty profile update after a host avatar fails to encode.
+- Concurrent `initialize()` / `stop()` calls are serialized and keep their startup work on their own
+  SDK scope: no duplicated session events, no stale-container crash, and shutdown closes the gRPC
+  channels and databases it opened.
+- The gamification rules sheet is shown once, on the visible Home or the current user's profile.
+- Matching iOS: truncated previews are no longer selectable, action haptics cover reactions, group
+  follow, poll votes and content submission, and tapping the account email copies it.
+
+### Deprecated
+- The per-feature empty-state icons (`OctopusIcons.Content.Post.emptyFeedInGroups`,
+  `.emptyFeedInCurrentUserProfile`, `.emptyFeedInOtherUserProfile`,
+  `OctopusIcons.Content.Comment.emptyFeed`, `OctopusIcons.Notifications.emptyNotifications`,
+  `OctopusIconsDefaults.notifications()`), never rendered since 1.14.0 — override
+  `OctopusIconsDefaults.screenStates(...)` instead.
+
 ## [1.14.1](https://github.com/Octopus-Community/octopus-sdk-android/releases/tag/v1.14.1) — 2026-09-25
 
 Single-fix patch over 1.14.0. No API change, no migration.
