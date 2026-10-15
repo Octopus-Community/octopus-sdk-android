@@ -65,8 +65,9 @@ and any prebuilt SDK integrations; see [MIGRATING.md](MIGRATING.md#to-1150-from-
   and `NicknameError.AlreadyUsed.suggestions`; `CommunityConfig.forceNicknameChoice` can require
   an explicitly entered nickname. Customize the field's clear button with `OctopusIcons.clearText`
   or `OctopusIconsDefaults.icons(clearText = ...)`.
-- `OctopusSDK.debugOverrideForceNicknameChoice(enabled: Boolean?)` adds an
-  `@InternalOctopusApi` testing hook; pass `null` to restore the backend value.
+- `OctopusSDK.debugOverrideForceNicknameChoice(enabled: Boolean?)` (`@InternalOctopusApi`) and
+  `CommunityConfigRepository.debugOverrideForceNicknameChoice(enabled: Boolean?)` (default no-op
+  body) override the backend value; pass `null` to restore it.
 - `CommunityConfigRepository.debugOverrideConsentTexts(texts: CommunityConfig.ConsentTexts?)`
   adds a testing hook with a default no-op body.
 - `FakeCommunityConfigRepository` implements both `debugOverrideForceNicknameChoice` and
