@@ -9,6 +9,116 @@ For upgrade instructions across breaking changes, see [MIGRATING.md](MIGRATING.m
 
 ## Unreleased
 
+## [1.15.0](https://github.com/Octopus-Community/octopus-sdk-android/releases/tag/v1.15.0) — 2026-10-15
+
+Minor over 1.14.2: richer posts, nickname choice, community consent texts and default avatars.
+Breaking changes: authentication is now SSO-only with an explicit connection mode, some public
+models and binary signatures changed, and the minimum Android API is now 23. Recompile your app
+and any prebuilt SDK integrations; see [MIGRATING.md](MIGRATING.md#to-1150-from-114x).
+
+### Breaking
+- `OctopusSDK.initialize()` and `switchCommunity()` require `connectionMode = ConnectionMode.SSO(...)`.
+  Replace the removed Octopus account and email link flows with your app's sign-in, sign-out and
+  account deletion. Existing sessions are retained; pending email link requests are cleared.
+- Raise the host app's `minSdk` to 23. Android API 21 and 22 are no longer supported.
+- Binary-only changes affect `CommunityConfig`, `OctopusIcons`, `OctopusIconsDefaults.icons()`,
+  `CommunityConfigEntity`, `CreatePostViewModel.UiState`, `OctopusItemInputFieldViewModel.UiState`
+  and `OctopusItemInputField`. Kotlin callers retain defaults; prebuilt callers must be recompiled.
+  Outside implementations of `ProfileRepository`, `CommunityConfigRepository`, `MinimalProfile`
+  or `Profile` must also be recompiled. Java profile constructors and `copy()` calls need the new
+  avatar arguments. See the [migration guide](MIGRATING.md#to-1150-from-114x) for each case.
+- The public post render model replaces `PostAttachment` / `PostContent.Published.attachment`
+  with independent `PostMedia` and `PostPoll` values. The nickname screen's implementation is
+  now internal. These UI internals were never supported integration points.
+- SDK screens now inherit the host's navigation transitions. To retain the previous slide,
+  pass `OctopusTransitionsDefaults()` explicitly; see
+  [navigation migration](MIGRATING.md#behaviour-change--default-navigation-transitions).
+
+### Added
+- A post can contain an image and a poll together. When
+  `CommunityConfig.ContentOptions.post.textRequired` is `false`, an image can also be published
+  without text; text remains required without an image, including for a poll alone.
+- Typed member lookups: `OctopusSDK.fetchCommunityDataResult()` and
+  `fetchCommunityDataByClientUserIdResult()` return `OctopusResult<OctopusCommunityData?, Nothing>`.
+  A successful `null` means no member was found; failures preserve their error category.
+- `OctopusSDK.reactionsRepository` exposes the paginated list of members who reacted to a post,
+  comment or reply through `ReactionsRepository.getReactions()`.
+- After reporting content or a profile, members can immediately block its author when eligible.
+- Nickname suggestions through `ProfileRepository.updateProfile(..., wantNicknameSuggestions)`
+  and `NicknameError.AlreadyUsed.suggestions`; `CommunityConfig.forceNicknameChoice` can require
+  an explicitly entered nickname. Customize the field's clear button with `OctopusIcons.clearText`
+  or `OctopusIconsDefaults.icons(clearText = ...)`.
+- Community consent wordings through `CommunityConfig.consentTexts` and
+  `CommunityConfig.ConsentTexts`: localized markdown replaces the default editor notices and
+  checkbox labels. Embedded `OctopusItemInputField` callers must supply `onNavigateToUrl` for links.
+- Community default avatars through `DefaultAvatar.Color` / `DefaultAvatar.Image` and
+  `MinimalProfile.defaultAvatar`. `CurrentUserProfile.defaultAvatarIfPictureRemoved` previews
+  the fallback when removing a picture. A member's own picture still takes precedence.
+
+### Changed
+- Members confirm their nickname before their first post, comment or reply, replacing the
+  congratulations screen after posting. A host-managed, locked or confirmed nickname skips this
+  step; `ScreenDisplayed.ValidateNickname` reports the new screen.
+- Images open in an edge-to-edge viewer with pinch/double-tap zoom, pan and fling-to-dismiss,
+  restoring the host's system bars on close. Inline videos pause while it is open.
+- Feed placement, scrolling and text changes animate consistently. Predictive back follows the
+  host navigation graph; draft and unsaved-profile confirmation remains available.
+- Long consent sheets scroll above a fixed action button; implicit notices scroll within a
+  bounded area. Consent checkboxes announce their checked state to TalkBack.
+- Media3 is aligned on 1.9.4, Navigation Compose moves to 2.9.8, ExifInterface to 1.4.2 and
+  telephoto to 0.19.0 (its `flick` module is now a dependency of `octopus-sdk-ui`).
+- Translations are refreshed. If you override strings, review the report reasons, "Terms of Use"
+  and "Powered by" wording.
+- Published test fakes reflect post creation/deletion and blocked authors in feeds and comments,
+  upgrade guests to SSO users, and validate tokens and entitlement refreshes like the real SDK.
+
+### Removed
+- `ConnectionMode.OctopusAuth`, `MagicLinkRequest`, `SendMagicLinkError`, `MagicLinkError`, the
+  email link repository APIs, `DeleteProfileReason`, `ProfileRepository.requestProfileDelete`
+  and their fake counterparts. Login, account-settings and delete-account destinations and
+  deep links are removed; see [authentication migration](MIGRATING.md#to-1150-from-114x).
+- `PostAttachment` and `PostContent.Published.attachment`; use the separate media and poll fields.
+- `ValidateNicknameViewModel` and `ValidateNicknameContent` are now internal;
+  `ValidateNicknameScreen` keeps its signature. The `ic_octopus_congrats` drawable is removed,
+  and the old congratulations strings are unused.
+- `accessibility_common_close`: move string overrides to `common_close`.
+
+### Fixed
+- Startup work and lifecycle flows stay tied to their SDK instance across `initialize()`,
+  `stop()` and `switchCommunity()`. Cancelled push-token registrations retry on initialization;
+  shutdown releases timers, observers and the video-cache database. Rebuild navigation entries
+  after stopping or switching communities so their ViewModels use the new instance.
+- Sessions survive transient storage errors and failed legacy migrations; confirmed corrupt
+  storage can accept new sessions, and sign-out remains durable during storage failures.
+- Navigation events and dialogs stay in the Octopus view that emitted them. Navigation and URL
+  callbacks use the host's latest wiring, including Unified Profile callbacks.
+- Other members' Comments tabs hide when access is denied and reappear when access returns.
+  Profile comments open their post at the selected comment; reply actions emit one correct event.
+- `OctopusEvent.ReplyCreated.contentKind` reports `REPLY` instead of `COMMENT`.
+- Comment polling no longer scrolls when nothing new arrives. Far scroll targets use a short
+  final animation; poll updates and group expansion no longer misplace neighboring items.
+- Links inside bold or italic markdown work, and expandable text keeps its more/less suffix
+  in the correct place with mixed writing directions. Translations no longer show stray escapes.
+- Badges, branding and dark-theme detection follow the actual SDK palette. Snackbars retain
+  margins and opaque backgrounds; the groups bar no longer lets feed content show through.
+- Keyboard resize behavior remains stable during screen transitions, image-viewer back returns
+  to the thumbnail, and block errors remain visible after the report sheet closes.
+- The first lifecycle subscriber receives `OctopusStarted` exactly once, whether the screen
+  starts before or just after the process observer is registered.
+- Unauthenticated responses, including those after a sign-out, are logged as an info line
+  instead of an error with a stack trace.
+
+### Deprecated
+- `OctopusSDK.fetchCommunityData()` and `fetchCommunityDataByClientUserId()` still return `null`
+  for both absent members and failed lookups; use their typed `Result` replacements above.
+- `OctopusIcons.Notifications` / `OctopusIcons.notifications`: customize
+  `OctopusIconsDefaults.screenStates(emptyNotifications = ...)` instead.
+- `MediasScreen` and `MediasContent` show the new viewer but ignore `title` and
+  `onToggleTopBarVisibility`; use the media-specific destinations.
+- `ScreenDisplayed.SettingsList`, `SettingsAccount` and `DeleteAccount` remain but are no longer
+  emitted. Settings icons `account`, `logout`, `deleteAccountWarning` and the old factory are
+  deprecated; use `OctopusIconsDefaults.settings(help, info)`.
+
 ## [1.14.2](https://github.com/Octopus-Community/octopus-sdk-android/releases/tag/v1.14.2) — 2026-09-30
 
 Patch over 1.14.1: SSO and SDK lifecycle fixes, plus one additive API. No breaking change, no

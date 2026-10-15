@@ -9,11 +9,232 @@ Full release notes (including the additive API surface of each release) live on
 [GitHub Releases](https://github.com/Octopus-Community/octopus-sdk-android/releases),
 and a condensed history in [CHANGELOG.md](CHANGELOG.md).
 
+- [To 1.15.0 (from 1.14.x)](#to-1150-from-114x)
 - [To 1.14.0 (from 1.13.x)](#to-1140-from-113x)
 - [To 1.13.2 (from 1.13.x)](#to-1132-from-113x)
 - [To 1.13.0 (from 1.12.x)](#to-1130-from-112x)
 - [To 1.12.0 (from 1.11.x)](#to-1120-from-111x)
 - [To 1.11.0 (from 1.10.x)](#to-1110-from-110x)
+
+---
+
+## To 1.15.0 (from 1.14.x)
+
+### Breaking — host-owned authentication only
+
+Your app now owns sign-in, sign-out and account deletion. All integrations use
+`ConnectionMode.SSO`; `OctopusSDK.initialize()` and `switchCommunity()` require
+an explicit `connectionMode`, even if you previously relied on the SSO default.
+Recompile the host and prebuilt integrations: old binaries that omitted this
+argument fail at runtime even though `initialize$default` retains its JVM signature.
+
+```kotlin
+// Before (1.14.x)
+OctopusSDK.initialize(
+    context = applicationContext,
+    apiKey = "YOUR_API_KEY",
+    connectionMode = ConnectionMode.OctopusAuth,
+)
+// Or initialize(context = applicationContext, apiKey = "YOUR_API_KEY")
+
+// After
+OctopusSDK.initialize(
+    context = applicationContext,
+    apiKey = "YOUR_API_KEY",
+    connectionMode = ConnectionMode.SSO(),
+)
+OctopusHomeScreen(navController = navController, onNavigateToLogin = { openAppLogin() })
+// connectUser, disconnectUser and switchCommunity suspend: call them from a coroutine.
+// Once your app's user is signed in:
+OctopusSDK.connectUser(ClientUser(userId = signedInUser.id)) { backendToken() }
+// When your app's user signs out:
+OctopusSDK.disconnectUser()
+// A community switch also needs an explicit mode:
+OctopusSDK.switchCommunity(
+    context = applicationContext,
+    apiKey = "OTHER_API_KEY",
+    connectionMode = ConnectionMode.SSO(),
+)
+```
+
+Remove the email link APIs (`MagicLinkRequest`, `SendMagicLinkError`,
+`MagicLinkError`), `ProfileRepository.requestProfileDelete`, `DeleteProfileReason`
+and their fake equivalents. Remove navigation to `ConnectionGraph`,
+`MagicLinkEmail`, `MagicLinkConfirmation`, `Settings`, `ProfileSettings` and
+`DeleteAccount`. Deep-link sub-paths `settings`, `settings/profile`,
+`settings/delete-account`, `magic-link/email` and `magic-link/confirm` are gone.
+Use your app's account flows; SDK profile editing, nickname validation, legal
+links and reporting remain.
+
+Pending email link requests are cleared at startup; existing sessions remain.
+Call `connectUser` after initialization whenever your app has a signed-in user,
+including after a stored session is restored: `refreshEntitlements` returns
+`NoClientTokenProvider` until a token provider has been registered.
+
+`ScreenDisplayed.SettingsList`, `SettingsAccount` and `DeleteAccount` remain
+warning-deprecated but are no longer emitted. Replace the old settings icon factory:
+
+```kotlin
+// Before
+OctopusIconsDefaults.settings(
+    account = accountIcon, help = helpIcon, info = infoIcon,
+    logout = logoutIcon, deleteAccountWarning = warningIcon,
+)
+// After
+OctopusIconsDefaults.settings(help = helpIcon, info = infoIcon)
+```
+
+### Breaking — minimum Android API raised to 23
+
+All four published modules require Android API 23 or higher. Raise a host app's
+`minSdk` from 21 or 22 in its app module:
+
+```kotlin
+// Before (build.gradle.kts)
+android { defaultConfig { minSdk = 21 } } // or 22
+// After
+android { defaultConfig { minSdk = 23 } }
+```
+
+The upgraded app no longer supports API 21 or 22. Do not bypass the requirement
+with `tools:overrideLibrary`: SDK code calls API 23 methods unconditionally.
+Apps already using `minSdk` 23 or higher need no configuration change.
+
+### Breaking — post render model and nickname implementation
+
+The UI render model replaces `PostAttachment` and
+`PostContent.Published.attachment` with independent media and poll fields, so an
+image and a poll can coexist. If you used this unsupported implementation model:
+
+```kotlin
+// Before (1.14.x)
+when (val attachment = (uiModel.content as PostContent.Published).attachment) {
+    is PostAttachment.Image -> showImage(attachment.media)
+    is PostAttachment.Video -> showVideo(attachment.media)
+    is PostAttachment.Poll -> showPoll(attachment.poll)
+    null -> Unit
+}
+// After
+val published = uiModel.content as PostContent.Published
+when (val media = published.media) {
+    is PostMedia.Image -> showImage(media.media)
+    is PostMedia.Video -> showVideo(media.media)
+    null -> Unit
+}
+published.poll?.let { showPoll(it.poll) }
+```
+
+`ValidateNicknameViewModel` and `ValidateNicknameContent` are now internal;
+supported integrations continue using navigation destinations and `Octopus*`
+wrappers. `ValidateNicknameScreen` keeps its signature. A direct navigation to
+`OctopusDestination.ValidateNickname` with no contribution waiting closes at once.
+The screen now runs before the first contribution, which is sent after confirmation.
+
+### Breaking (binary only) — recompile against 1.15.0
+
+These declarations gained defaulted parameters. Kotlin calls still compile;
+prebuilt code that constructs, copies or calls them can throw `NoSuchMethodError`.
+Recompile it against 1.15.0; Java callers pass the new arguments explicitly.
+
+| Declaration | New parameters |
+|---|---|
+| `CommunityConfig` | `forceNicknameChoice: Boolean = false`, `consentTexts: CommunityConfig.ConsentTexts? = null` |
+| `CommunityConfigEntity` | `consentTexts: CommunityConfigEntity.ConsentTextsEntity? = null` |
+| `CreatePostViewModel.UiState` | `textRequired` and `consentTexts` |
+| `OctopusItemInputFieldViewModel.UiState<U>` | `consentTexts` |
+| `OctopusIcons` and `OctopusIconsDefaults.icons()` | `clearText` |
+| `OctopusItemInputField` | `onNavigateToUrl: (String) -> Unit = {}` |
+
+An outside implementation of `ProfileRepository` (including `ConnectionRepository`)
+or `CommunityConfigRepository` also needs recompilation: new methods with default
+bodies can otherwise cause `AbstractMethodError` when invoked.
+
+If you embed `OctopusItemInputField`, wire the community consent links explicitly;
+the default URL callback does nothing:
+
+```kotlin
+OctopusItemInputField(
+    // … existing arguments …
+    onNavigateToUrl = { url -> openUrl(url) },
+)
+```
+
+### Breaking (Java source and outside implementations) — default avatars
+
+`MinimalProfile` (and therefore `Profile`) gains `defaultAvatar: DefaultAvatar?`
+with a default getter returning `null`. `Author` and `OtherUserProfile` gain a
+trailing `defaultAvatar`; `CurrentUserProfile` also gains
+`defaultAvatarIfPictureRemoved`. All constructor parameters default to `null`.
+
+The previous constructors and `copy` methods of those three data classes remain
+as hidden members: existing binaries keep linking, and Kotlin source compiles
+unchanged. Java constructor and `copy` calls must pass the new arguments;
+`null` retains the previous behavior.
+
+Recompile any outside implementation of `MinimalProfile` or `Profile` to avoid
+`AbstractMethodError` when the SDK reads `defaultAvatar`. A Java implementation
+must add `getDefaultAvatar()`; returning `null` retains the computed avatar.
+Keep an `else` branch when matching the sealed `DefaultAvatar` interface
+(`Color`, `Image`), so future avatar styles can be handled.
+
+### Behaviour change — default navigation transitions
+<a id="behaviour-change--default-navigation-transitions"></a>
+
+`octopusComposables` now defaults `transitions` to `null`. SDK screens inherit
+your `NavHost` transitions, including post creation and media screens; with no
+host customization, Navigation Compose supplies its cross-fade. Customize your
+`NavHost`'s `enterTransition`, `exitTransition`, `popEnterTransition` and
+`popExitTransition` to apply the same motion across your app.
+
+```kotlin
+// Before: SDK slide and fade
+octopusComposables(navController = navController /* , … */)
+// After: same call inherits the host's transitions.
+// To keep the previous SDK slide and fade explicitly:
+octopusComposables(
+    navController = navController,
+    transitions = OctopusTransitionsDefaults(),
+    // …
+)
+```
+
+`OctopusTransitions`, `OctopusTransitionsDefaults` and
+`OctopusTransitionDefaults.Horizontal` / `Vertical` / `Fade` remain available.
+For predictive-back previews on Android 14+ with gesture navigation, opt in
+on the host's application element:
+
+```xml
+<application android:enableOnBackInvokedCallback="true" ... >
+```
+
+Apps targeting API 36 get this by default on Android 16; set it explicitly to
+cover Android 14 and 15. Without it, back still works but the close animation
+plays after the gesture. Draft and unsaved-profile confirmation stays available.
+
+At the root of the SDK back stack, system back invokes your `onBack` with no
+predictive preview. The default `navigateUp()` does nothing at that root. If you
+open the SDK directly on a sub-screen, pass your host exit action:
+
+```kotlin
+octopusComposables(
+    navController = navController,
+    onBack = { activity.finish() },
+    // Or: onBack = { hostNavController.popBackStack() },
+    // …
+)
+```
+
+### Lifecycle and resource overrides
+
+After `OctopusSDK.stop()` or `switchCommunity()`, rebuild your SDK navigation
+entries: existing ViewModels stay bound to the closed SDK container.
+
+Move any `accessibility_common_close` string override to `common_close`.
+The removed `ic_octopus_congrats` drawable and unused
+`validate_nickname_action_later`, `validate_nickname_action_modify`,
+`validate_nickname_modification`, `validate_nickname_nickname` and
+`validate_nickname_title` overrides can be deleted. Review overrides of the
+reworded report reasons, "Terms of Use" and "Powered by" strings.
 
 ---
 
