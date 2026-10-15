@@ -21,15 +21,30 @@ and any prebuilt SDK integrations; see [MIGRATING.md](MIGRATING.md#to-1150-from-
   Replace the removed Octopus account and email link flows with your app's sign-in, sign-out and
   account deletion. Existing sessions are retained; pending email link requests are cleared.
 - Raise the host app's `minSdk` to 23. Android API 21 and 22 are no longer supported.
-- Binary-only changes affect `CommunityConfig`, `OctopusIcons`, `OctopusIconsDefaults.icons()`,
-  `CommunityConfigEntity`, `CreatePostViewModel.UiState`, `OctopusItemInputFieldViewModel.UiState`
-  and `OctopusItemInputField`. Kotlin callers retain defaults; prebuilt callers must be recompiled.
-  Outside implementations of `ProfileRepository`, `CommunityConfigRepository`, `MinimalProfile`
-  or `Profile` must also be recompiled. Java profile constructors and `copy()` calls need the new
-  avatar arguments. See the [migration guide](MIGRATING.md#to-1150-from-114x) for each case.
+- Binary changes affect `CommunityConfig`, `OctopusIcons`, `OctopusIconsDefaults.icons()`,
+  `CommunityConfigEntity`, `CreatePostViewModel.UiState`,
+  `OctopusItemInputFieldViewModel.UiState` and `OctopusItemInputField`; prebuilt callers must be
+  recompiled. Kotlin source keeps compiling with the new trailing, defaulted parameters, except
+  for two positional constructor or `copy()` cases: `CommunityConfigEntity.forceNicknameChoice`
+  was inserted before `poweredByOctopus`, and `CreatePostViewModel.UiState.textRequired` before
+  `termsAcceptanceMode`. Calls passing `poweredByOctopus` or a later entity argument, or
+  `termsAcceptanceMode` or a later UI-state argument, by position must name those arguments or
+  insert the new Boolean. `ProfileRepository` (including its subinterface
+  `ConnectionRepository`) and `CommunityConfigRepository` gained methods with default bodies:
+  the four-argument `ProfileRepository.updateProfile`,
+  `CommunityConfigRepository.debugOverrideForceNicknameChoice` and
+  `CommunityConfigRepository.debugOverrideConsentTexts`. Calling a new method on an
+  implementation outside the SDK compiled against 1.14.x throws `AbstractMethodError` until
+  recompiled; a Java implementation must implement all new methods on its interface. Outside
+  implementations of `MinimalProfile` or `Profile` must also be recompiled. Java profile
+  constructors and `copy()` calls need the new avatar arguments. See the [migration
+  guide](MIGRATING.md#to-1150-from-114x) for each case.
 - The public post render model replaces `PostAttachment` / `PostContent.Published.attachment`
   with independent `PostMedia` and `PostPoll` values. The nickname screen's implementation is
   now internal. These UI internals were never supported integration points.
+- `OctopusViewModel.checkAuthenticated(action, block)` now expects `Unit`: a lambda ending in
+  `true`/`false` still compiles, but explicit `return@checkAuthenticated true/false` returns and
+  stored callbacks typed `suspend (CurrentUserProfile) -> Boolean` must be updated.
 - SDK screens now inherit the host's navigation transitions. To retain the previous slide,
   pass `OctopusTransitionsDefaults()` explicitly; see
   [navigation migration](MIGRATING.md#behaviour-change--default-navigation-transitions).
@@ -38,6 +53,8 @@ and any prebuilt SDK integrations; see [MIGRATING.md](MIGRATING.md#to-1150-from-
 - A post can contain an image and a poll together. When
   `CommunityConfig.ContentOptions.post.textRequired` is `false`, an image can also be published
   without text; text remains required without an image, including for a poll alone.
+  `PostOptions`' no-argument and two-flag constructors keep text required; its two-flag `copy()`
+  preserves the existing `textRequired`, including `false`.
 - Typed member lookups: `OctopusSDK.fetchCommunityDataResult()` and
   `fetchCommunityDataByClientUserIdResult()` return `OctopusResult<OctopusCommunityData?, Nothing>`.
   A successful `null` means no member was found; failures preserve their error category.
@@ -48,6 +65,14 @@ and any prebuilt SDK integrations; see [MIGRATING.md](MIGRATING.md#to-1150-from-
   and `NicknameError.AlreadyUsed.suggestions`; `CommunityConfig.forceNicknameChoice` can require
   an explicitly entered nickname. Customize the field's clear button with `OctopusIcons.clearText`
   or `OctopusIconsDefaults.icons(clearText = ...)`.
+- `OctopusSDK.debugOverrideForceNicknameChoice(enabled: Boolean?)` adds an
+  `@InternalOctopusApi` testing hook; pass `null` to restore the backend value.
+- `CommunityConfigRepository.debugOverrideConsentTexts(texts: CommunityConfig.ConsentTexts?)`
+  adds a testing hook with a default no-op body.
+- `FakeCommunityConfigRepository` implements both `debugOverrideForceNicknameChoice` and
+  `debugOverrideConsentTexts`.
+- `FakeProfileRepository.updateProfile` gains the four-argument overload with
+  `wantNicknameSuggestions`, returning two fixture suggestions for a taken nickname when requested.
 - Community consent wordings through `CommunityConfig.consentTexts` and
   `CommunityConfig.ConsentTexts`: localized markdown replaces the default editor notices and
   checkbox labels. Embedded `OctopusItemInputField` callers must supply `onNavigateToUrl` for links.

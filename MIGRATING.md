@@ -130,24 +130,36 @@ wrappers. `ValidateNicknameScreen` keeps its signature. A direct navigation to
 `OctopusDestination.ValidateNickname` with no contribution waiting closes at once.
 The screen now runs before the first contribution, which is sent after confirmation.
 
-### Breaking (binary only) — recompile against 1.15.0
+`OctopusViewModel.checkAuthenticated(action, block)` now takes a block returning `Unit`: a lambda
+ending in `true`/`false` still compiles, but explicit `return@checkAuthenticated true/false` returns
+and stored callbacks typed `suspend (CurrentUserProfile) -> Boolean` must be updated.
 
-These declarations gained defaulted parameters. Kotlin calls still compile;
-prebuilt code that constructs, copies or calls them can throw `NoSuchMethodError`.
-Recompile it against 1.15.0; Java callers pass the new arguments explicitly.
+### Breaking — recompile against 1.15.0 and update positional entity calls
+
+These declarations gained defaulted parameters. Kotlin source keeps compiling with the new
+trailing, defaulted parameters, except for two positional constructor or `copy()` cases:
+`CommunityConfigEntity.forceNicknameChoice` was inserted before `poweredByOctopus`, and
+`CreatePostViewModel.UiState.textRequired` before `termsAcceptanceMode`. Calls passing
+`poweredByOctopus` or a later entity argument, or `termsAcceptanceMode` or a later UI-state
+argument, by position must name those arguments or insert the new Boolean. Prebuilt code that
+constructs, copies or calls them can throw `NoSuchMethodError`. Recompile it against 1.15.0;
+Java callers pass the new arguments explicitly.
 
 | Declaration | New parameters |
 |---|---|
 | `CommunityConfig` | `forceNicknameChoice: Boolean = false`, `consentTexts: CommunityConfig.ConsentTexts? = null` |
-| `CommunityConfigEntity` | `consentTexts: CommunityConfigEntity.ConsentTextsEntity? = null` |
+| `CommunityConfigEntity` | `forceNicknameChoice: Boolean = false` before `poweredByOctopus`; trailing `consentTexts: CommunityConfigEntity.ConsentTextsEntity? = null` |
 | `CreatePostViewModel.UiState` | `textRequired` and `consentTexts` |
 | `OctopusItemInputFieldViewModel.UiState<U>` | `consentTexts` |
 | `OctopusIcons` and `OctopusIconsDefaults.icons()` | `clearText` |
 | `OctopusItemInputField` | `onNavigateToUrl: (String) -> Unit = {}` |
 
-An outside implementation of `ProfileRepository` (including `ConnectionRepository`)
-or `CommunityConfigRepository` also needs recompilation: new methods with default
-bodies can otherwise cause `AbstractMethodError` when invoked.
+`ProfileRepository` (including its subinterface `ConnectionRepository`) and
+`CommunityConfigRepository` gained methods with default bodies: the four-argument
+`ProfileRepository.updateProfile`, `CommunityConfigRepository.debugOverrideForceNicknameChoice`
+and `CommunityConfigRepository.debugOverrideConsentTexts`. Calling a new method on an
+implementation outside the SDK compiled against 1.14.x throws `AbstractMethodError` until
+recompiled; a Java implementation must implement all new methods on its interface.
 
 If you embed `OctopusItemInputField`, wire the community consent links explicitly;
 the default URL callback does nothing:
