@@ -1,6 +1,6 @@
 pluginManagement {
     repositories {
-        //mavenLocal()
+        // mavenLocal()
         google {
             content {
                 includeGroupByRegex("com\\.android.*")
@@ -18,12 +18,12 @@ plugins {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
-        //mavenLocal()
+        // mavenLocal()
         google()
         mavenCentral()
     }
 }
 
 rootProject.name = "Octopus SDK Samples"
-include(":samples")
+include(":sample")
 include(":tools")

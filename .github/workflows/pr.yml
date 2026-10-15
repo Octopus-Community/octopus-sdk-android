@@ -1,20 +1,8 @@
 name: PR
 
-# The only CI this repository runs, and the only one it should run.
-#
-# A published mirror does not re-run the source repository's checks: the code
-# was already gated there before the sync pushed it, so a copy would catch
-# nothing new. What this workflow covers is the content that exists ONLY here —
-# the integration samples under `samples/` and the `tools/` module — which no
-# other pipeline compiles. That is what earns it a place.
-#
-# Hosted runner, always. This is a public repository: a job that can be
-# triggered from a fork must never be scheduled on an organisation runner.
-#
-# Renamed from `ci.yml` / `name: CI` so the file matches its role (one role, one
-# file). The `compile` job id and its `Compile samples and tools` name are
-# UNCHANGED, deliberately — that name is the branch-protection context, and it
-# is matched as a string, so renaming it would silently un-gate the branch.
+# Mirror-native CI: assemble the canonical sample against published Maven artifacts,
+# and the theme configurator. Public fork jobs always use a hosted runner.
+# Keep the existing required context name: Compile samples and tools.
 
 on:
   pull_request:
@@ -86,13 +74,9 @@ jobs:
           fi
           echo "README install pins agree with octopusSdk=${pinned}."
 
-      - name: Compile (debug Kotlin, all sample flavors + tools)
+      - name: Assemble the canonical sample and tools
         run: |
           ./gradlew --no-daemon \
-            :samples:compileBottomnavigationbarDebugKotlin \
-            :samples:compileContentpaddingDebugKotlin \
-            :samples:compileFullscreenDebugKotlin \
-            :samples:compileModalbottomsheetDebugKotlin \
-            :samples:compileNestednavigationDebugKotlin \
-            :samples:compileSingleactivityDebugKotlin \
-            :tools:compileDebugKotlin
+            :sample:assembleDemoDebug \
+            :sample:assembleProdDebug \
+            :tools:assembleDebug

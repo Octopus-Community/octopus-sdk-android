@@ -1,0 +1,126 @@
+package com.octopuscommunity.sdk.sample.ui.settings
+
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DesignServices
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.dp
+import com.octopuscommunity.sdk.sample.BuildConfig
+import com.octopuscommunity.sdk.sample.data.AppUpdateChecker
+import com.octopuscommunity.sdk.sample.extensions.LocalExtensions
+import com.octopuscommunity.sdk.sample.ui.components.SampleCard
+import com.octopuscommunity.sdk.sample.ui.components.SampleInfoRow
+import com.octopuscommunity.sdk.sample.ui.components.SummaryRow
+import com.octopuscommunity.sdk.sample.ui.components.openUrlOrCopy
+import com.octopuscommunity.sdk.sample.ui.theme.SampleBranding
+
+/**
+ * About: the Play update check, the versions, the licences, and the one sentence naming the
+ * platform. The update card ([AppUpdateCard]) moved here from Home when the 3-tab shell (DS v1)
+ * dropped that tab.
+ *
+ * Reset Configuration used to sit here in a danger zone. The design cards put it where a tester
+ * looks for it — last row of Settings → Support, no detour through About — so this screen no longer
+ * needs a ViewModel, and it deliberately carries no reset of its own.
+ */
+@Composable
+fun AboutScreen(
+    appUpdateStatus: AppUpdateChecker.Status = AppUpdateChecker.Status.Unknown,
+    onCheckForUpdate: () -> Unit = {},
+    onStartUpdate: () -> Unit = {},
+) {
+    val context = LocalContext.current
+
+    Column(
+        modifier =
+            Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp)
+                .testTag("about-screen"),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        AppUpdateCard(
+            appUpdateStatus = appUpdateStatus,
+            onCheckForUpdate = onCheckForUpdate,
+            onStartUpdate = onStartUpdate,
+        )
+
+        SampleCard(title = "Versions") {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                // "App version" as the DS About card names it: the version a tester reports, the
+                // one Play distribution shows next to the install.
+                SampleInfoRow(
+                    "App version",
+                    "${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})",
+                    modifier = Modifier.testTag("about-app-version"),
+                )
+                SampleInfoRow("SDK version", BuildConfig.OCTOPUS_SDK_VERSION)
+            }
+        }
+
+        // The visible trace of the common base: one row, opening the design target the five
+        // platforms implement, so "same UX on five platforms" is a claim a reader can check from
+        // inside the app. Absent rather than dead when no target URL was injected into the build —
+        // the URL is not in the source, because this file reaches the public mirror.
+        if (LocalExtensions.designReferenceUrl.isNotBlank()) {
+            SummaryRow(
+                icon = Icons.Default.DesignServices,
+                title = "Design reference",
+                subtitle = "Shared target for the five platforms",
+                onClick = {
+                    openUrlOrCopy(context, LocalExtensions.designReferenceUrl, "Octopus design reference")
+                },
+                modifier = Modifier.testTag("about-design-reference-row"),
+            )
+        }
+
+        SampleCard(
+            modifier = Modifier.testTag("about-licences-card"),
+            title = "Licences",
+            subtitle = "Open-source notices for what this sample links against.",
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                OSS_NOTICES.forEach { (name, licence) -> SampleInfoRow(name, licence) }
+            }
+        }
+
+        Text(
+            text = "Built with the Octopus SDK for ${SampleBranding.PLATFORM_LABEL}",
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.padding(top = 4.dp),
+        )
+        // Required as soon as the app names the platform: Google's brand guidelines allow the word
+        // without brand review, the robot mark does not.
+        Text(
+            text = SampleBranding.PLATFORM_ATTRIBUTION,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+/**
+ * The notices shown on this screen. Hand-listed rather than generated by the Play OSS-licences
+ * plugin: pulling that plugin in for a demo app adds a Play-services dependency and a generated
+ * activity to a build whose whole point is to be the smallest honest integration of the SDK.
+ */
+private val OSS_NOTICES: List<Pair<String, String>> =
+    listOf(
+        "Octopus SDK" to "Proprietary",
+        "AndroidX / Jetpack Compose" to "Apache-2.0",
+        "Kotlin, kotlinx.coroutines, kotlinx.serialization" to "Apache-2.0",
+        "Koin" to "Apache-2.0",
+        "gRPC, Protocol Buffers" to "Apache-2.0 / BSD-3-Clause",
+        "Google Play Core, Firebase Messaging" to "Android Software Development Kit Licence",
+    )

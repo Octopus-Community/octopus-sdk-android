@@ -10,12 +10,8 @@ Code in this guide targets the version pinned in the [README](../README.md#insta
 
 ## Setup with SSO
 
-Pick the auth mode that matches your app:
-
-- **SSO** — your backend already authenticates users and can mint a JWT for Octopus. Use
-  `ConnectionMode.SSO` + `connectUser`.
-- **Octopus Auth** — let Octopus handle sign-in via magic-link email. Use
-  `ConnectionMode.OctopusAuth` and skip step 3 entirely.
+Your backend authenticates users and mints a JWT for Octopus. Initialize with
+`ConnectionMode.SSO()` and connect authenticated users with `connectUser`.
 
 ### 1. Initialize once at startup
 
@@ -37,7 +33,7 @@ class MyApplication : Application() {
 ```
 
 Never hardcode the API key in source. Read it from `local.properties` into `BuildConfig`,
-as the [samples](../samples/build.gradle.kts) do.
+or configure a sandbox key in the [sample's Config screen](../sample/build.gradle.kts).
 
 ### 2. Show the community
 
@@ -120,7 +116,7 @@ IS the app or is launched as a standalone screen.
 
 **Best for:** Apps where the community is the primary (or only) feature.
 
-- [Single Activity Sample](../samples/src/singleactivity/java/com/octopuscommunity/sample/CommunityActivity.kt)
+- [Single Activity Sample](../sample/src/main/java/com/octopuscommunity/sdk/sample/ui/scenarios/ScenariosListScreen.kt)
 
 ---
 
@@ -133,7 +129,7 @@ screen in your app.
 
 **Best for:** Apps where community is a primary feature with equal prominence to other main sections.
 
-- [Full Screen Sample](../samples/src/fullscreen/java/com/octopuscommunity/sample/screens/MainScreen.kt)
+- [Full Screen Sample](../sample/src/main/java/com/octopuscommunity/sdk/sample/ui/scenarios/ScenariosListScreen.kt)
 
 ---
 
@@ -146,7 +142,7 @@ Octopus sub-screens launch in full screen.
 
 **Best for:** Apps with 2-5 main sections where community deserves a dedicated, always-accessible tab.
 
-- [Bottom Navigation Tabs + Full Screen Sample](../samples/src/bottomnavigationbar/java/com/octopuscommunity/sample/screens/MainScreen.kt)
+- [Bottom Navigation Tabs + Full Screen Sample](../sample/src/main/java/com/octopuscommunity/sdk/sample/ui/scenarios/ScenariosListScreen.kt)
 
 ---
 
@@ -159,7 +155,7 @@ Octopus sub-screens navigate within the same `NavHost` using `octopusComposables
 
 **Best for:** Apps that want full control over navigation transitions and need SDK screens to coexist in the same navigation graph.
 
-- [Bottom Navigation Tabs + Nested Navigation Sample](../samples/src/nestednavigation/java/com/octopuscommunity/sample/screens/MainScreen.kt)
+- [Bottom Navigation Tabs + Nested Navigation Sample](../sample/src/main/java/com/octopuscommunity/sdk/sample/ui/scenarios/ScenariosListScreen.kt)
 
 ---
 
@@ -172,7 +168,7 @@ edges of the content (e.g., rounded navigation bar with margins).
 
 **Best for:** Apps requiring custom navigation bar styling that matches a specific design system.
 
-- [Floating Bottom Navigation Sample](../samples/src/contentpadding/java/com/octopuscommunity/sample/screens/MainScreen.kt)
+- [Floating Bottom Navigation Sample](../sample/src/main/java/com/octopuscommunity/sdk/sample/ui/scenarios/ScenariosListScreen.kt)
 
 ---
 
@@ -185,7 +181,7 @@ down to dismiss.
 
 **Best for:** Apps where community is a secondary feature accessed occasionally, without disrupting the main flow.
 
-- [Modal Bottom Sheet Sample](../samples/src/modalbottomsheet/java/com/octopuscommunity/sample/screens/MainScreen.kt)
+- [Modal Bottom Sheet Sample](../sample/src/main/java/com/octopuscommunity/sdk/sample/ui/scenarios/ScenariosListScreen.kt)
 
 ## Profile management
 
@@ -306,7 +302,7 @@ post?.let { octopusPost ->
 Wire the "view object" button so a tap returns to your own screen, via
 `onNavigateToClientObject` on `OctopusHomeScreen` / `OctopusHomeContent`.
 
-- [Bridge Post Sample](../samples/src/main/java/com/octopuscommunity/sample/screens/bridge/CommunityPostScreen.kt)
+- [Bridge Post Sample](../sample/src/main/java/com/octopuscommunity/sdk/sample/ui/scenarios/ScenariosListScreen.kt)
 
 ## Push notifications
 
@@ -354,7 +350,7 @@ class MessagingService : FirebaseMessagingService() {
 
 `setOctopusContent` fills in the title, body and the deep link that opens the right community
 screen on tap. See the
-[MessagingService implementation](../samples/src/main/java/com/octopuscommunity/sample/messaging/MessagingService.kt)
+[MessagingService implementation](../sample/src/main/java/com/octopuscommunity/sdk/sample/notifications/MessagingService.kt)
 for channel creation and token refresh.
 
 ## Reactive state
@@ -423,8 +419,8 @@ Things you don't need on day one, but will probably want later — full referenc
 - **`MissingOnNavigateToLoginException` when a community screen renders** — in SSO mode (the
   default `ConnectionMode.SSO()`), `onNavigateToLogin` is required on `OctopusHomeScreen`,
   `OctopusHomeContent` and `octopusComposables()`: the SDK hands sign-in to your app and cannot
-  proceed without the callback. Pass it, or use `ConnectionMode.OctopusAuth` to let Octopus
-  handle sign-in. Likewise, `MissingOnNavigateToProfileEditException` means your
+  proceed without the callback. Pass it to open your app's authentication flow.
+  Likewise, `MissingOnNavigateToProfileEditException` means your
   `appManagedFields` are non-empty and `onNavigateToProfileEdit` is missing.
 - **"Invalid token" / connection refused** — verify your API key, and that your
   `tokenProvider` returns an unexpired JWT signed with the shared secret. The SDK re-invokes

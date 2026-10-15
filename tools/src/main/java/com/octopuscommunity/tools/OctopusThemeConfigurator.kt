@@ -115,12 +115,12 @@ const val showUi = false
  *    - primary: Main brand color (default: #3AD9B1 - teal)
  *    - primaryLow: Low emphasis primary (default: #083B2F - dark teal)
  *    - primaryHigh: High emphasis primary (default: #D8F4F1 - light teal)
- *    - onPrimary: Text/icon color on primary surfaces (default: #141414)
- *    - background: Screen background color (default: #141414)
- *    - onHover: Hover state color (default: #242526)
+ *    - onPrimary: Text/icon color on primary surfaces (default: internal change)
+ *    - background: Screen background color (default: internal change)
+ *    - onHover: Hover state color (default: internal change)
  *
  * 2. Color Scheme (Light Mode):
- *    - primary: Main brand color (default: #068677 - teal)
+ *    - primary: Main brand color (default: internal change - teal)
  *    - primaryLow: Low emphasis primary (default: #D8F4F1)
  *    - primaryHigh: High emphasis primary (default: #15D1A2)
  *    - onPrimary: Text/icon color on primary surfaces (default: #FFFFFF)
@@ -350,7 +350,7 @@ private fun OctopusValidateNicknamePreview() {
     }
 }
 
-// Note: Report-content and Report-user screens were removed in SDK v1.12.0 (OCT-1339).
+// Note: Report-content and Report-user screens were removed in SDK v1.12.0 (internal ticket).
 // Reporting is now a bottom sheet hosted by the parent screen and triggered via
 // `Event.OpenReport(target: ReportTarget)`. No standalone preview to show here.
 

@@ -1,22 +1,36 @@
 [versions]
-agp = "8.11.2"
+octopusSdk = "1.15.0"
+agp = "8.13.2"
 kotlin = "2.1.10"
+ksp = "2.1.10-1.0.31"
 
-# Octopus
-octopusSdk = "1.14.2"
-
-# AndroidX
+# Core Ktx
 coreKtx = "1.16.0"
-activityKtx = "1.10.1"
+
+# Lifecycle
+lifecycle = "2.9.4"
 
 # Compose
 composeBom = "2025.10.00"
+
+# Compose Preview Screenshot Testing (alpha)
+screenshot = "0.0.1-alpha15"
 
 # Activity Compose
 activityCompose = "1.10.1"
 
 # Navigation Compose
-navigationCompose = "2.9.1"
+navigationCompose = "2.9.8"
+
+# Google Servies
+googleServices = "4.5.0"
+
+# Firebase
+firebase = "34.19.0"
+
+
+# Koin
+koin = "4.1.1"
 
 # Serialization
 kotlinxSerialization = "1.9.0"
@@ -24,20 +38,102 @@ kotlinxSerialization = "1.9.0"
 # DataStore
 datastore = "1.1.7"
 
+# Room
+room = "2.7.2"
+
+# Protobuf
+protobufPlugin = "0.9.5"
+protobuf = "3.25.8"
+
+# gRPC
+grpc = "1.75.0"
+grpcKotlin = "1.5.0"
+
+# Security
+securityCrypto = "1.1.0"
+
+# Exif
+exifinterface = "1.4.2"
+
 # Coil
 coil = "3.3.0"
 
-# Firebase
-firebase = "34.3.0"
+# Media3 (one version across every media3 artifact, as media3 requires)
+media3 = "1.9.4"
+
+# Chrome Custom Tabs
+browser = "1.8.0"
+
+# Maven Publish
+mavenPublish = "0.33.0"
+
+# Binary Compatibility Validator (public API surface lock)
+binaryCompatibilityValidator = "0.18.2"
+
+# Spotless / ktlint
+spotless = "8.10.3"
+ktlint = "1.6.0"
+
+# Zoomable Image
+zoomableImage = "0.19.0"
+
+# Play In-App Update
+playAppUpdate = "2.1.0"
+
+# Play Publishing (Triple-T gradle-play-publisher)
+playPublisher = "3.12.1"
+
+# Test
+mockito = "5.24.0"
+junit = "4.13.2"
+coroutinesTest = "1.10.2"
+robolectric = "4.17"
+
+# Markdown
+composeRichtext = "1.0.0-alpha03"
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "agp" }
+android-library = { id = "com.android.library", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+google-services = { id = "com.google.gms.google-services", version.ref = "googleServices" }
+protobuf = { id = "com.google.protobuf", version.ref = "protobufPlugin" }
+
+# Compose Preview Screenshot Testing (host-side, LayoutLib-based)
+screenshot = { id = "com.android.compose.screenshot", version.ref = "screenshot" }
+
+# Maven Publish
+maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublish" }
+
+# Binary Compatibility Validator (kotlinx, locks the published API surface via .api dumps)
+binary-compatibility-validator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "binaryCompatibilityValidator" }
+
+# Spotless (Kotlin formatting via ktlint)
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+
+# Play Publishing (uploads the signed sample bundle to Play distribution testing)
+play-publisher = { id = "com.github.triplet.play", version.ref = "playPublisher" }
 
 [libraries]
-# Octopus
 octopus-sdk = { group = "com.octopuscommunity", name = "octopus-sdk", version.ref = "octopusSdk" }
 octopus-sdk-ui = { group = "com.octopuscommunity", name = "octopus-sdk-ui", version.ref = "octopusSdk" }
+androidx-activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "activityCompose" }
+# Test
+mockito-core = { group = "org.mockito", name = "mockito-core", version.ref = "mockito" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 
-# AndroidX
+# Compose Preview Screenshot Testing
+screenshot-validation-api = { group = "com.android.tools.screenshot", name = "screenshot-validation-api", version.ref = "screenshot" }
+
+# Core Ktx
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
-androidx-activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "activityKtx" }
+
+# Lifecycle
+androidx-lifecycle-process = { group = "androidx.lifecycle", name = "lifecycle-process", version.ref = "lifecycle" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
 
 # Compose
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
@@ -56,27 +152,80 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 # Icons
 androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 
+
+# Koin
+koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
+koin-androidx-compose = { group = "io.insert-koin", name = "koin-androidx-compose", version.ref = "koin" }
+koin-androidx-compose-navigation = { group = "io.insert-koin", name = "koin-androidx-compose-navigation", version.ref = "koin" }
+
 # Serialization
-kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
+kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 
 # DataStore
-androidx-datastore = { group = "androidx.datastore", name = "datastore", version.ref = "datastore" }
+androidx-datastore-core = { module = "androidx.datastore:datastore", version.ref = "datastore" }
+androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
 
-# Coil
-coil-network = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
-coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
+# Room
+androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
+androidx-room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
+
+# Protobuf
+protoc = { group = "com.google.protobuf", name = "protoc", version.ref = "protobuf" }
+protobuf-kotlin-lite = { group = "com.google.protobuf", name = "protobuf-kotlin-lite", version.ref = "protobuf" }
+
+# gRPC
+grpc-stub = { group = "io.grpc", name = "grpc-stub", version.ref = "grpc" }
+grpc-protobuf-lite = { group = "io.grpc", name = "grpc-protobuf-lite", version.ref = "grpc" }
+grpc-android = { group = "io.grpc", name = "grpc-android", version.ref = "grpc" }
+grpc-okhttp = { group = "io.grpc", name = "grpc-okhttp", version.ref = "grpc" }
+protoc-gen-grpc-java = { group = "io.grpc", name = "protoc-gen-grpc-java", version.ref = "grpc" }
+grpc-kotlin-stub = { group = "io.grpc", name = "grpc-kotlin-stub", version.ref = "grpcKotlin" }
+protoc-gen-grpc-kotlin = { group = "io.grpc", name = "protoc-gen-grpc-kotlin", version.ref = "grpcKotlin" }
+# Test-only: in-process transport used to unit test gRPC service wrappers with a fake stub.
+grpc-inprocess = { group = "io.grpc", name = "grpc-inprocess", version.ref = "grpc" }
+
+# Security
+androidx-security-crypto = { module = "androidx.security:security-crypto", version.ref = "securityCrypto" }
+
+# Exif
+androidx-exifinterface = { module = "androidx.exifinterface:exifinterface", version.ref = "exifinterface" }
 
 # Firebase
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebase" }
 firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
 
-[plugins]
-android-application = { id = "com.android.application", version.ref = "agp" }
-android-library = { id = "com.android.library", version.ref = "agp" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+# Coil
+coil-core = { module = "io.coil-kt.coil3:coil-core", version.ref = "coil" }
+coil-network = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
+coil-compose-core = { module = "io.coil-kt.coil3:coil-compose-core", version.ref = "coil" }
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+coil-gif = { module = "io.coil-kt.coil3:coil-gif", version.ref = "coil" }
 
-# Compose
-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+# Media3
+androidx-media3-exoplayer = { module = "androidx.media3:media3-exoplayer", version.ref = "media3" }
+androidx-media3-ui-compose = { module = "androidx.media3:media3-ui-compose", version.ref = "media3" }
+androidx-media3-ui-compose-material3 = { module = "androidx.media3:media3-ui-compose-material3", version.ref = "media3" }
 
-# Serialization
-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+# Chrome Custom Tabs
+androidx-browser = { module = "androidx.browser:browser", version.ref = "browser" }
+
+# Zoomable image
+zoomable-image-coil3 = { module = "me.saket.telephoto:zoomable-image-coil3", version.ref = "zoomableImage" }
+telephoto-flick = { module = "me.saket.telephoto:flick", version.ref = "zoomableImage" }
+
+# Play In-App Update
+play-app-update = { module = "com.google.android.play:app-update", version.ref = "playAppUpdate" }
+play-app-update-ktx = { module = "com.google.android.play:app-update-ktx", version.ref = "playAppUpdate" }
+
+# Markdown
+compose-richtext = { module = "com.halilibo.compose-richtext:richtext-commonmark", version.ref = "composeRichtext" }
+compose-richtext-material3 = { module = "com.halilibo.compose-richtext:richtext-ui-material3", version.ref = "composeRichtext" }
+
+# Test
+junit = { module = "junit:junit", version.ref = "junit" }
+kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "coroutinesTest" }
+robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+# Compose UI test under Robolectric (host-side JVM, no device) — versions from the Compose BOM
+ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
+ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
