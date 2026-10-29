@@ -5,9 +5,9 @@ import android.os.Bundle
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModelStore
 import com.octopuscommunity.sdk.domain.model.ProfileField
-import com.octopuscommunity.sdk.sample.data.datastore.SampleDataStoreTestFixture
-import com.octopuscommunity.sdk.sample.data.datastore.closeSampleViewModels
+import com.octopuscommunity.sdk.sample.data.datastore.InMemorySampleDataStores
 import com.octopuscommunity.sdk.sample.data.model.SDKConfig
+import com.octopuscommunity.sdk.sample.data.model.User
 import com.octopuscommunity.sdk.sample.data.resolveAuthPreset
 import com.octopuscommunity.sdk.sample.data.usecase.CommunityConnectUseCase
 import kotlinx.coroutines.Dispatchers
@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlinx.serialization.json.Json
@@ -35,18 +36,61 @@ import kotlin.test.assertTrue
 @Config(sdk = [34], application = Application::class)
 class ConfigViewModelTest {
     @Test
+    fun `Apply with unavailable signing does not announce a skipped user switch`() =
+        runTest {
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            val dataStores = InMemorySampleDataStores(RuntimeEnvironment.getApplication())
+            val configs = dataStores.configs
+            val users = dataStores.users
+            val store = ViewModelStore()
+            try {
+                val currentUser = User(id = "current-user", nickname = "current member")
+                configs.updateConfig { SDKConfig(authKind = SDKConfig.AuthKind.SSO(), appearance = SDKConfig.Appearance.Dark) }
+                users.updateUser(clearSignOut = true) { currentUser }
+                users.setSignedOut(true)
+                val connect =
+                    CommunityConnectUseCase(users, isSigningAvailable = { false }) { _, _ ->
+                        error("Apply must skip connecting when signing is unavailable")
+                    }
+                val viewModel =
+                    ConfigViewModel(configs, users, connect, backgroundScope, sdkTestFakesRequests = MutableStateFlow(null))
+                store.put("config", viewModel)
+                viewModel.state.first { it.ssoUserId == currentUser.id }
+                viewModel.setSsoUserId("different-user")
+                viewModel.setAppearance(SDKConfig.Appearance.Light)
+
+                assertEquals("Applied · no SDK restart needed", viewModel.saveAndStart())
+                testScheduler.runCurrent()
+
+                assertEquals(currentUser, users.getUser())
+                assertTrue(users.isSignedOut())
+                assertEquals(SDKConfig.Appearance.Light, configs.configFlow.first()?.appearance)
+                assertTrue(
+                    connect.configConnectionFailures.value
+                        .single()
+                        .message
+                        .contains("without switching user"),
+                )
+                assertFalse(viewModel.isApplying.value)
+            } finally {
+                closeConfigViewModels(store)
+            }
+        }
+
+    @Test
     fun `live stored auth follows Unified Profile on off while a theme draft survives`() =
         runTest {
             Dispatchers.setMain(StandardTestDispatcher(testScheduler))
             val context = RuntimeEnvironment.getApplication()
-            val dataStores = SampleDataStoreTestFixture(context, backgroundScope)
+            val dataStores = InMemorySampleDataStores(context)
             val configs = dataStores.configs
             val users = dataStores.users
             val store = ViewModelStore()
             try {
                 configs.updateConfig { SDKConfig(authKind = SDKConfig.AuthKind.SSO()) }
                 users.clear()
-                val viewModel = ConfigViewModel(configs, users, CommunityConnectUseCase(users), backgroundScope)
+                val viewModel =
+                    ConfigViewModel(configs, users, CommunityConnectUseCase(users, isSigningAvailable = { true }), backgroundScope)
                 store.put("config", viewModel)
                 // Wait for initial storage hydration rather than relying on an already-default state.
                 configs.updateConfig { it!!.copy(appearance = SDKConfig.Appearance.Dark) }
@@ -62,7 +106,7 @@ class ConfigViewModelTest {
                 assertEquals("ssoNoManagedNoForced", resolveAuthPreset(off.forceLogin, off.managedFields).id)
                 assertEquals(SDKConfig.Theme.SdkDefault, off.theme)
             } finally {
-                closeSampleViewModels(store, dataStores)
+                closeConfigViewModels(store)
             }
         }
 
@@ -71,13 +115,14 @@ class ConfigViewModelTest {
         runTest {
             Dispatchers.setMain(StandardTestDispatcher(testScheduler))
             val context = RuntimeEnvironment.getApplication()
-            val dataStores = SampleDataStoreTestFixture(context, backgroundScope)
+            val dataStores = InMemorySampleDataStores(context)
             val configs = dataStores.configs
             val users = dataStores.users
             val store = ViewModelStore()
             try {
                 configs.updateConfig { SDKConfig(authKind = SDKConfig.AuthKind.SSO(), appearance = SDKConfig.Appearance.Dark) }
-                val viewModel = ConfigViewModel(configs, users, CommunityConnectUseCase(users), backgroundScope)
+                val viewModel =
+                    ConfigViewModel(configs, users, CommunityConnectUseCase(users, isSigningAvailable = { true }), backgroundScope)
                 store.put("config", viewModel)
                 viewModel.state.first { it.appearance == SDKConfig.Appearance.Dark }
                 viewModel.toggleManagedField(ProfileField.ALL.first())
@@ -85,7 +130,7 @@ class ConfigViewModelTest {
                 val live = viewModel.state.first { it.forceLogin }
                 assertTrue(live.managedFields.contains(ProfileField.ALL.first()))
             } finally {
-                closeSampleViewModels(store, dataStores)
+                closeConfigViewModels(store)
             }
         }
 
@@ -94,7 +139,7 @@ class ConfigViewModelTest {
         runTest {
             Dispatchers.setMain(StandardTestDispatcher(testScheduler))
             val context = RuntimeEnvironment.getApplication()
-            val dataStores = SampleDataStoreTestFixture(context, backgroundScope)
+            val dataStores = InMemorySampleDataStores(context)
             val configs = dataStores.configs
             val users = dataStores.users
             val store = ViewModelStore()
@@ -105,19 +150,33 @@ class ConfigViewModelTest {
                 val handle = SavedStateHandle()
                 store.put(
                     "config",
-                    ConfigViewModel(configs, users, CommunityConnectUseCase(users), backgroundScope, savedStateHandle = handle),
+                    ConfigViewModel(
+                        configs,
+                        users,
+                        CommunityConnectUseCase(users, isSigningAvailable = { true }),
+                        backgroundScope,
+                        savedStateHandle = handle,
+                    ),
                 )
                 // No scheduler turn: save and destroy the ViewModel before its DataStore read.
                 val saved = handle.savedStateProvider().saveState()
                 store.clear()
                 val restoredHandle = SavedStateHandle.createHandle(saved, null)
                 val restored =
-                    ConfigViewModel(configs, users, CommunityConnectUseCase(users), backgroundScope, savedStateHandle = restoredHandle)
+                    ConfigViewModel(
+                        configs,
+                        users,
+                        CommunityConnectUseCase(users, isSigningAvailable = {
+                            true
+                        }),
+                        backgroundScope,
+                        savedStateHandle = restoredHandle,
+                    )
                 store.put("restored", restored)
                 restored.state.first { it.appearance == SDKConfig.Appearance.Dark }
                 assertEquals(persisted, configs.configFlow.first())
             } finally {
-                closeSampleViewModels(store, dataStores)
+                closeConfigViewModels(store)
             }
         }
 
@@ -126,7 +185,7 @@ class ConfigViewModelTest {
         runTest {
             Dispatchers.setMain(StandardTestDispatcher(testScheduler))
             val context = RuntimeEnvironment.getApplication()
-            val dataStores = SampleDataStoreTestFixture(context, backgroundScope)
+            val dataStores = InMemorySampleDataStores(context)
             val configs = dataStores.configs
             val users = dataStores.users
             val store = ViewModelStore()
@@ -135,7 +194,14 @@ class ConfigViewModelTest {
                 configs.updateConfig { persisted }
                 users.clear()
                 val handle = SavedStateHandle()
-                val original = ConfigViewModel(configs, users, CommunityConnectUseCase(users), backgroundScope, savedStateHandle = handle)
+                val original =
+                    ConfigViewModel(
+                        configs,
+                        users,
+                        CommunityConnectUseCase(users, isSigningAvailable = { true }),
+                        backgroundScope,
+                        savedStateHandle = handle,
+                    )
                 store.put("config", original)
                 original.state.first { it.appearance == SDKConfig.Appearance.Dark }
                 original.setServerEnvKind(ConfigViewModel.ServerEnvKind.CUSTOM)
@@ -148,13 +214,21 @@ class ConfigViewModelTest {
 
                 val restoredHandle = SavedStateHandle.createHandle(saved, null)
                 val restored =
-                    ConfigViewModel(configs, users, CommunityConnectUseCase(users), backgroundScope, savedStateHandle = restoredHandle)
+                    ConfigViewModel(
+                        configs,
+                        users,
+                        CommunityConnectUseCase(users, isSigningAvailable = {
+                            true
+                        }),
+                        backgroundScope,
+                        savedStateHandle = restoredHandle,
+                    )
                 store.put("restored", restored)
                 testScheduler.runCurrent()
                 assertEquals(draft, restored.state.value)
                 assertEquals(persisted, configs.configFlow.first())
             } finally {
-                closeSampleViewModels(store, dataStores)
+                closeConfigViewModels(store)
             }
         }
 
@@ -211,7 +285,7 @@ class ConfigViewModelTest {
     ) {
         Dispatchers.setMain(StandardTestDispatcher(testScheduler))
         val context = RuntimeEnvironment.getApplication()
-        val dataStores = SampleDataStoreTestFixture(context, backgroundScope)
+        val dataStores = InMemorySampleDataStores(context)
         val configs = dataStores.configs
         val users = dataStores.users
         val storedConfig = MutableStateFlow(SDKConfig(authKind = SDKConfig.AuthKind.SSO(), appearance = SDKConfig.Appearance.Dark))
@@ -221,7 +295,7 @@ class ConfigViewModelTest {
             ConfigViewModel(
                 configs,
                 users,
-                CommunityConnectUseCase(users),
+                CommunityConnectUseCase(users, isSigningAvailable = { true }),
                 backgroundScope,
                 savedStateHandle = handle,
                 configFlow = storedConfig,
@@ -244,7 +318,66 @@ class ConfigViewModelTest {
             assertEquals(SDKConfig.Appearance.Light, restored.state.value.appearance)
             block(restored, storedConfig)
         } finally {
-            closeSampleViewModels(store, dataStores)
+            closeConfigViewModels(store)
+        }
+    }
+
+    @Test
+    fun `a draft edited before hydration follows storage for untouched fields after restore`() =
+        runTest {
+            Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+            val dataStores = InMemorySampleDataStores(RuntimeEnvironment.getApplication())
+            val configs = dataStores.configs
+            val users = dataStores.users
+            val store = ViewModelStore()
+            try {
+                configs.updateConfig { SDKConfig(authKind = SDKConfig.AuthKind.SSO(), appearance = SDKConfig.Appearance.Dark) }
+                val handle = SavedStateHandle()
+                val original =
+                    ConfigViewModel(
+                        configs,
+                        users,
+                        CommunityConnectUseCase(users, isSigningAvailable = { true }),
+                        backgroundScope,
+                        savedStateHandle = handle,
+                    )
+                store.put("config", original)
+                // Edit, save and destroy before either storage collector gets a scheduler turn.
+                original.setCustomServerHost("draft.example.invalid")
+                val saved = handle.savedStateProvider().saveState()
+                val draft = assertNotNull(handle.get<Bundle>("configDraft"))
+                assertEquals(
+                    ConfigViewModel.State(),
+                    Json.decodeFromString<ConfigViewModel.State>(assertNotNull(draft.getString("baseline"))),
+                )
+                store.clear()
+                val restored =
+                    ConfigViewModel(
+                        configs,
+                        users,
+                        CommunityConnectUseCase(users, isSigningAvailable = { true }),
+                        backgroundScope,
+                        savedStateHandle = SavedStateHandle.createHandle(saved, null),
+                    )
+                store.put("restored", restored)
+                testScheduler.runCurrent()
+                assertEquals(SDKConfig.Appearance.Dark, restored.state.value.appearance)
+                configs.updateConfig { it!!.copy(appearance = SDKConfig.Appearance.Light, theme = SDKConfig.Theme.SdkDefault) }
+                testScheduler.runCurrent()
+                assertEquals(SDKConfig.Appearance.Light, restored.state.value.appearance)
+                assertEquals(SDKConfig.Theme.SdkDefault, restored.state.value.theme)
+                assertEquals("draft.example.invalid", restored.state.value.customServerHost)
+            } finally {
+                closeConfigViewModels(store)
+            }
+        }
+
+    private fun TestScope.closeConfigViewModels(store: ViewModelStore) {
+        try {
+            store.clear()
+            testScheduler.runCurrent()
+        } finally {
+            Dispatchers.resetMain()
         }
     }
 
@@ -253,7 +386,7 @@ class ConfigViewModelTest {
         runTest {
             Dispatchers.setMain(StandardTestDispatcher(testScheduler))
             val context = RuntimeEnvironment.getApplication()
-            val dataStores = SampleDataStoreTestFixture(context, backgroundScope)
+            val dataStores = InMemorySampleDataStores(context)
             val configs = dataStores.configs
             val users = dataStores.users
             val store = ViewModelStore()
@@ -262,7 +395,8 @@ class ConfigViewModelTest {
                     SDKConfig(authKind = SDKConfig.AuthKind.SSO(), appearance = SDKConfig.Appearance.Dark, pushRegistrationEnabled = false)
                 }
                 users.clear()
-                val viewModel = ConfigViewModel(configs, users, CommunityConnectUseCase(users), backgroundScope)
+                val viewModel =
+                    ConfigViewModel(configs, users, CommunityConnectUseCase(users, isSigningAvailable = { true }), backgroundScope)
                 store.put("config", viewModel)
                 viewModel.state.first { it.appearance == SDKConfig.Appearance.Dark }
                 viewModel.setThemePreset(navy = false)
@@ -271,7 +405,7 @@ class ConfigViewModelTest {
                 assertEquals(SDKConfig.Appearance.Dark, saved.appearance)
                 assertFalse(saved.pushRegistrationEnabled)
             } finally {
-                closeSampleViewModels(store, dataStores)
+                closeConfigViewModels(store)
             }
         }
 }

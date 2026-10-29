@@ -3,6 +3,7 @@ package com.octopuscommunity.sdk.sample.ui.config
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -19,8 +20,8 @@ import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
@@ -56,6 +57,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.password
@@ -77,15 +80,17 @@ import com.octopuscommunity.sdk.sample.data.pickerUserIds
 import com.octopuscommunity.sdk.sample.data.resolveAuthPreset
 import com.octopuscommunity.sdk.sample.extensions.LocalConfigOptions
 import com.octopuscommunity.sdk.sample.ui.components.ExpandableSection
+import com.octopuscommunity.sdk.sample.ui.components.LocalSampleTopBarInset
 import com.octopuscommunity.sdk.sample.ui.components.PrimaryPillButton
 import com.octopuscommunity.sdk.sample.ui.components.SampleSegmentedChoice
 import com.octopuscommunity.sdk.sample.ui.components.SampleSwitchRow
 import com.octopuscommunity.sdk.sample.ui.components.SampleTopAppBar
-import com.octopuscommunity.sdk.sample.ui.components.SampleTopAppBarSize
+import com.octopuscommunity.sdk.sample.ui.components.SampleTopBarContent
 import com.octopuscommunity.sdk.sample.ui.components.SecondaryPillButton
 import com.octopuscommunity.sdk.sample.ui.components.SummaryRow
 import com.octopuscommunity.sdk.sample.ui.components.sampleFilterChipBorder
 import com.octopuscommunity.sdk.sample.ui.components.sampleFilterChipColors
+import com.octopuscommunity.sdk.sample.ui.components.sampleVerticalScroll
 import com.octopuscommunity.sdk.sample.ui.theme.SampleSpacing
 import com.octopuscommunity.sdk.sample.ui.theme.SampleTheme
 import com.octopuscommunity.sdk.sample.ui.theme.samplePageColor
@@ -119,9 +124,13 @@ fun ConfigScreen(
     section: ConfigSection? = null,
     onOpenHostIntegration: () -> Unit = {},
     onOpenUnifiedProfile: () -> Unit = {},
+    // Null when Config is the first screen (cold start): there is nothing to go back to, so the bar
+    // shows no arrow. The gates that stand in for another route keep no arrow by choice.
+    onBack: (() -> Unit)? = null,
     viewModel: ConfigViewModel = koinViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val isApplying by viewModel.isApplying.collectAsStateWithLifecycle()
     val unifiedProfileActive by viewModel.unifiedProfileActive.collectAsStateWithLifecycle()
 
     val anchor = section?.resolve(serverSectionShown = !BuildConfig.IS_PROD_FLAVOR)
@@ -151,13 +160,16 @@ fun ConfigScreen(
         color = samplePageColor,
         contentColor = samplePageContentColor,
     ) {
-        // Outer, non-scrolling Column: app bar, then the sections scrolling in the remaining
-        // height, then the docked Start SDK / Apply action, which never scrolls away.
+        // Outer, non-scrolling Column: sections under an overlaid app bar, then the docked
+        // Start SDK / Apply action, which never scrolls away.
         // `imePadding` sits on this outer Column so the keyboard lifts the docked action with the
         // scroll area instead of covering it while a field has focus.
-        // DS screen: Config uses the medium bar, its expanded title collapsing into the row as the
-        // sections scroll.
-        val barScrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+        // Pinned small bar over the scroll area, translucent once the sections pass under it.
+        val barScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+        // The inset is the bar's measured height, not the M3 row height: the bar adds its own
+        // window insets on top of that row wherever the window has not consumed them.
+        val density = LocalDensity.current
+        var barHeight by remember { mutableStateOf(TopAppBarDefaults.TopAppBarExpandedHeight) }
         Column(
             modifier =
                 Modifier
@@ -165,282 +177,291 @@ fun ConfigScreen(
                     .imePadding()
                     .nestedScroll(barScrollBehavior.nestedScrollConnection),
         ) {
-            // The screen names itself in the app bar like every other sample screen, badge included:
-            // Config is a top-level destination (reached from Settings "Configuration"), not a splash.
-            SampleTopAppBar(
-                title = "Configuration",
-                size = SampleTopAppBarSize.Medium,
-                scrollBehavior = barScrollBehavior,
-            )
-
-            Column(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 20.dp, vertical = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                // Server environment (visible on demo flavor only, never on prod flavor). One label
-                // across the three samples — the "(internal)" qualifier was the flavor gate saying
-                // itself twice.
-                if (!BuildConfig.IS_PROD_FLAVOR) {
-                    ExpandableSection(
-                        "Server environment",
-                        modifier = sectionModifier(ConfigSection.SERVER),
-                        initiallyExpanded = ConfigSection.SERVER.isInitiallyExpanded(anchor),
+            Box(modifier = Modifier.fillMaxWidth().weight(1f)) {
+                SampleTopBarContent(barHeight) {
+                    Column(
+                        modifier =
+                            Modifier
+                                .fillMaxSize()
+                                .sampleVerticalScroll(rememberScrollState())
+                                .padding(top = LocalSampleTopBarInset.current)
+                                .padding(horizontal = 20.dp, vertical = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
                     ) {
-                        Column(modifier = Modifier.testTag("config-serverEnv-select")) {
-                            ServerEnvironmentSection(
-                                state = state,
-                                onKindChange = viewModel::setServerEnvKind,
-                                onHostChange = viewModel::setCustomServerHost,
-                                onPortChange = viewModel::setCustomServerPort,
-                                localOptions = viewModel.localOptions,
-                                onSelectLocalConfiguration = viewModel::selectLocalConfiguration,
-                            )
-                        }
-                    }
-                }
-
-                // Community: rarely changed (the preselected key fits most tests), so it sits under
-                // the server it belongs to and opens collapsed, its choice summarised in the header.
-                // A keyless build has nothing preselected and opens it, since a key must be pasted.
-                val resolvedPreset = resolveAuthPreset(state.forceLogin, state.managedFields)
-                val localKey = viewModel.localOptions.keySource(state)
-                ExpandableSection(
-                    "Community",
-                    modifier = sectionModifier(ConfigSection.COMMUNITY),
-                    initiallyExpanded =
-                        ConfigSection.COMMUNITY.isInitiallyExpanded(anchor) || availableAuthPresets.isEmpty(),
-                    summary =
-                        when {
-                            // A directory selection supplies its own key, whatever is picked below.
-                            localKey != null -> localKey
-                            state.useCustomCommunity ->
-                                "Custom API key \u00b7 ${SDKConfigResolver.maskApiKey(state.customApiKey)}"
-                            availableAuthPresets.isNotEmpty() -> resolvedPreset.label
-                            else -> null
-                        },
-                ) {
-                    Column(modifier = Modifier.testTag("config-apiKeySource-select")) {
-                        if (availableAuthPresets.isNotEmpty()) {
-                            // Named-key picker (sample-UX parity with the Flutter Config
-                            // screen). Picking a preset applies its auth shape below —
-                            // the key itself stays derived from that shape, so it can
-                            // never disagree with the SSO connection mode.
-                            Text(
-                                text = "Pick the community to open. The preselected one fits most tests.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            availableAuthPresets.forEach { preset ->
-                                RadioRow(
-                                    label = preset.label,
-                                    selected = !state.useCustomCommunity && preset.id == resolvedPreset.id,
-                                    onClick = { viewModel.applyAuthPreset(preset) },
-                                )
+                        // Server environment (visible on demo flavor only, never on prod flavor). One label
+                        // across the three samples — the "(internal)" qualifier was the flavor gate saying
+                        // itself twice.
+                        if (!BuildConfig.IS_PROD_FLAVOR) {
+                            ExpandableSection(
+                                "Server environment",
+                                modifier = sectionModifier(ConfigSection.SERVER),
+                                initiallyExpanded = ConfigSection.SERVER.isInitiallyExpanded(anchor),
+                            ) {
+                                Column(modifier = Modifier.testTag("config-serverEnv-select")) {
+                                    ServerEnvironmentSection(
+                                        state = state,
+                                        onKindChange = viewModel::setServerEnvKind,
+                                        onHostChange = viewModel::setCustomServerHost,
+                                        onPortChange = viewModel::setCustomServerPort,
+                                        localOptions = viewModel.localOptions,
+                                        onSelectLocalConfiguration = viewModel::selectLocalConfiguration,
+                                    )
+                                }
                             }
-                            RadioRow(
-                                label = "Custom… (paste any API key)",
-                                selected = state.useCustomCommunity,
-                                onClick = { viewModel.setUseCustomCommunity(true) },
-                            )
-                            if (!state.useCustomCommunity) {
-                                Text(
-                                    text = "Resolved key: ${SDKConfigResolver.maskApiKey(resolvedPreset.key)}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                )
-                            }
-                        } else {
-                            // Keyless build (cold clone / public CI): no named keys
-                            // injected — legacy custom-key switch only.
-                            SwitchRow(
-                                label = "Use custom API key",
-                                checked = state.useCustomCommunity,
-                                onCheckedChange = viewModel::setUseCustomCommunity,
-                            )
                         }
 
-                        if (state.useCustomCommunity) {
-                            var apiKeyVisible by rememberSaveable { mutableStateOf(false) }
-                            OutlinedTextField(
-                                value = state.customApiKey,
-                                onValueChange = viewModel::setCustomApiKey,
-                                label = { Text("API Key") },
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        // Mask the raw key from accessibility services
-                                        // (uiautomator, TalkBack) whenever it is visually
-                                        // hidden — a plain PasswordVisualTransformation only
-                                        // dots out the glyphs, not the a11y node value.
-                                        // Keep a single stable semantics node and toggle the
-                                        // property inside it (avoids structural churn of the
-                                        // semantics tree on each visibility toggle).
-                                        .semantics { if (!apiKeyVisible) password() },
-                                singleLine = true,
-                                visualTransformation =
-                                    if (apiKeyVisible) {
-                                        VisualTransformation.None
-                                    } else {
-                                        PasswordVisualTransformation()
-                                    },
-                                trailingIcon = {
-                                    IconButton(onClick = { apiKeyVisible = !apiKeyVisible }) {
-                                        Icon(
-                                            imageVector =
-                                                if (apiKeyVisible) {
-                                                    Icons.Default.VisibilityOff
-                                                } else {
-                                                    Icons.Default.Visibility
-                                                },
-                                            contentDescription =
-                                                if (apiKeyVisible) {
-                                                    "Hide API key"
-                                                } else {
-                                                    "Show API key"
-                                                },
+                        // Community: rarely changed (the preselected key fits most tests), so it sits under
+                        // the server it belongs to and opens collapsed, its choice summarised in the header.
+                        // A keyless build has nothing preselected and opens it, since a key must be pasted.
+                        val resolvedPreset = resolveAuthPreset(state.forceLogin, state.managedFields)
+                        val localKey = viewModel.localOptions.keySource(state)
+                        ExpandableSection(
+                            "Community",
+                            modifier = sectionModifier(ConfigSection.COMMUNITY),
+                            initiallyExpanded =
+                                ConfigSection.COMMUNITY.isInitiallyExpanded(anchor) || availableAuthPresets.isEmpty(),
+                            summary =
+                                when {
+                                    // A directory selection supplies its own key, whatever is picked below.
+                                    localKey != null -> localKey
+                                    state.useCustomCommunity ->
+                                        "Custom API key \u00b7 ${SDKConfigResolver.maskApiKey(state.customApiKey)}"
+                                    availableAuthPresets.isNotEmpty() -> resolvedPreset.label
+                                    else -> null
+                                },
+                        ) {
+                            Column(modifier = Modifier.testTag("config-apiKeySource-select")) {
+                                if (availableAuthPresets.isNotEmpty()) {
+                                    // Named-key picker (sample-UX parity with the Flutter Config
+                                    // screen). Picking a preset applies its auth shape below —
+                                    // the key itself stays derived from that shape, so it can
+                                    // never disagree with the SSO connection mode.
+                                    Text(
+                                        text = "Pick the community to open. The preselected one fits most tests.",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                    availableAuthPresets.forEach { preset ->
+                                        RadioRow(
+                                            label = preset.label,
+                                            selected = !state.useCustomCommunity && preset.id == resolvedPreset.id,
+                                            onClick = { viewModel.applyAuthPreset(preset) },
                                         )
                                     }
-                                },
-                            )
-                        }
-                    }
-                }
+                                    RadioRow(
+                                        label = "Custom… (paste any API key)",
+                                        selected = state.useCustomCommunity,
+                                        onClick = { viewModel.setUseCustomCommunity(true) },
+                                    )
+                                    if (!state.useCustomCommunity) {
+                                        Text(
+                                            text = "Resolved key: ${SDKConfigResolver.maskApiKey(resolvedPreset.key)}",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        )
+                                    }
+                                } else {
+                                    // Keyless build (cold clone / public CI): no named keys
+                                    // injected — legacy custom-key switch only.
+                                    SwitchRow(
+                                        label = "Use custom API key",
+                                        checked = state.useCustomCommunity,
+                                        onCheckedChange = viewModel::setUseCustomCommunity,
+                                    )
+                                }
 
-                ExpandableSection(
-                    "Connect your users (SSO)",
-                    modifier = sectionModifier(ConfigSection.AUTH),
-                    initiallyExpanded = ConfigSection.AUTH.isInitiallyExpanded(anchor),
-                ) {
-                    Column(modifier = Modifier.testTag("config-authMode-select")) {
-                        // The SSO user, first under the header as the DS draws it: one chip per
-                        // stable test identity, plus the stored id when it is a custom one typed on
-                        // Settings → Account. Applied on Start SDK / Apply, not on tap.
-                        val ssoUserIds = (pickerUserIds + listOfNotNull(state.ssoUserId)).distinct()
-                        FlowRow(
-                            modifier = Modifier.testTag("config-sso-user-select"),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        ) {
-                            ssoUserIds.forEach { id ->
-                                val selected = id == state.ssoUserId
-                                FilterChip(
-                                    selected = selected,
-                                    onClick = { viewModel.setSsoUserId(id) },
-                                    label = { Text(id) },
-                                    leadingIcon =
-                                        if (selected) {
-                                            { Icon(Icons.Default.Check, contentDescription = null) }
-                                        } else {
-                                            null
+                                if (state.useCustomCommunity) {
+                                    var apiKeyVisible by rememberSaveable { mutableStateOf(false) }
+                                    OutlinedTextField(
+                                        value = state.customApiKey,
+                                        onValueChange = viewModel::setCustomApiKey,
+                                        label = { Text("API Key") },
+                                        modifier =
+                                            Modifier
+                                                .fillMaxWidth()
+                                                // Mask the raw key from accessibility services
+                                                // (uiautomator, TalkBack) whenever it is visually
+                                                // hidden — a plain PasswordVisualTransformation only
+                                                // dots out the glyphs, not the a11y node value.
+                                                // Keep a single stable semantics node and toggle the
+                                                // property inside it (avoids structural churn of the
+                                                // semantics tree on each visibility toggle).
+                                                .semantics { if (!apiKeyVisible) password() },
+                                        singleLine = true,
+                                        visualTransformation =
+                                            if (apiKeyVisible) {
+                                                VisualTransformation.None
+                                            } else {
+                                                PasswordVisualTransformation()
+                                            },
+                                        trailingIcon = {
+                                            IconButton(onClick = { apiKeyVisible = !apiKeyVisible }) {
+                                                Icon(
+                                                    imageVector =
+                                                        if (apiKeyVisible) {
+                                                            Icons.Default.VisibilityOff
+                                                        } else {
+                                                            Icons.Default.Visibility
+                                                        },
+                                                    contentDescription =
+                                                        if (apiKeyVisible) {
+                                                            "Hide API key"
+                                                        } else {
+                                                            "Show API key"
+                                                        },
+                                                )
+                                            }
                                         },
-                                    colors = sampleFilterChipColors(),
-                                    border = sampleFilterChipBorder(selected = selected),
-                                    modifier = Modifier.testTag("config-sso-user-$id"),
+                                    )
+                                }
+                            }
+                        }
+
+                        ExpandableSection(
+                            "Connect your users (SSO)",
+                            modifier = sectionModifier(ConfigSection.AUTH),
+                            initiallyExpanded = ConfigSection.AUTH.isInitiallyExpanded(anchor),
+                        ) {
+                            Column(modifier = Modifier.testTag("config-authMode-select")) {
+                                // The SSO user, first under the header as the DS draws it: one chip per
+                                // stable test identity, plus the stored id when it is a custom one typed on
+                                // Settings → Account. Applied on Start SDK / Apply, not on tap.
+                                val ssoUserIds = (pickerUserIds + listOfNotNull(state.ssoUserId)).distinct()
+                                FlowRow(
+                                    modifier = Modifier.testTag("config-sso-user-select"),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                ) {
+                                    ssoUserIds.forEach { id ->
+                                        val selected = id == state.ssoUserId
+                                        FilterChip(
+                                            selected = selected,
+                                            onClick = { viewModel.setSsoUserId(id) },
+                                            label = { Text(id) },
+                                            leadingIcon =
+                                                if (selected) {
+                                                    { Icon(Icons.Default.Check, contentDescription = null) }
+                                                } else {
+                                                    null
+                                                },
+                                            colors = sampleFilterChipColors(),
+                                            border = sampleFilterChipBorder(selected = selected),
+                                            modifier = Modifier.testTag("config-sso-user-$id"),
+                                        )
+                                    }
+                                }
+                                if (availableAuthPresets.isNotEmpty() && !state.useCustomCommunity) {
+                                    Text(
+                                        text = "These settings pick the matching demo community above.",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                }
+
+                                // Force login is a feature toggle, and a feature toggle lives in one
+                                // place: the Scenarios section header. Config reads it here — the value
+                                // still selects which named API key this configuration resolves to — but
+                                // no longer offers a second switch that could disagree with the first.
+                                Text(
+                                    text =
+                                        "${FeatureToggle.ForceLogin.label} \u2014 " +
+                                            FeatureToggle.ForceLogin.readOnlyValueLine(state.forceLogin),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                )
+                                Text(
+                                    text = FeatureToggle.ForceLogin.effectLine(state.forceLogin),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color =
+                                        MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+
+                                UnifiedProfile(
+                                    active = unifiedProfileActive,
+                                    managedFields = state.managedFields,
+                                    communityLine =
+                                        unifiedProfileCommunityLine(
+                                            forceLogin = state.forceLogin,
+                                            managedFields = state.managedFields,
+                                            useCustomCommunity = state.useCustomCommunity,
+                                            localKey = localKey,
+                                        ),
+                                    onOpenScenario = if (isRevisit) onOpenUnifiedProfile else null,
+                                    onToggleField = viewModel::toggleManagedField,
                                 )
                             }
                         }
-                        if (availableAuthPresets.isNotEmpty() && !state.useCustomCommunity) {
-                            Text(
-                                text = "These settings pick the matching demo community above.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
+
+                        // Theme, in the vocabulary Settings → Appearance uses: the light/dark choice first,
+                        // then a preset, not a checkbox — the DS Config screen draws both. Appearance is not
+                        // part of the SDK re-init key, so changing it on Apply never restarts the SDK.
+                        ExpandableSection(
+                            "Theme",
+                            modifier = sectionModifier(ConfigSection.THEME),
+                            initiallyExpanded = ConfigSection.THEME.isInitiallyExpanded(anchor),
+                        ) {
+                            Column(
+                                modifier = Modifier.testTag("config-theme-select"),
+                                verticalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                SampleSegmentedChoice(
+                                    options =
+                                        listOf(
+                                            SDKConfig.Appearance.System to "System",
+                                            SDKConfig.Appearance.Light to "Light",
+                                            SDKConfig.Appearance.Dark to "Dark",
+                                        ),
+                                    selected = state.appearance,
+                                    onSelect = viewModel::setAppearance,
+                                    modifier = Modifier.testTag("config-appearance-select"),
+                                )
+                                SampleSegmentedChoice(
+                                    options =
+                                        listOf(
+                                            true to "Octopus navy",
+                                            false to "SDK default",
+                                        ),
+                                    selected = state.theme !is SDKConfig.Theme.SdkDefault,
+                                    onSelect = viewModel::setThemePreset,
+                                    modifier = Modifier.testTag("config-theme-preset-select"),
+                                )
+
+                                Text(
+                                    text =
+                                        "\"SDK default\" hands the SDK no theme — what a fresh " +
+                                            "integration looks like.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color =
+                                        MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                         }
 
-                        // Force login is a feature toggle, and a feature toggle lives in one
-                        // place: the Scenarios section header. Config reads it here — the value
-                        // still selects which named API key this configuration resolves to — but
-                        // no longer offers a second switch that could disagree with the first.
-                        Text(
-                            text =
-                                "${FeatureToggle.ForceLogin.label} \u2014 " +
-                                    FeatureToggle.ForceLogin.readOnlyValueLine(state.forceLogin),
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                        Text(
-                            text = FeatureToggle.ForceLogin.effectLine(state.forceLogin),
-                            style = MaterialTheme.typography.bodySmall,
-                            color =
-                                MaterialTheme.colorScheme.onSurfaceVariant,
+                        // Host app integration moved to Developer tools (see the KDoc above). This row keeps
+                        // the section's tag and anchor, so an old `?section=INTEGRATION` link still lands on
+                        // something that says where the setting went.
+                        SummaryRow(
+                            icon = Icons.Default.Tune,
+                            title = "Host app integration",
+                            subtitle = "Profile, sign-in, links: now in Settings › Developer tools",
+                            onClick = onOpenHostIntegration,
+                            modifier = sectionModifier(ConfigSection.INTEGRATION).padding(top = SampleSpacing.space2),
                         )
 
-                        UnifiedProfile(
-                            active = unifiedProfileActive,
-                            managedFields = state.managedFields,
-                            communityLine =
-                                unifiedProfileCommunityLine(
-                                    forceLogin = state.forceLogin,
-                                    managedFields = state.managedFields,
-                                    useCustomCommunity = state.useCustomCommunity,
-                                    localKey = localKey,
-                                ),
-                            onOpenScenario = if (isRevisit) onOpenUnifiedProfile else null,
-                            onToggleField = viewModel::toggleManagedField,
-                        )
+                        Spacer(Modifier.height(16.dp))
                     }
                 }
 
-                // Theme, in the vocabulary Settings → Appearance uses: the light/dark choice first,
-                // then a preset, not a checkbox — the DS Config screen draws both. Appearance is not
-                // part of the SDK re-init key, so changing it on Apply never restarts the SDK.
-                ExpandableSection(
-                    "Theme",
-                    modifier = sectionModifier(ConfigSection.THEME),
-                    initiallyExpanded = ConfigSection.THEME.isInitiallyExpanded(anchor),
-                ) {
-                    Column(
-                        modifier = Modifier.testTag("config-theme-select"),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        SampleSegmentedChoice(
-                            options =
-                                listOf(
-                                    SDKConfig.Appearance.System to "System",
-                                    SDKConfig.Appearance.Light to "Light",
-                                    SDKConfig.Appearance.Dark to "Dark",
-                                ),
-                            selected = state.appearance,
-                            onSelect = viewModel::setAppearance,
-                            modifier = Modifier.testTag("config-appearance-select"),
-                        )
-                        SampleSegmentedChoice(
-                            options =
-                                listOf(
-                                    true to "Octopus navy",
-                                    false to "SDK default",
-                                ),
-                            selected = state.theme !is SDKConfig.Theme.SdkDefault,
-                            onSelect = viewModel::setThemePreset,
-                            modifier = Modifier.testTag("config-theme-preset-select"),
-                        )
-
-                        Text(
-                            text =
-                                "\"SDK default\" hands the SDK no theme — what a fresh " +
-                                    "integration looks like.",
-                            style = MaterialTheme.typography.bodySmall,
-                            color =
-                                MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-
-                // Host app integration moved to Developer tools (see the KDoc above). This row keeps
-                // the section's tag and anchor, so an old `?section=INTEGRATION` link still lands on
-                // something that says where the setting went.
-                SummaryRow(
-                    icon = Icons.Default.Tune,
-                    title = "Host app integration",
-                    subtitle = "Profile, sign-in, links: now in Settings › Developer tools",
-                    onClick = onOpenHostIntegration,
-                    modifier = sectionModifier(ConfigSection.INTEGRATION).padding(top = SampleSpacing.space2),
+                SampleTopAppBar(
+                    title = "Configuration",
+                    modifier = Modifier.onSizeChanged { barHeight = with(density) { it.height.toDp() } },
+                    navigationIcon = {
+                        if (onBack != null) {
+                            IconButton(onClick = onBack) {
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                            }
+                        }
+                    },
+                    scrollBehavior = barScrollBehavior,
                 )
-
-                Spacer(Modifier.height(16.dp))
             }
 
             // DS screen 01: the primary action is docked under the scroll, on `surface` with a
@@ -461,9 +482,11 @@ fun ConfigScreen(
                         if (state.serverEnvKind != ConfigViewModel.ServerEnvKind.DEFAULT) {
                             showProdConfirm = true
                         } else {
-                            onStarted(viewModel.saveAndStart())
+                            viewModel.saveAndStart()?.let(onStarted)
                         }
                     },
+                    enabled = !isApplying,
+                    isLoading = isApplying,
                     minHeight = 56,
                     // DS card 01 leads Start SDK with `play`; Apply reconfigures a running SDK and
                     // starts nothing, so it keeps the bare label.
@@ -480,7 +503,7 @@ fun ConfigScreen(
                         customHost = state.customServerHost,
                         onConfirm = {
                             showProdConfirm = false
-                            onStarted(viewModel.saveAndStart())
+                            viewModel.saveAndStart()?.let(onStarted)
                         },
                         onDismiss = { showProdConfirm = false },
                     )

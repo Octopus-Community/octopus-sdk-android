@@ -10,9 +10,11 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeout
 import org.koin.core.error.ClosedScopeException
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 /**
@@ -132,6 +134,25 @@ class CommunityConfigPanelStateTest {
                         .toList()
                 assertEquals(CommunityConfigPanelState.Loaded(config), states.last())
                 assertTrue(states.none { it is CommunityConfigPanelState.Failed })
+            }
+        }
+
+    @Test
+    fun `a downstream closed scope exception propagates from loading and loaded emissions`() =
+        runTest {
+            for (cached in listOf(null, config)) {
+                val repository = ScriptedRepository(cached = cached)
+                val expected = ClosedScopeException("collector scope closed")
+                val actual =
+                    assertFailsWith<ClosedScopeException> {
+                        // Bound virtual time: swallowing the exception would otherwise poll forever.
+                        withTimeout(1_500) {
+                            communityConfigPanelStates(source(repository)).collect { throw expected }
+                        }
+                    }
+                // Coroutine stack-trace recovery may rethrow a copy, so compare the message, not the instance.
+                assertEquals(expected.message, actual.message)
+                assertEquals(0, repository.fetchCount)
             }
         }
 

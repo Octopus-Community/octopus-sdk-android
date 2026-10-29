@@ -16,7 +16,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
@@ -46,6 +45,7 @@ import coil3.compose.AsyncImage
 import com.octopuscommunity.sdk.sample.data.SampleConfigSummary
 import com.octopuscommunity.sdk.sample.data.pickerUserIds
 import com.octopuscommunity.sdk.sample.ui.components.DangerPillButton
+import com.octopuscommunity.sdk.sample.ui.components.LocalSampleTopBarInset
 import com.octopuscommunity.sdk.sample.ui.components.PrimaryPillButton
 import com.octopuscommunity.sdk.sample.ui.components.SampleCard
 import com.octopuscommunity.sdk.sample.ui.components.SampleSwitchRow
@@ -58,6 +58,7 @@ import com.octopuscommunity.sdk.sample.ui.components.sampleInputChipColors
 import com.octopuscommunity.sdk.sample.ui.components.sampleSuccessColor
 import com.octopuscommunity.sdk.sample.ui.components.sampleSuggestionChipBorder
 import com.octopuscommunity.sdk.sample.ui.components.sampleSuggestionChipColors
+import com.octopuscommunity.sdk.sample.ui.components.sampleVerticalScroll
 import com.octopuscommunity.sdk.sample.ui.theme.SampleTheme
 import org.koin.androidx.compose.koinViewModel
 
@@ -81,7 +82,9 @@ fun AccountScreen(
         modifier =
             Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .sampleVerticalScroll(rememberScrollState())
+                // Start below the shell's translucent app bar, inside the scroll so content passes under it.
+                .padding(top = LocalSampleTopBarInset.current)
                 .imePadding()
                 .padding(16.dp)
                 .testTag("account-screen"),

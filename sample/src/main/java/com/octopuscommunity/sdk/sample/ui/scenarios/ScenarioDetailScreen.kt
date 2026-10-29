@@ -17,7 +17,6 @@ import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -42,11 +41,13 @@ import com.octopuscommunity.sdk.sample.data.model.SDKConfig
 import com.octopuscommunity.sdk.sample.ui.components.ApiMethodCard
 import com.octopuscommunity.sdk.sample.ui.components.ApiPill
 import com.octopuscommunity.sdk.sample.ui.components.CodeResultBlock
+import com.octopuscommunity.sdk.sample.ui.components.LocalSampleTopBarInset
 import com.octopuscommunity.sdk.sample.ui.components.PrimaryPillButton
 import com.octopuscommunity.sdk.sample.ui.components.SampleBanner
 import com.octopuscommunity.sdk.sample.ui.components.SampleBannerTone
 import com.octopuscommunity.sdk.sample.ui.components.SampleScenarioBlock
 import com.octopuscommunity.sdk.sample.ui.components.SecondaryPillButton
+import com.octopuscommunity.sdk.sample.ui.components.sampleVerticalScroll
 import com.octopuscommunity.sdk.sample.ui.scenarios.sections.BridgeSection
 import com.octopuscommunity.sdk.sample.ui.scenarios.sections.BridgeShareSection
 import com.octopuscommunity.sdk.sample.ui.scenarios.sections.CommunityDataSection
@@ -162,7 +163,9 @@ fun ScenarioDetailScreen(
         modifier =
             Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .sampleVerticalScroll(rememberScrollState())
+                // Start below the shell's translucent app bar, inside the scroll so content passes under it.
+                .padding(top = LocalSampleTopBarInset.current)
                 .padding(16.dp)
                 .testTag("scenario-detail-screen"),
         verticalArrangement = Arrangement.spacedBy(8.dp),

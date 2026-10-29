@@ -14,6 +14,8 @@ import androidx.navigation.compose.rememberNavController
 @Composable
 internal fun rememberContentNavController(): NavHostController {
     val context = LocalContext.current.applicationContext
+    // This local is new on every call. The provider content must execute on every composition
+    // (including recomposition), synchronously assigning the remembered controller before return.
     lateinit var controller: NavHostController
     CompositionLocalProvider(LocalContext provides context) { controller = rememberNavController() }
     return controller

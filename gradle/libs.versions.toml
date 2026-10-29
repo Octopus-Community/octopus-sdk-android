@@ -1,5 +1,5 @@
 [versions]
-octopusSdk = "1.15.0"
+octopusSdk = "1.15.2"
 agp = "8.13.2"
 kotlin = "2.1.10"
 ksp = "2.1.10-1.0.31"
@@ -46,7 +46,7 @@ protobufPlugin = "0.9.5"
 protobuf = "3.25.8"
 
 # gRPC
-grpc = "1.75.0"
+grpc = "1.76.3"
 grpcKotlin = "1.5.0"
 
 # Security

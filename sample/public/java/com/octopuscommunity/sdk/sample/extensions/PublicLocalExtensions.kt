@@ -5,9 +5,12 @@ import androidx.compose.runtime.Composable
 import com.octopuscommunity.sdk.sample.data.datastore.SDKConfigDataStore
 import com.octopuscommunity.sdk.sample.data.model.SDKConfig
 import kotlinx.coroutines.CoroutineScope
+import org.koin.dsl.module
 
 /** Default implementation for the standalone sample. */
 object LocalExtensions {
+    val module = module {}
+
     val designReferenceUrl: String = ""
 
     fun resolve(config: SDKConfig): LocalBackendTarget? = null

@@ -49,8 +49,10 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDestination.Companion.hasRoute
+import androidx.navigation.NavGraph
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -64,11 +66,13 @@ import com.google.firebase.messaging.FirebaseMessaging
 import com.octopuscommunity.sdk.OctopusSDK
 import com.octopuscommunity.sdk.domain.model.ProfileField
 import com.octopuscommunity.sdk.sample.data.AppUpdateChecker
+import com.octopuscommunity.sdk.sample.data.CommunitySessionTracker
 import com.octopuscommunity.sdk.sample.data.NotificationPermissionPrompt
 import com.octopuscommunity.sdk.sample.data.SampleFixtures
 import com.octopuscommunity.sdk.sample.data.consumeSampleLaunchExtras
 import com.octopuscommunity.sdk.sample.data.datastore.SDKConfigDataStore
 import com.octopuscommunity.sdk.sample.data.model.SDKConfig
+import com.octopuscommunity.sdk.sample.data.usecase.CommunityConnectUseCase
 import com.octopuscommunity.sdk.sample.extensions.LocalExtensions
 import com.octopuscommunity.sdk.sample.ui.community.ClientProfileScreen
 import com.octopuscommunity.sdk.sample.ui.community.CommunityFullScreen
@@ -90,6 +94,8 @@ import com.octopuscommunity.sdk.sample.ui.navigation.HostIntegrationRoute
 import com.octopuscommunity.sdk.sample.ui.navigation.LoginRoute
 import com.octopuscommunity.sdk.sample.ui.navigation.MainRoute
 import com.octopuscommunity.sdk.sample.ui.navigation.MainScaffold
+import com.octopuscommunity.sdk.sample.ui.navigation.ReloadCommunityPresentationOnSessionChange
+import com.octopuscommunity.sdk.sample.ui.navigation.ReloadRootCommunityEntriesOnSessionChange
 import com.octopuscommunity.sdk.sample.ui.navigation.SamplePostLinkRoute
 import com.octopuscommunity.sdk.sample.ui.navigation.UNIFIED_PROFILE_SCENARIO
 import com.octopuscommunity.sdk.sample.ui.navigation.communityHostNavigation
@@ -123,12 +129,14 @@ import com.octopuscommunity.sdk.ui.navigateToOctopusActivityByClientUserId
 import com.octopuscommunity.sdk.ui.octopusComposables
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import org.koin.compose.koinInject
 
 @Serializable
 private data object ModalCommunityHomeRoute
@@ -157,7 +165,11 @@ class MainActivity : ComponentActivity() {
         lifecycleScope.launch {
             if (sdkConfigDataStore.configFlow.first()?.pushRegistrationEnabled == false) return@launch
             if (FirebaseApp.initializeApp(applicationContext) == null) return@launch
-            FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            // FCM token API deprecated in firebase-messaging 25.1: the replacement needs a manifest opt-in
+            // and delivers the id through MessagingService.onRegistered, so moving to it is a separate change.
+            @Suppress("DEPRECATION")
+            val tokenTask = FirebaseMessaging.getInstance().token
+            tokenTask.addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     OctopusSDK.registerNotificationsToken(task.result)
                 }
@@ -231,6 +243,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             val state by viewModel.state.collectAsStateWithLifecycle()
+            val communitySession by koinInject<CommunitySessionTracker>().generation.collectAsStateWithLifecycle()
             val communityNavigation by rememberUpdatedState(
                 state.sdkConfig?.communityNavigation ?: SDKConfig.CommunityNavigation.InTab,
             )
@@ -252,6 +265,8 @@ class MainActivity : ComponentActivity() {
 
                 var shellHasSdkTopBar by rememberSaveable { mutableStateOf(false) }
                 val currentEntry by navController.currentBackStackEntryAsState()
+                // The fullscreen preset and the SDK destinations the scenario demos push here.
+                ReloadRootCommunityEntriesOnSessionChange(navController, communitySession)
                 val destination = currentEntry?.destination
                 val isShell = destination?.hasRoute<MainRoute>() == true
                 val hasSampleTopBar =
@@ -417,6 +432,19 @@ class MainActivity : ComponentActivity() {
                     // dismisses another snackbar (the update-available prompt) sharing the host.
                     var applySnackbarJob by remember { mutableStateOf<Job?>(null) }
                     val coroutineScope = rememberCoroutineScope()
+                    val communityConnectUseCase = koinInject<CommunityConnectUseCase>()
+                    LaunchedEffect(communityConnectUseCase, snackbarHostState, lifecycleOwner) {
+                        lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                            communityConnectUseCase.configConnectionFailures
+                                .map { it.firstOrNull() }
+                                .filterNotNull()
+                                .collect { failure ->
+                                    applySnackbarJob?.cancel()
+                                    snackbarHostState.showSnackbar(message = failure.message, withDismissAction = true)
+                                    communityConnectUseCase.consumeConfigConnectionFailure(failure)
+                                }
+                        }
+                    }
                     // Sample-side handler wired into the SDK via `onGroupAccessDenied` on
                     // `octopusComposables(...)`. Fires when the connected user taps a
                     // visible-but-locked group, its follow button, or the locked-screen CTA on
@@ -530,6 +558,12 @@ class MainActivity : ComponentActivity() {
                                     deepLinks = listOf(navDeepLink { uriPattern = ConfigRoute.DEEP_LINK_PATTERN }),
                                 ) { backStackEntry ->
                                     val section = backStackEntry.toRoute<ConfigRoute>().section
+                                    val hasEntryBelow =
+                                        remember(backStackEntry) {
+                                            navController.currentBackStack.value
+                                                .takeWhile { it.id != backStackEntry.id }
+                                                .any { it.destination !is NavGraph }
+                                        }
                                     if (section == ConfigSection.INTEGRATION && state.isSdkInitialized) {
                                         // The host wiring left Config for its own screen. An older link
                                         // aimed at it is forwarded there, replacing this entry so Back
@@ -544,6 +578,17 @@ class MainActivity : ComponentActivity() {
                                     }
                                     ConfigScreen(
                                         section = section,
+                                        // Pushed from Settings or a link: back pops it. As the start
+                                        // destination (cold start) nothing sits below this entry, so no
+                                        // arrow. Read below this entry, not below the stack top: during a
+                                        // predictive back from a screen pushed over the onboarding Config,
+                                        // the stack top is still that screen.
+                                        onBack =
+                                            if (hasEntryBelow) {
+                                                { navController.navigateUp() }
+                                            } else {
+                                                null
+                                            },
                                         onOpenHostIntegration = { navController.navigate(HostIntegrationRoute) },
                                         onOpenUnifiedProfile = {
                                             navController.navigate(MainRoute) {
@@ -752,6 +797,7 @@ class MainActivity : ComponentActivity() {
                         ) {
                             EmbeddedCommunity(
                                 rootNavController = navController,
+                                currentSession = communitySession,
                                 hostCallbacks = state.sdkConfig?.effectiveHostCallbacks,
                                 theme = state.theme,
                                 serverEnvironment = state.serverEnvironment,
@@ -803,6 +849,7 @@ class MainActivity : ComponentActivity() {
                                     // recognisable host bar. The X is the leading control.
                                     EmbeddedCommunity(
                                         rootNavController = navController,
+                                        currentSession = communitySession,
                                         hostCallbacks = state.sdkConfig?.effectiveHostCallbacks,
                                         theme = state.theme,
                                         serverEnvironment = state.serverEnvironment,
@@ -865,6 +912,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun EmbeddedCommunity(
     rootNavController: NavHostController,
+    currentSession: Int,
     hostCallbacks: SDKConfig.HostCallbacks?,
     theme: SDKConfig.Theme,
     serverEnvironment: SDKConfig.ServerEnvironment,
@@ -885,6 +933,11 @@ private fun EmbeddedCommunity(
 ) {
     val context = LocalContext.current
     val embeddedNavController = rememberContentNavController()
+    ReloadCommunityPresentationOnSessionChange(
+        navController = embeddedNavController,
+        currentSession = currentSession,
+        homeRoute = ModalCommunityHomeRoute,
+    )
 
     // The deep-link presets (`qa-preset-sheet-2` / `qa-preset-modal-2`): land on the post INSIDE
     // this container rather than opening a second instance of the community somewhere else. Fired

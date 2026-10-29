@@ -179,7 +179,6 @@ android {
     }
 
     compileOptions {
-//        isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
@@ -261,8 +260,6 @@ dependencies {
 
     // Compose
     implementation(platform(libs.compose.bom))
-    implementation(libs.ui.tooling)
-    implementation(libs.ui.tooling.preview)
 
     // Activity Compose
     implementation(libs.activity.compose)
@@ -307,8 +304,6 @@ dependencies {
     testImplementation(libs.robolectric)
     testImplementation(platform(libs.compose.bom))
     testImplementation(libs.ui.test.junit4)
-
-//    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 }
 
 fun getProperties(path: String) =

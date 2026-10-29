@@ -114,7 +114,6 @@ class EditUserViewModel(
                 )
 
             if (updatedUser != null) {
-                userDataStore.updateUser(clearSignOut = true) { updatedUser }
                 val result = communityConnectUseCase(updatedUser)
                 when (result) {
                     is OctopusResult.Success -> {

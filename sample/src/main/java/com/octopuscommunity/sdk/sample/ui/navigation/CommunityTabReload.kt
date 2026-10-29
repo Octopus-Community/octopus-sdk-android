@@ -2,12 +2,14 @@ package com.octopuscommunity.sdk.sample.ui.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavHostController
 import com.octopuscommunity.sdk.sample.data.model.SDKConfig.CommunityNavigation
 
@@ -24,7 +26,7 @@ internal enum class CommunityTabReload {
     /** Nothing to do — the tab is already on the community session that is live. */
     NONE,
 
-    /** The tab is on screen: replace its entry in place so the feed reloads without a restart. */
+    /** The tab's graph is live, possibly covered: replace it and every entry above it. */
     RENAVIGATE,
 
     /**
@@ -48,13 +50,13 @@ internal enum class CommunityTabReload {
 internal fun communityTabReload(
     displayedSession: Int,
     currentSession: Int,
-    isCommunityTabOnScreen: Boolean,
+    isCommunityTabInBackStack: Boolean,
     displayedMode: CommunityNavigation = CommunityNavigation.InTab,
     currentMode: CommunityNavigation = displayedMode,
 ): CommunityTabReload =
     when {
         displayedSession == currentSession && displayedMode == currentMode -> CommunityTabReload.NONE
-        isCommunityTabOnScreen -> CommunityTabReload.RENAVIGATE
+        isCommunityTabInBackStack -> CommunityTabReload.RENAVIGATE
         else -> CommunityTabReload.CLEAR_SAVED_STATE
     }
 
@@ -64,7 +66,7 @@ internal class CommunityTabSessionViewModel : ViewModel() {
 
     fun reloadAction(
         currentSession: Int,
-        isCommunityTabOnScreen: Boolean,
+        isCommunityTabInBackStack: Boolean,
         displayedMode: CommunityNavigation,
         currentMode: CommunityNavigation,
     ): CommunityTabReload {
@@ -73,7 +75,7 @@ internal class CommunityTabSessionViewModel : ViewModel() {
                 // Zero is the tracker's asynchronous startup value, not a previous community.
                 displayedSession?.takeUnless { it == 0 } ?: currentSession,
                 currentSession,
-                isCommunityTabOnScreen,
+                isCommunityTabInBackStack,
                 displayedMode,
                 currentMode,
             )
@@ -91,23 +93,26 @@ internal fun ReloadCommunityTabOnSessionChange(
     navController: NavHostController,
     currentSession: Int,
     currentMode: CommunityNavigation,
-    isCommunityTabOnScreen: Boolean,
     sessionState: CommunityTabSessionViewModel = viewModel(),
 ) {
     // Mode survives process death. The session counter does not: MainRoute's ViewModel preserves
-    // it across host screens, but a fresh process re-seeds it from the live tracker instead of
+    // it across host screens and Activity recreation (including a switch during recreation),
+    // but a fresh process re-seeds it from the live tracker instead of
     // comparing a saved counter with the tracker's reset value and discarding a restored stack.
     var displayedMode by rememberSaveable { mutableStateOf(currentMode) }
-    val hasGraph = navController.currentBackStackEntry != null
-    LaunchedEffect(currentSession, currentMode, hasGraph) {
+    val backStack by navController.currentBackStack.collectAsState()
+    val hasGraph = backStack.isNotEmpty()
+    LaunchedEffect(navController, currentSession, currentMode, hasGraph) {
         if (!hasGraph) return@LaunchedEffect
-        val communityIsLive = runCatching { navController.getBackStackEntry<CommunityGraph>() }.isSuccess
         val action =
-            sessionState.reloadAction(currentSession, isCommunityTabOnScreen || communityIsLive, displayedMode, currentMode)
+            sessionState.reloadAction(currentSession, navController.hasLiveCommunityStack(), displayedMode, currentMode)
         reloadCommunityStack(navController, action)
         displayedMode = currentMode
     }
 }
+
+/** The graph remains live when Account or an SDK detail covers the Community home entry. */
+internal fun NavHostController.hasLiveCommunityStack(): Boolean = currentBackStack.value.any { it.destination.hasRoute<CommunityGraph>() }
 
 /** Invalidate the graph's entire saved/live stack, rather than only its home entry. */
 internal fun reloadCommunityStack(

@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import androidx.navigation.NavController
@@ -21,6 +22,7 @@ import com.octopuscommunity.sdk.sample.data.model.SDKConfig.CommunityNavigation
 import com.octopuscommunity.sdk.ui.OctopusDestination
 import com.octopuscommunity.sdk.ui.components.UrlOpeningStrategy
 import com.octopuscommunity.sdk.ui.navigateToOctopusPost
+import com.octopuscommunity.sdk.ui.octopusComposables
 import com.octopuscommunity.sdk.ui.octopusInternalNavDeepLinks
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -29,6 +31,7 @@ import org.robolectric.annotation.Config
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotEquals
 import kotlin.test.assertNull
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
@@ -124,6 +127,7 @@ class CommunityNavigationTest {
                 createGraph(startDestination = ScenariosTab()) {
                     composable<ScenariosTab> {}
                     composable<SettingsTab> {}
+                    composable<AccountRoute> {}
                     navigation<CommunityGraph>(startDestination = CommunityTab) {
                         composable<CommunityTab> {}
                         composable<OctopusDestination.PostDetails>(
@@ -145,6 +149,7 @@ class CommunityNavigationTest {
                     composable<EditUserRoute> {}
                     composable<ClientProfileRoute> {}
                     composable<SamplePostLinkRoute> {}
+                    composable<CommunityFullScreenRoute> {}
                     composable<OctopusDestination.PostDetails>(
                         deepLinks = octopusInternalNavDeepLinks<OctopusDestination.PostDetails>(),
                     ) {}
@@ -192,6 +197,100 @@ class CommunityNavigationTest {
         assertEquals("demo-post", tabs.currentBackStackEntry!!.toRoute<OctopusDestination.PostDetails>().postId)
         tabs.selectTab(CommunityGraph, reselect = true)
         assertTrue(tabs.currentDestination!!.hasRoute<CommunityTab>())
+    }
+
+    @Test
+    fun `a live Community tab under Account is replaced after a switch`() {
+        val tabs = tabs()
+        tabs.selectTab(CommunityGraph)
+        val homeId = tabs.currentBackStackEntry!!.id
+        val oldHome = ViewModelProvider(tabs.currentBackStackEntry!!)[ClearingViewModel::class.java]
+        tabs.navigate(AccountRoute)
+        assertTrue(tabs.currentDestination!!.hasRoute<AccountRoute>())
+        assertTrue(tabs.currentBackStack.value.any { it.destination.hasRoute<CommunityTab>() })
+
+        val action = communityTabReload(1, 2, tabs.hasLiveCommunityStack())
+        assertEquals(CommunityTabReload.RENAVIGATE, action)
+        reloadCommunityStack(tabs, action)
+        completeTransitions(tabs)
+
+        assertTrue(tabs.currentDestination!!.hasRoute<CommunityTab>())
+        assertNotEquals(homeId, tabs.currentBackStackEntry!!.id)
+        assertTrue(oldHome.cleared)
+        assertFalse(tabs.currentBackStack.value.any { it.destination.hasRoute<AccountRoute>() })
+        assertEquals(1, tabs.currentBackStack.value.count { it.destination.hasRoute<CommunityGraph>() })
+    }
+
+    @Test
+    fun `a saved Community tab is cleared without replacing the visible tab`() {
+        val tabs = tabs()
+        tabs.selectTab(CommunityGraph)
+        val homeId = tabs.currentBackStackEntry!!.id
+        val oldHome = ViewModelProvider(tabs.currentBackStackEntry!!)[ClearingViewModel::class.java]
+        tabs.selectTab(SettingsTab)
+        completeTransitions(tabs)
+        val settingsId = tabs.currentBackStackEntry!!.id
+        assertFalse(oldHome.cleared)
+        assertFalse(tabs.hasLiveCommunityStack())
+
+        val action = communityTabReload(1, 2, tabs.hasLiveCommunityStack())
+        assertEquals(CommunityTabReload.CLEAR_SAVED_STATE, action)
+        reloadCommunityStack(tabs, action)
+        completeTransitions(tabs)
+
+        assertEquals(settingsId, tabs.currentBackStackEntry!!.id)
+        assertTrue(oldHome.cleared)
+        tabs.selectTab(CommunityGraph)
+        assertNotEquals(homeId, tabs.currentBackStackEntry!!.id)
+    }
+
+    private fun completeTransitions(controller: NavHostController) {
+        val navigator = controller.navigatorProvider.getNavigator<ComposeNavigator>("composable")
+        controller.visibleEntries.value
+            .toList()
+            .forEach(navigator::onTransitionComplete)
+    }
+
+    class ClearingViewModel : ViewModel() {
+        var cleared = false
+            private set
+
+        override fun onCleared() {
+            cleared = true
+        }
+    }
+
+    @Test
+    fun `every SDK destination on the root graph is community-backed and host routes are not`() {
+        val root = controller()
+        root.graph =
+            root.createGraph(startDestination = MainRoute) {
+                composable<MainRoute> {}
+                composable<LoginRoute> {}
+                composable<ClientProfileRoute> {}
+                composable<CommunityFullScreenRoute> {}
+                octopusComposables(navController = root)
+            }
+        val (hosts, sdk) =
+            root.graph.partition {
+                it.hasRoute<MainRoute>() ||
+                    it.hasRoute<LoginRoute>() ||
+                    it.hasRoute<ClientProfileRoute>() ||
+                    it.hasRoute<CommunityFullScreenRoute>()
+            }
+        assertEquals(4, hosts.size)
+        assertTrue(sdk.any { it.hasRoute<OctopusDestination.PostDetails>() })
+        sdk.forEach { assertTrue(it.isOctopusDestination(), "${it.route} is not recognized as an SDK destination") }
+        hosts.forEach { assertEquals(it.hasRoute<CommunityFullScreenRoute>(), it.isCommunityBacked(), "${it.route}") }
+    }
+
+    @Test
+    fun `presentation baseline treats startup as fresh but detects later switches`() {
+        val session = CommunityPresentationSessionViewModel()
+        assertFalse(session.hasChanged(0))
+        assertFalse(session.hasChanged(1))
+        assertTrue(session.hasChanged(2))
+        assertFalse(session.hasChanged(2))
     }
 
     @Test

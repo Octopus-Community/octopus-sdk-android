@@ -219,8 +219,8 @@ data class SDKConfig(
     @Serializable
     sealed class Theme {
         /**
-         * The sample's own brand theme — the Octopus-navy `SampleBranding` quadruple handed to
-         * the SDK. The default, and what the "Octopus navy" preset selects.
+         * The sample's own brand theme — the palette built from `SampleColors` in
+         * `CommunityTheme` and handed to the SDK. The default, and what the "Octopus navy" preset selects.
          */
         @Serializable
         data object Default : Theme()

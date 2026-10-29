@@ -5,6 +5,7 @@ import android.app.NotificationManager
 import android.media.RingtoneManager
 import android.os.Build
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
@@ -49,8 +50,12 @@ class MessagingService : FirebaseMessagingService() {
      * is what makes "my app decides whether Octopus learns this device" demonstrable, and this is
      * the one place that decision can be honoured — the SDK entry point has no unregister.
      *
+     * Deprecated in firebase-messaging 25.1 together with `FirebaseMessaging.token`, which the sample
+     * still uses (see `MainActivity.registerPushTokenIfEnabled`): kept until both move together.
+     *
      * @param token The new FCM registration token
      */
+    @Suppress("OVERRIDE_DEPRECATION", "DEPRECATION")
     override fun onNewToken(token: String) {
         super.onNewToken(token)
 
@@ -91,7 +96,7 @@ class MessagingService : FirebaseMessagingService() {
                     NotificationCompat
                         .Builder(this, CHANNEL_ID)
                         .setSmallIcon(R.drawable.ic_stat_notification)
-                        .setColor(resources.getColor(R.color.accent))
+                        .setColor(ContextCompat.getColor(this, R.color.accent))
                         .setAutoCancel(true)
                         .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION))
                         .setOctopusContent(

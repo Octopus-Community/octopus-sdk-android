@@ -416,8 +416,8 @@ Things you don't need on day one, but will probably want later — full referenc
 - **Nothing happens when the user taps a post, a profile, or "create post"** — you're missing
   `octopusComposables()` in the `NavHost` that owns the community route. The SDK navigates to
   its own destinations; they have to be registered.
-- **`MissingOnNavigateToLoginException` when a community screen renders** — in SSO mode (the
-  default `ConnectionMode.SSO()`), `onNavigateToLogin` is required on `OctopusHomeScreen`,
+- **`MissingOnNavigateToLoginException` when a community screen renders** — with SSO (the only
+  `ConnectionMode` since 1.15.0), `onNavigateToLogin` is required on `OctopusHomeScreen`,
   `OctopusHomeContent` and `octopusComposables()`: the SDK hands sign-in to your app and cannot
   proceed without the callback. Pass it to open your app's authentication flow.
   Likewise, `MissingOnNavigateToProfileEditException` means your

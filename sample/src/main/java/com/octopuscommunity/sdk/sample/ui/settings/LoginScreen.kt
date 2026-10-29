@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Warning
@@ -38,8 +37,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.octopuscommunity.sdk.sample.data.pickerUserIds
 import com.octopuscommunity.sdk.sample.ui.components.SampleTopAppBar
+import com.octopuscommunity.sdk.sample.ui.components.SampleTopBarContent
 import com.octopuscommunity.sdk.sample.ui.components.sampleSuggestionChipBorder
 import com.octopuscommunity.sdk.sample.ui.components.sampleSuggestionChipColors
+import com.octopuscommunity.sdk.sample.ui.components.sampleVerticalScroll
 import com.octopuscommunity.sdk.sample.ui.theme.samplePageColor
 import com.octopuscommunity.sdk.sample.ui.theme.samplePageContentColor
 import org.koin.androidx.compose.koinViewModel
@@ -71,153 +72,156 @@ fun LoginScreen(
             )
         },
     ) { padding ->
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .consumeWindowInsets(padding)
-                    .imePadding()
-                    .verticalScroll(rememberScrollState())
-                    .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            Text(
-                text = "Connect SSO User",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                text =
-                    if (state.managedFields.isNotEmpty()) {
-                        "Enter user details to connect via SSO. Fields marked with * are managed by your app."
-                    } else {
-                        "Enter user details to connect via SSO"
-                    },
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+        SampleTopBarContent(0.dp) {
+            Column(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        // Keep focus relocation inside the visible area below the bar.
+                        .padding(padding)
+                        .consumeWindowInsets(padding)
+                        .imePadding()
+                        .sampleVerticalScroll(rememberScrollState())
+                        .padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Text(
+                    text = "Connect SSO User",
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                )
+                Text(
+                    text =
+                        if (state.managedFields.isNotEmpty()) {
+                            "Enter user details to connect via SSO. Fields marked with * are managed by your app."
+                        } else {
+                            "Enter user details to connect via SSO"
+                        },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
 
-            if (state.forceLogin) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Warning,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.tertiary,
-                        modifier = Modifier.size(16.dp),
-                    )
-                    Text(
-                        text = "Force login is enabled — users will be prompted to sign in for strong actions",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.tertiary,
-                    )
-                }
-            }
-
-            Spacer(Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = state.userId,
-                onValueChange = viewModel::setUserId,
-                label = { Text("User ID *") },
-                supportingText = { Text("Required — unique identifier from your system") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-            )
-            // Quick-pick chips: tap to fill the User ID field. Lets QA flip
-            // identities between two sample instances (e.g. Android emulator +
-            // iOS sim) without rebuilding — required for end-to-end push QA.
-            // Hidden when no ids are predefined / seeded.
-            if (pickerUserIds.isNotEmpty()) {
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                ) {
-                    pickerUserIds.forEach { id ->
-                        SuggestionChip(
-                            colors = sampleSuggestionChipColors(),
-                            border = sampleSuggestionChipBorder(),
-                            onClick = { viewModel.setUserId(id) },
-                            label = { Text(id) },
+                if (state.forceLogin) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Warning,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.tertiary,
+                            modifier = Modifier.size(16.dp),
+                        )
+                        Text(
+                            text = "Force login is enabled — users will be prompted to sign in for strong actions",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.tertiary,
                         )
                     }
                 }
-            }
-            OutlinedTextField(
-                value = state.nickname,
-                onValueChange = viewModel::setNickname,
-                label = {
-                    Text(if (state.isNicknameManaged) "Nickname * (app-managed)" else "Nickname")
-                },
-                supportingText =
-                    if (state.isNicknameManaged) {
-                        { Text("Managed by your app — Octopus won't modify it") }
-                    } else {
-                        null
-                    },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-            )
-            OutlinedTextField(
-                value = state.bio,
-                onValueChange = viewModel::setBio,
-                label = {
-                    Text(if (state.isBioManaged) "Bio * (app-managed)" else "Bio")
-                },
-                supportingText =
-                    if (state.isBioManaged) {
-                        { Text("Managed by your app — Octopus won't modify it") }
-                    } else {
-                        null
-                    },
-                modifier = Modifier.fillMaxWidth(),
-                maxLines = 3,
-            )
 
-            Spacer(Modifier.height(8.dp))
-            Text(
-                text = "Entitlements",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Bold,
-            )
-            Text(
-                text = "Toggle entitlements granted to this user. They are embedded in the JWT minted at connect time.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-            EditEntitlementsList(
-                selection = state.entitlements,
-                onToggle = viewModel::toggleEntitlement,
-            )
+                Spacer(Modifier.height(8.dp))
 
-            if (state.error != null) {
-                Text(
-                    text = state.error!!,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall,
+                OutlinedTextField(
+                    value = state.userId,
+                    onValueChange = viewModel::setUserId,
+                    label = { Text("User ID *") },
+                    supportingText = { Text("Required — unique identifier from your system") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
                 )
-            }
+                // Quick-pick chips: tap to fill the User ID field. Lets QA flip
+                // identities between two sample instances (e.g. Android emulator +
+                // iOS sim) without rebuilding — required for end-to-end push QA.
+                // Hidden when no ids are predefined / seeded.
+                if (pickerUserIds.isNotEmpty()) {
+                    FlowRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        pickerUserIds.forEach { id ->
+                            SuggestionChip(
+                                colors = sampleSuggestionChipColors(),
+                                border = sampleSuggestionChipBorder(),
+                                onClick = { viewModel.setUserId(id) },
+                                label = { Text(id) },
+                            )
+                        }
+                    }
+                }
+                OutlinedTextField(
+                    value = state.nickname,
+                    onValueChange = viewModel::setNickname,
+                    label = {
+                        Text(if (state.isNicknameManaged) "Nickname * (app-managed)" else "Nickname")
+                    },
+                    supportingText =
+                        if (state.isNicknameManaged) {
+                            { Text("Managed by your app — Octopus won't modify it") }
+                        } else {
+                            null
+                        },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                )
+                OutlinedTextField(
+                    value = state.bio,
+                    onValueChange = viewModel::setBio,
+                    label = {
+                        Text(if (state.isBioManaged) "Bio * (app-managed)" else "Bio")
+                    },
+                    supportingText =
+                        if (state.isBioManaged) {
+                            { Text("Managed by your app — Octopus won't modify it") }
+                        } else {
+                            null
+                        },
+                    modifier = Modifier.fillMaxWidth(),
+                    maxLines = 3,
+                )
 
-            Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    text = "Entitlements",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold,
+                )
+                Text(
+                    text = "Toggle entitlements granted to this user. They are embedded in the JWT minted at connect time.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                EditEntitlementsList(
+                    selection = state.entitlements,
+                    onToggle = viewModel::toggleEntitlement,
+                )
 
-            Button(
-                onClick = viewModel::connect,
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .height(52.dp),
-                enabled = !state.isLoading,
-            ) {
-                if (state.isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.padding(end = 8.dp),
-                        strokeWidth = 2.dp,
+                if (state.error != null) {
+                    Text(
+                        text = state.error!!,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
                     )
                 }
-                Text("Connect", fontWeight = FontWeight.Bold)
+
+                Spacer(Modifier.height(8.dp))
+
+                Button(
+                    onClick = viewModel::connect,
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
+                    enabled = !state.isLoading,
+                ) {
+                    if (state.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.padding(end = 8.dp),
+                            strokeWidth = 2.dp,
+                        )
+                    }
+                    Text("Connect", fontWeight = FontWeight.Bold)
+                }
             }
         }
     }

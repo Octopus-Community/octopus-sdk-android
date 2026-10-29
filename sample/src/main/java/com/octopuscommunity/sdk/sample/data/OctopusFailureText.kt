@@ -8,6 +8,8 @@ import com.octopuscommunity.sdk.domain.network.OctopusResult
  */
 fun OctopusResult.Failure<*>.describe(): String =
     when (this) {
+        is OctopusResult.Failure.InvalidArguments -> errorMessage
+
         OctopusResult.Failure.NoNetwork,
         OctopusResult.Failure.ContentUnavailable,
         -> this::class.simpleName ?: toString()

@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -25,8 +24,10 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.octopuscommunity.sdk.OctopusSDK
 import com.octopuscommunity.sdk.sample.data.SampleConfigSummary
+import com.octopuscommunity.sdk.sample.ui.components.LocalSampleTopBarInset
 import com.octopuscommunity.sdk.sample.ui.components.SampleCard
 import com.octopuscommunity.sdk.sample.ui.components.sampleRadioColors
+import com.octopuscommunity.sdk.sample.ui.components.sampleVerticalScroll
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 import java.util.Locale
@@ -42,11 +43,11 @@ private val LANGUAGES =
         Locale.FRENCH to "French",
         Locale.GERMAN to "German",
         Locale.ITALIAN to "Italian",
-        Locale("pl") to "Polish",
-        Locale("pt") to "Portuguese",
-        Locale("es") to "Spanish",
-        Locale("sv") to "Swedish",
-        Locale("tr") to "Turkish",
+        Locale.forLanguageTag("pl") to "Polish",
+        Locale.forLanguageTag("pt") to "Portuguese",
+        Locale.forLanguageTag("es") to "Spanish",
+        Locale.forLanguageTag("sv") to "Swedish",
+        Locale.forLanguageTag("tr") to "Turkish",
     )
 
 /**
@@ -66,7 +67,7 @@ fun LanguageScreen() {
     val scope = rememberCoroutineScope()
     var selectedLocale by remember {
         mutableStateOf(
-            prefs.getString(SampleConfigSummary.LOCALE_OVERRIDE_KEY, null)?.let { Locale(it) },
+            prefs.getString(SampleConfigSummary.LOCALE_OVERRIDE_KEY, null)?.let { Locale.forLanguageTag(it) },
         )
     }
 
@@ -74,7 +75,9 @@ fun LanguageScreen() {
         modifier =
             Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .sampleVerticalScroll(rememberScrollState())
+                // Start below the shell's translucent app bar, inside the scroll so content passes under it.
+                .padding(top = LocalSampleTopBarInset.current)
                 .padding(16.dp)
                 .testTag("language-screen"),
         verticalArrangement = Arrangement.spacedBy(12.dp),

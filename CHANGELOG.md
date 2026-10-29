@@ -9,6 +9,29 @@ For upgrade instructions across breaking changes, see [MIGRATING.md](MIGRATING.m
 
 ## Unreleased
 
+## [1.15.2](https://github.com/Octopus-Community/octopus-sdk-android/releases/tag/v1.15.2) — 2026-10-29
+
+Patch over 1.15.1: one crash fix. No API change, no migration.
+
+### Fixed
+- Reopening the community after closing its navigation no longer crashes while loading comments
+  or making network requests ([#12](https://github.com/Octopus-Community/octopus-sdk-android/issues/12)).
+
+## 1.15.1 — 2026-10-15
+
+Patch over 1.15.0. No API change, no migration.
+
+### Changed
+- **SDK test fakes:** `MockPostPolls.default` and `MockPostPolls.yesNoPoll` answer ids are now
+  `default_poll_answer_0`…`_4` and `yes_no_poll_answer_0`/`_1`, fixed between runs.
+  `MockMedias.defaultVideo` and the `MockMedias.createVideo()` URL pool point at reachable sample
+  videos, so the test-mode video card plays again (`defaultVideo` metadata is now 1280×720).
+
+### Fixed
+- **The "Illegal activities or products" report reason** now reaches moderation as such instead
+  of being filed as spam. `ReportReason.FakeProfilesAndImpersonation` keeps its name for binary
+  compatibility.
+
 ## [1.15.0](https://github.com/Octopus-Community/octopus-sdk-android/releases/tag/v1.15.0) — 2026-10-15
 
 Minor over 1.14.2: richer posts, nickname choice, community consent texts and default avatars.

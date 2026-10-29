@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Info
@@ -19,7 +18,9 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.octopuscommunity.sdk.sample.BuildConfig
 import com.octopuscommunity.sdk.sample.data.model.FeatureToggles
+import com.octopuscommunity.sdk.sample.ui.components.LocalSampleTopBarInset
 import com.octopuscommunity.sdk.sample.ui.components.SummaryRow
+import com.octopuscommunity.sdk.sample.ui.components.sampleVerticalScroll
 
 /**
  * Developer tools: the one place for what a developer needs and a tester can ignore.
@@ -48,7 +49,9 @@ fun DeveloperToolsScreen(
         modifier =
             Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .sampleVerticalScroll(rememberScrollState())
+                // Start below the shell's translucent app bar, inside the scroll so content passes under it.
+                .padding(top = LocalSampleTopBarInset.current)
                 .testTag("developer-tools-screen"),
     ) {
         SummaryRow(

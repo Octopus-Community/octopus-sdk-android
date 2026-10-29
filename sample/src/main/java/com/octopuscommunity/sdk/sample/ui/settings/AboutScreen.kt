@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DesignServices
 import androidx.compose.material3.MaterialTheme
@@ -18,10 +17,12 @@ import androidx.compose.ui.unit.dp
 import com.octopuscommunity.sdk.sample.BuildConfig
 import com.octopuscommunity.sdk.sample.data.AppUpdateChecker
 import com.octopuscommunity.sdk.sample.extensions.LocalExtensions
+import com.octopuscommunity.sdk.sample.ui.components.LocalSampleTopBarInset
 import com.octopuscommunity.sdk.sample.ui.components.SampleCard
 import com.octopuscommunity.sdk.sample.ui.components.SampleInfoRow
 import com.octopuscommunity.sdk.sample.ui.components.SummaryRow
 import com.octopuscommunity.sdk.sample.ui.components.openUrlOrCopy
+import com.octopuscommunity.sdk.sample.ui.components.sampleVerticalScroll
 import com.octopuscommunity.sdk.sample.ui.theme.SampleBranding
 
 /**
@@ -45,7 +46,8 @@ fun AboutScreen(
         modifier =
             Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .sampleVerticalScroll(rememberScrollState())
+                .padding(top = LocalSampleTopBarInset.current)
                 .padding(16.dp)
                 .testTag("about-screen"),
         verticalArrangement = Arrangement.spacedBy(12.dp),

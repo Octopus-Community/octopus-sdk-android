@@ -1045,9 +1045,10 @@ class ScenariosViewModel(
                 return@launch
             }
             try {
-                FirebaseMessaging
-                    .getInstance()
-                    .token
+                // Same deprecated FCM token API as MainActivity.registerPushTokenIfEnabled; see there.
+                @Suppress("DEPRECATION")
+                val tokenTask = FirebaseMessaging.getInstance().token
+                tokenTask
                     .addOnCompleteListener { task ->
                         val token = task.result
                         when {
@@ -1210,7 +1211,7 @@ class ScenariosViewModel(
             setMethodState("overrideLocale", loading = true)
             try {
                 val localeStr = _state.value.localeInput
-                val locale = if (localeStr.isBlank()) null else java.util.Locale(localeStr)
+                val locale = if (localeStr.isBlank()) null else java.util.Locale.forLanguageTag(localeStr)
                 OctopusSDK.overrideDefaultLocale(locale)
                 // Tracked here, after the suspend call actually returns, rather than eagerly in
                 // the composable's onClick — see executeOverrideCommunityAccess() above for why.

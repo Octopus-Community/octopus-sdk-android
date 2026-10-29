@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Person
@@ -33,7 +32,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.octopuscommunity.sdk.sample.ui.components.SampleTopAppBar
+import com.octopuscommunity.sdk.sample.ui.components.SampleTopBarContent
 import com.octopuscommunity.sdk.sample.ui.components.SecondaryPillButton
+import com.octopuscommunity.sdk.sample.ui.components.sampleVerticalScroll
 import com.octopuscommunity.sdk.sample.ui.theme.samplePageColor
 import com.octopuscommunity.sdk.sample.ui.theme.samplePageContentColor
 import org.koin.androidx.compose.koinViewModel
@@ -71,127 +72,130 @@ fun EditUserScreen(
             )
         },
     ) { padding ->
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .consumeWindowInsets(padding)
-                    .imePadding()
-                    .verticalScroll(rememberScrollState())
-                    .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp),
-        ) {
-            // Centered header — mirrors ClientProfileScreen's "Host-owned profile screen" block so
-            // the host's view and edit surfaces read as one family.
+        SampleTopBarContent(0.dp) {
             Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        // Keep focus relocation inside the visible area below the bar.
+                        .padding(padding)
+                        .consumeWindowInsets(padding)
+                        .imePadding()
+                        .sampleVerticalScroll(rememberScrollState())
+                        .padding(24.dp),
+                verticalArrangement = Arrangement.spacedBy(20.dp),
             ) {
-                Icon(
-                    Icons.Default.Person,
-                    contentDescription = null,
-                    modifier = Modifier.size(64.dp),
-                    tint = MaterialTheme.colorScheme.primary,
+                // Centered header — mirrors ClientProfileScreen's "Host-owned profile screen" block so
+                // the host's view and edit surfaces read as one family.
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Icon(
+                        Icons.Default.Person,
+                        contentDescription = null,
+                        modifier = Modifier.size(64.dp),
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                    Text(
+                        text = "Host-owned profile editor",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                    )
+                    Text(
+                        text =
+                            "The Octopus SDK handed this profile edit to the app via its " +
+                                "onNavigateToProfileEdit callback (Unified Profile).",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+
+                HorizontalDivider()
+
+                OutlinedTextField(
+                    value = state.nickname,
+                    onValueChange = viewModel::setNickname,
+                    label = { Text("Nickname") },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
                 )
+                OutlinedTextField(
+                    value = state.bio,
+                    onValueChange = viewModel::setBio,
+                    label = { Text("Bio") },
+                    modifier = Modifier.fillMaxWidth(),
+                    maxLines = 3,
+                )
+
+                HorizontalDivider()
+
                 Text(
-                    text = "Host-owned profile editor",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
+                    text = "Entitlements",
+                    style = MaterialTheme.typography.labelLarge,
                 )
                 Text(
                     text =
-                        "The Octopus SDK handed this profile edit to the app via its " +
-                            "onNavigateToProfileEdit callback (Unified Profile).",
-                    style = MaterialTheme.typography.bodyMedium,
+                        "Toggle entitlements granted to this user. Use \"Save\" to reconnect the user " +
+                            "with the new entitlements, or \"Refresh entitlements\" for a lighter SDK-side " +
+                            "refresh that does not re-create the Octopus session.",
+                    style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-            }
 
-            HorizontalDivider()
+                EditEntitlementsList(
+                    selection = state.entitlements,
+                    onToggle = viewModel::toggleEntitlement,
+                )
 
-            OutlinedTextField(
-                value = state.nickname,
-                onValueChange = viewModel::setNickname,
-                label = { Text("Nickname") },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-            )
-            OutlinedTextField(
-                value = state.bio,
-                onValueChange = viewModel::setBio,
-                label = { Text("Bio") },
-                modifier = Modifier.fillMaxWidth(),
-                maxLines = 3,
-            )
-
-            HorizontalDivider()
-
-            Text(
-                text = "Entitlements",
-                style = MaterialTheme.typography.labelLarge,
-            )
-            Text(
-                text =
-                    "Toggle entitlements granted to this user. Use \"Save\" to reconnect the user " +
-                        "with the new entitlements, or \"Refresh entitlements\" for a lighter SDK-side " +
-                        "refresh that does not re-create the Octopus session.",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
-            EditEntitlementsList(
-                selection = state.entitlements,
-                onToggle = viewModel::toggleEntitlement,
-            )
-
-            SecondaryPillButton(
-                onClick = viewModel::refreshEntitlements,
-                modifier = Modifier.fillMaxWidth(),
-                enabled = !state.isLoading && !state.isRefreshingEntitlements,
-            ) {
-                if (state.isRefreshingEntitlements) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.padding(end = 8.dp),
-                        strokeWidth = 2.dp,
+                SecondaryPillButton(
+                    onClick = viewModel::refreshEntitlements,
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !state.isLoading && !state.isRefreshingEntitlements,
+                ) {
+                    if (state.isRefreshingEntitlements) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.padding(end = 8.dp),
+                            strokeWidth = 2.dp,
+                        )
+                    }
+                    Text("Refresh entitlements")
+                }
+                if (state.entitlementsRefreshMessage != null) {
+                    Text(
+                        text = state.entitlementsRefreshMessage!!,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.primary,
                     )
                 }
-                Text("Refresh entitlements")
-            }
-            if (state.entitlementsRefreshMessage != null) {
-                Text(
-                    text = state.entitlementsRefreshMessage!!,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            }
 
-            HorizontalDivider()
+                HorizontalDivider()
 
-            if (state.error != null) {
-                Text(
-                    text = state.error!!,
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall,
-                )
-            }
-
-            Button(
-                onClick = viewModel::save,
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .height(52.dp),
-                enabled = !state.isLoading,
-            ) {
-                if (state.isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.padding(end = 8.dp),
-                        strokeWidth = 2.dp,
+                if (state.error != null) {
+                    Text(
+                        text = state.error!!,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
                     )
                 }
-                Text("Save", fontWeight = FontWeight.Bold)
+
+                Button(
+                    onClick = viewModel::save,
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .height(52.dp),
+                    enabled = !state.isLoading,
+                ) {
+                    if (state.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.padding(end = 8.dp),
+                            strokeWidth = 2.dp,
+                        )
+                    }
+                    Text("Save", fontWeight = FontWeight.Bold)
+                }
             }
         }
     }

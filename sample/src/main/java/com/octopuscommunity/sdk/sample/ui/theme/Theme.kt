@@ -154,9 +154,6 @@ val SampleTypography: Typography =
 
 /** DS styles with no Material slot of their own. */
 object SampleTextStyles {
-    /** `body-strong`: 16 / 22 / 500. */
-    val bodyStrong: TextStyle = dsStyle(16, 22, FontWeight.Medium)
-
     /** `button-label`: 16 / 22 / 600. */
     val buttonLabel: TextStyle = dsStyle(16, 22, FontWeight.SemiBold)
 

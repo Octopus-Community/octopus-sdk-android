@@ -14,14 +14,6 @@ object SampleFixtures {
     val topicDefault: String = resolveFixtureId(BuildConfig.OCTOPUS_FIXTURE_TOPIC_ID, "PMYFiz0sv6cKEcpMkq5qlT")
     val postReactionStack: String = resolveFixtureId(BuildConfig.OCTOPUS_FIXTURE_REACTION_POST_ID, "piWm_vjBa43SEOTexuz8ye")
 
-    // Missing in the catalog: never substitute a different kind of content for a QA scenario.
-    val postImage: String? = null
-    val postPoll: String? = null
-    val postCta: String? = null
-    val commentReported: String? = null
-    val topicGated: String? = null
-    val deeplinkPost: String? = null
-
     const val postLinkPattern: String = "octopus-sample://post/{postId}"
 }
 

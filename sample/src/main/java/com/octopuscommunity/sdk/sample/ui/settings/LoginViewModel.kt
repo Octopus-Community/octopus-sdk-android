@@ -116,10 +116,7 @@ class LoginViewModel(
                     entitlements = current.entitlements.toList(),
                 )
 
-            // Save user locally
-            userDataStore.updateUser(clearSignOut = true) { user }
-
-            // Connect to Octopus
+            // The use case guards signing before storing this identity or connecting to Octopus.
             val result = communityConnectUseCase(user)
             when (result) {
                 is OctopusResult.Success -> {

@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.DarkMode
@@ -38,6 +37,7 @@ import com.octopuscommunity.sdk.sample.BuildConfig
 import com.octopuscommunity.sdk.sample.data.SampleConfigSummary
 import com.octopuscommunity.sdk.sample.data.SampleSdkStatus
 import com.octopuscommunity.sdk.sample.extensions.LocalExtensions
+import com.octopuscommunity.sdk.sample.ui.components.LocalSampleTopBarInset
 import com.octopuscommunity.sdk.sample.ui.components.SampleCard
 import com.octopuscommunity.sdk.sample.ui.components.SampleInfoRow
 import com.octopuscommunity.sdk.sample.ui.components.StatusDot
@@ -46,6 +46,7 @@ import com.octopuscommunity.sdk.sample.ui.components.SummaryRow
 import com.octopuscommunity.sdk.sample.ui.components.dotColor
 import com.octopuscommunity.sdk.sample.ui.components.rememberIsOnline
 import com.octopuscommunity.sdk.sample.ui.components.sampleDangerColor
+import com.octopuscommunity.sdk.sample.ui.components.sampleVerticalScroll
 import com.octopuscommunity.sdk.sample.ui.theme.SampleMotion
 import com.octopuscommunity.sdk.sample.ui.theme.SampleSpacing
 import org.koin.androidx.compose.koinViewModel
@@ -85,7 +86,8 @@ fun SettingsScreen(
         modifier =
             Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .sampleVerticalScroll(rememberScrollState())
+                .padding(top = LocalSampleTopBarInset.current)
                 .testTag("settings-screen"),
     ) {
         SettingsCommunityBlock(

@@ -27,6 +27,8 @@ class SampleColorsContrastTest {
             Triple("text-secondary on surface-3", { it.textSecondary }, { it.surface3 }),
             Triple("accent-text on bg", { it.accentText }, { it.bg }),
             Triple("accent-text on surface", { it.accentText }, { it.surface }),
+            Triple("accent-text on surface-2", { it.accentText }, { it.surface2 }),
+            Triple("accent-text on surface-3", { it.accentText }, { it.surface3 }),
             Triple("accent-text on accent-tint", { it.accentText }, { it.accentTint }),
             Triple("on-accent-container on accent-container", { it.onAccentContainer }, { it.accentContainer }),
             Triple("danger on surface", { it.danger }, { it.surface }),
@@ -35,6 +37,15 @@ class SampleColorsContrastTest {
             Triple("success-text on success-tint", { it.successText }, { it.successTint }),
             Triple("warning-text on surface", { it.warningText }, { it.surface }),
             Triple("warning-text on warning-tint", { it.warningText }, { it.warningTint }),
+            Triple("on-danger on danger", { it.onDanger }, { it.danger }),
+            Triple("on-success on success", { it.onSuccess }, { it.success }),
+            Triple("on-warning on warning", { it.onWarning }, { it.warning }),
+            Triple("on-platform-android on platform-android", { it.onPlatformAndroid }, { it.platformAndroid }),
+            Triple("on-navy on navy", { it.onNavy }, { it.navy }),
+            Triple("text on accent-tint", { it.text }, { it.accentTint }),
+            Triple("text on danger-tint", { it.text }, { it.dangerTint }),
+            Triple("text on success-tint", { it.text }, { it.successTint }),
+            Triple("text on warning-tint", { it.text }, { it.warningTint }),
             Triple("button-text on button-bg", { it.buttonText }, { it.buttonBg }),
             Triple("code-text on code-bg", { it.codeText }, { it.codeBg }),
         )
@@ -50,10 +61,11 @@ class SampleColorsContrastTest {
     }
 
     @Test
-    fun `control outline clears 3 to 1 on the page and on a card in both themes`() {
+    fun `control outline clears 3 to 1 on the page and card surfaces in both themes`() {
         for ((theme, colors) in themes) {
             assertTrue(contrastRatio(colors.outline, colors.bg) >= 3.0, "$theme outline on bg")
             assertTrue(contrastRatio(colors.outline, colors.surface) >= 3.0, "$theme outline on surface")
+            assertTrue(contrastRatio(colors.outline, colors.surface3) >= 3.0, "$theme outline on surface-3")
         }
     }
 
@@ -66,6 +78,35 @@ class SampleColorsContrastTest {
             for ((backdrop, bg) in backdrops) {
                 assertTrue(contrastRatio(dangerPillEdge(colors), bg) >= 3.0, "$theme danger edge on $backdrop")
             }
+        }
+    }
+
+    @Test
+    fun `snackbar content and action clear 4_5 to 1 in both themes`() {
+        // SampleSnackbar uses these two inline DS colours in dark mode, without named tokens.
+        val darkContainer = Color(0xFFE6EAF0)
+        val darkAction = Color(0xFF0A66CC)
+        val pairs =
+            listOf(
+                Triple("light content", SampleColors.Dark.text, SampleColors.Light.navy),
+                Triple("light action", SampleColors.Dark.accentText, SampleColors.Light.navy),
+                Triple("dark content", SampleColors.Light.navy, darkContainer),
+                Triple("dark action", darkAction, darkContainer),
+            )
+        for ((role, foreground, background) in pairs) {
+            val ratio = contrastRatio(foreground, background)
+            assertTrue(ratio >= 4.5, "snackbar $role: $ratio:1")
+        }
+    }
+
+    @Test
+    fun `switch thumb and track boundary clear 3 to 1 in both themes`() {
+        for ((theme, colors) in themes) {
+            // sampleSwitchColors draws a white thumb on accent when checked, and a
+            // control-off thumb and outline on surface-2 when unchecked.
+            assertTrue(contrastRatio(Color.White, colors.accent) >= 3.0, "$theme checked thumb on track")
+            assertTrue(contrastRatio(colors.accent, colors.surface) >= 3.0, "$theme checked track on card")
+            assertTrue(contrastRatio(colors.controlOff, colors.surface2) >= 3.0, "$theme unchecked thumb and outline on track")
         }
     }
 

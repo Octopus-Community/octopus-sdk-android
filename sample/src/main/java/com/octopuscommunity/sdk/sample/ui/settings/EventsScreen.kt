@@ -32,6 +32,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.octopuscommunity.sdk.sample.data.model.DebugEntry
+import com.octopuscommunity.sdk.sample.ui.components.LocalSampleTopBarInset
 import com.octopuscommunity.sdk.sample.ui.components.SampleStateView
 import com.octopuscommunity.sdk.sample.ui.components.SecondaryPillButton
 import com.octopuscommunity.sdk.sample.ui.components.sampleBorderColor
@@ -72,6 +73,8 @@ fun EventsScreen(
         modifier =
             Modifier
                 .fillMaxSize()
+                // The count + actions row does not scroll: the screen starts below the shell's bar.
+                .padding(top = LocalSampleTopBarInset.current)
                 .testTag("events-screen"),
     ) {
         Row(

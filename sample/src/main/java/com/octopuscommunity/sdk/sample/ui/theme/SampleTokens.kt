@@ -177,22 +177,17 @@ object SampleTheme {
         get() = LocalSampleColors.current
 }
 
-/** The 4-point grid (`space-1` … `space-10`). */
+/** The 4-point grid (`space-1` … `space-8`). */
 object SampleSpacing {
     val space1: Dp = 4.dp
     val space2: Dp = 8.dp
     val space3: Dp = 12.dp
     val space4: Dp = 16.dp
-    val space5: Dp = 20.dp
     val space6: Dp = 24.dp
     val space8: Dp = 32.dp
-    val space10: Dp = 40.dp
 
     /** Side gutter of every screen (`space-4`). */
     val gutter: Dp = space4
-
-    /** Gap between two groups of a screen (`space-6`). */
-    val groupGap: Dp = space6
 }
 
 /** Corner radii. Buttons are pills; cards, list groups, fields and bubbles `md`; banners `lg`; sheets `xl`. */
@@ -201,7 +196,6 @@ object SampleRadius {
     val md: Dp = 8.dp
     val lg: Dp = 12.dp
     val xl: Dp = 16.dp
-    val fab: Dp = 32.dp
     val pill: Dp = 999.dp
 
     val smShape: Shape = RoundedCornerShape(sm)
@@ -214,17 +208,12 @@ object SampleRadius {
 /** Touch targets, control heights and icon sizes. */
 object SampleSize {
     val touchMin: Dp = 48.dp
-    val buttonHeight: Dp = 48.dp
-    val buttonHeightSm: Dp = 36.dp
     val rowMin: Dp = 56.dp
-    val scenarioRowMin: Dp = 64.dp
     val badgeHeight: Dp = 28.dp
     val chipHeight: Dp = 40.dp
     val icon: Dp = 24.dp
     val iconSm: Dp = 20.dp
     val iconXs: Dp = 16.dp
-    val avatarSm: Dp = 32.dp
-    val avatarLg: Dp = 56.dp
     val stateDisc: Dp = 64.dp
 }
 
@@ -245,10 +234,6 @@ fun Modifier.sampleCardEdge(shape: Shape = SampleRadius.mdShape): Modifier =
             .shadow(elevation = 2.dp, shape = shape, ambientColor = shadowColor, spotColor = shadowColor)
             .border(1.dp, SampleTheme.colors.border, shape)
     }
-
-/** A nested surface (`--oc-nested-edge`): the 1px `border`, no shadow. */
-fun Modifier.sampleNestedEdge(shape: Shape = SampleRadius.mdShape): Modifier =
-    composed { this.border(1.dp, SampleTheme.colors.border, shape) }
 
 /**
  * `focus-ring` (`:focus-visible { outline: 2px solid focus; outline-offset: 2px }`): a solid 2px

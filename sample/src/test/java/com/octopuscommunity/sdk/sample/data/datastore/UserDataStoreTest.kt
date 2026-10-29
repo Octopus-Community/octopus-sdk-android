@@ -23,6 +23,7 @@ import com.octopuscommunity.sdk.sample.ui.config.ConfigViewModel
 import com.octopuscommunity.sdk.sample.ui.scenarios.ScenariosViewModel
 import com.octopuscommunity.sdk.sample.ui.settings.AccountViewModel
 import com.octopuscommunity.sdk.sample.ui.settings.EditUserViewModel
+import com.octopuscommunity.sdk.sample.ui.settings.LoginViewModel
 import com.octopuscommunity.sdk.sample.ui.settings.SettingsViewModel
 import com.octopuscommunity.sdk.test.di.octopusTestModule
 import com.octopuscommunity.sdk.test.repository.FakeConnectionRepository
@@ -61,6 +62,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
@@ -135,7 +137,7 @@ class UserDataStoreTest {
                         }
                     },
                 )
-                val connect = CommunityConnectUseCase(users)
+                val connect = CommunityConnectUseCase(users, isSigningAvailable = { true })
                 val account = AccountViewModel(users, connect)
                 val scenarios = ScenariosViewModel(users, connect, configs, CommunitySessionTracker())
                 viewModels.put("account", account)
@@ -173,7 +175,7 @@ class UserDataStoreTest {
                         }
                     },
                 )
-                val connect = CommunityConnectUseCase(users)
+                val connect = CommunityConnectUseCase(users, isSigningAvailable = { true })
                 val account = AccountViewModel(users, connect)
                 val scenarios = ScenariosViewModel(users, connect, configs, CommunitySessionTracker())
                 viewModels.put("account", account)
@@ -234,7 +236,7 @@ class UserDataStoreTest {
                 OctopusSDK.connectionRepository.connectAsGuest()
                 users.updateUser(clearSignOut = true) { user }
                 users.setSignedOut(true)
-                val account = AccountViewModel(users, CommunityConnectUseCase(users))
+                val account = AccountViewModel(users, CommunityConnectUseCase(users, isSigningAvailable = { true }))
                 viewModels.put("account", account)
                 account.state.first { it.userId == user.id }
                 account.toggleEntitlement("customer:moderator", true)
@@ -254,7 +256,7 @@ class UserDataStoreTest {
                 users.updateUser(clearSignOut = true) { user }
                 users.setSignedOut(true)
                 val profiles = MutableStateFlow<OctopusProfile?>(null)
-                val edit = EditUserViewModel(users, CommunityConnectUseCase(users), profiles)
+                val edit = EditUserViewModel(users, CommunityConnectUseCase(users, isSigningAvailable = { true }), profiles)
                 viewModels.put("edit", edit)
                 // A non-empty guest set catches replacements as well as accidentally cleared grants.
                 profiles.value = OctopusProfile(entitlements = setOf("guest:read"))
@@ -275,7 +277,7 @@ class UserDataStoreTest {
                 users.updateUser(clearSignOut = true) { user }
                 users.setSignedOut(true)
                 val profiles = MutableStateFlow<OctopusProfile?>(OctopusProfile(entitlements = emptySet()))
-                val edit = EditUserViewModel(users, CommunityConnectUseCase(users), profiles)
+                val edit = EditUserViewModel(users, CommunityConnectUseCase(users, isSigningAvailable = { true }), profiles)
                 viewModels.put("edit", edit)
                 edit.state.first { it.entitlements == user.entitlements.toSet() }
                 edit.refreshEntitlements()
@@ -300,7 +302,7 @@ class UserDataStoreTest {
                 val edit =
                     EditUserViewModel(
                         users,
-                        CommunityConnectUseCase(users),
+                        CommunityConnectUseCase(users, isSigningAvailable = { true }),
                         flow {
                             profiles.collect {
                                 emit(it)
@@ -342,7 +344,7 @@ class UserDataStoreTest {
                 connection.connectUser(ClientUser(userId = user.id!!)) { "sample-fake-token" }
                 users.updateUser(clearSignOut = true) { user }
                 val profiles = MutableStateFlow<OctopusProfile?>(null)
-                val edit = EditUserViewModel(users, CommunityConnectUseCase(users), profiles)
+                val edit = EditUserViewModel(users, CommunityConnectUseCase(users, isSigningAvailable = { true }), profiles)
                 viewModels.put("edit", edit)
                 profiles.value = OctopusProfile(entitlements = setOf("customer:moderator"), clientUserId = user.id)
                 edit.state.first { it.entitlements == setOf("customer:moderator") }
@@ -363,7 +365,7 @@ class UserDataStoreTest {
                 installConnectionUseCases()
                 users.updateUser(clearSignOut = true) { user }
                 users.setSignedOut(true)
-                assertIs<OctopusResult.Success<*>>(CommunityConnectUseCase(users)(user))
+                assertIs<OctopusResult.Success<*>>(CommunityConnectUseCase(users, isSigningAvailable = { true })(user))
                 assertFalse(users.isSignedOut())
                 assertEquals(user, users.getUserToConnect())
             }
@@ -415,13 +417,269 @@ class UserDataStoreTest {
         }
 
     @Test
+    fun `Login exposes unavailable signing without changing the stored user or sign-out`() =
+        runTest {
+            withStores { users, configs, viewModels ->
+                configs.updateConfig { SDKConfig(authKind = SDKConfig.AuthKind.SSO()) }
+                users.updateUser(clearSignOut = true) { user }
+                users.setSignedOut(true)
+                var connectCalls = 0
+                val connect =
+                    CommunityConnectUseCase(users, isSigningAvailable = { false }) { _, _ ->
+                        connectCalls++
+                        OctopusResult.Failure.NoNetwork
+                    }
+                val login = LoginViewModel(users, connect, configs)
+                viewModels.put("login", login)
+                login.state.first { it.userId == user.id }
+                login.setUserId("other-user")
+
+                login.connect()
+
+                val failed = login.state.first { it.error != null }
+                assertEquals("Connection failed: SSO sign-in is unavailable in this build.", failed.error)
+                assertFalse(failed.isLoading)
+                assertFalse(failed.isConnected)
+                assertEquals(user, users.getUser())
+                assertTrue(users.isSignedOut())
+                assertEquals(0, connectCalls)
+            }
+        }
+
+    @Test
+    fun `Account rejects unavailable signing before changing the stored user or sign-out`() =
+        runTest {
+            withStores { users, _, viewModels ->
+                users.updateUser(clearSignOut = true) { user }
+                users.setSignedOut(true)
+                var connectCalls = 0
+                val connect =
+                    CommunityConnectUseCase(users, isSigningAvailable = { false }) { _, _ ->
+                        connectCalls++
+                        OctopusResult.Failure.NoNetwork
+                    }
+                val account = AccountViewModel(users, connect)
+                viewModels.put("account", account)
+                account.state.first { it.userId == user.id }
+                account.setUserId("other-user")
+                account.setNickname("changed nickname")
+
+                account.reconnect()
+
+                val failed = account.state.first { it.error != null }
+                assertEquals("Connection failed: SSO sign-in is unavailable in this build.", failed.error)
+                assertFalse(failed.isReconnecting)
+                assertEquals(user, users.getUser())
+                assertTrue(users.isSignedOut())
+                assertEquals(0, connectCalls)
+            }
+        }
+
+    @Test
+    fun `Edit profile rejects unavailable signing before changing the stored user or sign-out`() =
+        runTest {
+            withStores { users, _, viewModels ->
+                users.updateUser(clearSignOut = true) { user }
+                users.setSignedOut(true)
+                var connectCalls = 0
+                val connect =
+                    CommunityConnectUseCase(users, isSigningAvailable = { false }) { _, _ ->
+                        connectCalls++
+                        OctopusResult.Failure.NoNetwork
+                    }
+                val edit = EditUserViewModel(users, connect, kotlinx.coroutines.flow.flowOf(null))
+                viewModels.put("edit", edit)
+                edit.state.first { it.nickname == user.nickname }
+                edit.setNickname("changed nickname")
+
+                edit.save()
+
+                val failed = edit.state.first { it.error != null }
+                assertEquals("Update failed: SSO sign-in is unavailable in this build.", failed.error)
+                assertFalse(failed.isLoading)
+                assertFalse(failed.isSaved)
+                assertEquals(user, users.getUser())
+                assertTrue(users.isSignedOut())
+                assertEquals(0, connectCalls)
+            }
+        }
+
+    @Test
+    fun `Config skips unavailable user switches but applies settings with or without an SDK restart`() =
+        runTest {
+            for (restart in listOf(false, true)) {
+                withStores { users, configs, viewModels ->
+                    val originalConfig = SDKConfig(authKind = SDKConfig.AuthKind.SSO())
+                    configs.updateConfig { originalConfig }
+                    users.updateUser(clearSignOut = true) { user }
+                    users.setSignedOut(true)
+                    OctopusSDK.isInitialisedFlow.value = true
+                    var connectCalls = 0
+                    val connect =
+                        CommunityConnectUseCase(users, isSigningAvailable = { false }) { _, _ ->
+                            connectCalls++
+                            OctopusResult.Failure.NoNetwork
+                        }
+                    val config = ConfigViewModel(configs, users, connect, backgroundScope)
+                    viewModels.put("config", config)
+                    config.state.first { it.ssoUserId == user.id }
+                    config.setSsoUserId("other-user")
+                    config.setThemePreset(navy = false)
+                    if (restart) {
+                        config.setUseCustomCommunity(true)
+                        config.setCustomApiKey("sample-test-community")
+                    }
+
+                    assertNotNull(config.saveAndStart())
+
+                    val message =
+                        connect.configConnectionFailures
+                            .first { it.isNotEmpty() }
+                            .single()
+                            .message
+                    assertEquals("SSO sign-in is unavailable in this build; settings applied without switching user.", message)
+                    assertEquals(user, users.getUser())
+                    assertTrue(users.isSignedOut())
+                    assertEquals(
+                        originalConfig.copy(
+                            customCommunity = restart,
+                            customApiKey = if (restart) "sample-test-community" else null,
+                            theme = SDKConfig.Theme.SdkDefault,
+                        ),
+                        configs.configFlow.first(),
+                    )
+                    assertEquals(0, connectCalls)
+                }
+            }
+        }
+
+    @Test
+    fun `Config onboarding applies settings for a guest when signing is unavailable`() =
+        runTest {
+            withStores { users, configs, viewModels ->
+                assertNull(configs.configFlow.first())
+                assertNull(users.getUser())
+                assertFalse(users.isSignedOut())
+                var connectCalls = 0
+                val connect =
+                    CommunityConnectUseCase(users, isSigningAvailable = { false }) { _, _ ->
+                        connectCalls++
+                        OctopusResult.Failure.NoNetwork
+                    }
+                val config = ConfigViewModel(configs, users, connect, backgroundScope)
+                viewModels.put("config", config)
+                testScheduler.runCurrent()
+                config.setSsoUserId("picked-user")
+                config.setThemePreset(navy = false)
+                config.setUseCustomCommunity(true)
+                config.setCustomApiKey("sample-test-community")
+
+                assertTrue(config.saveAndStart()!!.startsWith("Starting the SDK"))
+
+                val message =
+                    connect.configConnectionFailures
+                        .first { it.isNotEmpty() }
+                        .single()
+                        .message
+                assertEquals("SSO sign-in is unavailable in this build; settings applied without switching user.", message)
+                val saved = assertNotNull(configs.configFlow.first())
+                assertTrue(saved.customCommunity)
+                assertEquals("sample-test-community", saved.customApiKey)
+                assertEquals(SDKConfig.Theme.SdkDefault, saved.theme)
+                assertNull(users.getUser())
+                assertNull(users.getUserToConnect(), "Startup must keep the guest session instead of connecting the selected user")
+                assertFalse(users.isSignedOut())
+                assertEquals(0, connectCalls)
+            }
+        }
+
+    @Test
+    fun `recreated Config shares the in-flight Apply flag and cannot start an overlapping Apply`() =
+        runTest {
+            withStores { users, configs, viewModels ->
+                configs.updateConfig { SDKConfig(authKind = SDKConfig.AuthKind.SSO()) }
+                users.updateUser(clearSignOut = true) { user }
+                OctopusSDK.isInitialisedFlow.value = true
+                val started = CompletableDeferred<Unit>()
+                val finish = CompletableDeferred<Unit>()
+                var connectCalls = 0
+                val connect =
+                    CommunityConnectUseCase(users, isSigningAvailable = { true }) { _, _ ->
+                        connectCalls++
+                        started.complete(Unit)
+                        finish.await()
+                        OctopusResult.Failure.NoNetwork
+                    }
+                val original = ConfigViewModel(configs, users, connect, backgroundScope)
+                viewModels.put("config", original)
+                original.state.first { it.ssoUserId == user.id }
+                original.setSsoUserId("other-user")
+                assertNotNull(original.saveAndStart())
+                started.await()
+                viewModels.clear()
+
+                val recreated = ConfigViewModel(configs, users, connect, backgroundScope)
+                viewModels.put("recreated", recreated)
+                assertTrue(recreated.isApplying.value)
+                assertNull(recreated.saveAndStart(), "Reopening Config must not start another Apply")
+                assertEquals(1, connectCalls)
+
+                finish.complete(Unit)
+                recreated.isApplying.first { !it }
+                assertFalse(original.isApplying.value)
+                assertEquals(1, connectCalls)
+            }
+        }
+
+    @Test
+    fun `Apply returns before connecting ignores double taps and retains feedback after screen disposal`() =
+        runTest {
+            withStores { users, configs, viewModels ->
+                configs.updateConfig { SDKConfig(authKind = SDKConfig.AuthKind.SSO()) }
+                users.updateUser(clearSignOut = true) { user }
+                OctopusSDK.isInitialisedFlow.value = true
+                val started = CompletableDeferred<Unit>()
+                val finish = CompletableDeferred<Unit>()
+                var connectCalls = 0
+                val connect =
+                    CommunityConnectUseCase(users, isSigningAvailable = { true }) { _, _ ->
+                        connectCalls++
+                        started.complete(Unit)
+                        finish.await()
+                        OctopusResult.Failure.NoNetwork
+                    }
+                val config = ConfigViewModel(configs, users, connect, backgroundScope)
+                viewModels.put("config", config)
+                config.state.first { it.ssoUserId == user.id }
+                config.setSsoUserId("other-user")
+
+                val outcome = config.saveAndStart()
+                assertTrue(outcome!!.contains("connecting the new user"))
+                assertTrue(config.isApplying.value)
+                assertNull(config.saveAndStart(), "A second tap must not trigger navigation or another connect")
+                started.await()
+                // Back/navigation and rotation can dispose the old Config while the app job runs.
+                viewModels.clear()
+                finish.complete(Unit)
+                val pending = connect.configConnectionFailures.first { it.isNotEmpty() }
+                assertEquals(listOf("Connection failed: NoNetwork"), pending.map { it.message })
+                assertEquals(1, connectCalls)
+                // A replacement Activity's root collector can still display the pending failure.
+                assertEquals(pending, connect.configConnectionFailures.first())
+                connect.consumeConfigConnectionFailure(pending.single())
+                assertTrue(connect.configConnectionFailures.value.isEmpty())
+                assertFalse(config.isApplying.value)
+            }
+        }
+
+    @Test
     fun `Config user change clears sign-out even when SDK reinitialization handles the connect`() =
         runTest {
             withStores { users, configs, viewModels ->
                 configs.updateConfig { SDKConfig(authKind = SDKConfig.AuthKind.SSO()) }
                 users.updateUser(clearSignOut = true) { user }
                 users.setSignedOut(true)
-                val config = ConfigViewModel(configs, users, CommunityConnectUseCase(users), backgroundScope)
+                val config = ConfigViewModel(configs, users, CommunityConnectUseCase(users, isSigningAvailable = { true }), backgroundScope)
                 viewModels.put("config", config)
                 config.state.first { it.ssoUserId == user.id }
                 config.setSsoUserId("user-2")
@@ -522,7 +780,7 @@ class UserDataStoreTest {
                 val edit =
                     EditUserViewModel(
                         users,
-                        CommunityConnectUseCase(users),
+                        CommunityConnectUseCase(users, isSigningAvailable = { true }),
                         flow {
                             for (profile in profiles) {
                                 emit(profile)
@@ -549,7 +807,7 @@ class UserDataStoreTest {
             withStores { users, _, viewModels ->
                 users.updateUser(clearSignOut = true) { user }
                 val profiles = MutableStateFlow<OctopusProfile?>(null)
-                val edit = EditUserViewModel(users, CommunityConnectUseCase(users), profiles)
+                val edit = EditUserViewModel(users, CommunityConnectUseCase(users, isSigningAvailable = { true }), profiles)
                 viewModels.put("edit", edit)
                 edit.state.first { it.entitlements == user.entitlements.toSet() }
                 edit.toggleEntitlement("customer:moderator", true)
@@ -575,7 +833,7 @@ class UserDataStoreTest {
                 val connection = FakeConnectionRepository()
                 installConnectionUseCases(connection)
                 users.updateUser(clearSignOut = true) { user }
-                assertIs<OctopusResult.Success<*>>(CommunityConnectUseCase(users)(user))
+                assertIs<OctopusResult.Success<*>>(CommunityConnectUseCase(users, isSigningAvailable = { true })(user))
                 val returned = assertIs<IOException>(users.disconnectFromCommunity().exceptionOrNull())
                 assertEquals(failure.message, returned.message)
                 assertNull(connection.getClientUser())
@@ -600,7 +858,7 @@ class UserDataStoreTest {
                     },
                 )
                 users.updateUser(clearSignOut = true) { user }
-                val connect = CommunityConnectUseCase(users)
+                val connect = CommunityConnectUseCase(users, isSigningAvailable = { true })
                 val account = AccountViewModel(users, connect)
                 val scenarios = ScenariosViewModel(users, connect, configs, CommunitySessionTracker())
                 viewModels.put("account", account)
@@ -660,7 +918,7 @@ class UserDataStoreTest {
         runTest {
             withStores { users, _, _ ->
                 users.updateUser(clearSignOut = true) { user }
-                val connect = CommunityConnectUseCase(users)
+                val connect = CommunityConnectUseCase(users, isSigningAvailable = { true })
                 var successfulSignIns = 0
                 backgroundScope.launch { connect.successfulSignIns.collect { successfulSignIns++ } }
                 runCurrent()

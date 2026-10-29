@@ -74,7 +74,7 @@ class CommunityTabReloadTest {
                 communityTabReload(
                     displayedSession = 3,
                     currentSession = 3,
-                    isCommunityTabOnScreen = onScreen,
+                    isCommunityTabInBackStack = onScreen,
                 ),
             )
         }
@@ -87,7 +87,7 @@ class CommunityTabReloadTest {
             communityTabReload(
                 displayedSession = 0,
                 currentSession = 1,
-                isCommunityTabOnScreen = true,
+                isCommunityTabInBackStack = true,
             ),
         )
     }
@@ -99,7 +99,7 @@ class CommunityTabReloadTest {
             communityTabReload(
                 displayedSession = 0,
                 currentSession = 1,
-                isCommunityTabOnScreen = false,
+                isCommunityTabInBackStack = false,
             ),
         )
     }
@@ -114,7 +114,7 @@ class CommunityTabReloadTest {
             communityTabReload(
                 displayedSession = 1,
                 currentSession = 4,
-                isCommunityTabOnScreen = true,
+                isCommunityTabInBackStack = true,
             ),
         )
     }
@@ -128,9 +128,6 @@ class CommunityTabReloadTest {
         tracker.onCommunityTargeted()
         val third = tracker.generation.value
 
-        // Distinct values are the whole contract: the tab reacts to a *change*, so a tracker that
-        // re-emitted the same number after a switch would leave the stale feed on screen — which
-        // is exactly how `OctopusSDK.isInitialisedFlow` fails to signal a switch.
-        assertEquals(listOf(first, second, third), listOf(first, second, third).distinct())
+        assertEquals(listOf(0, 1, 2), listOf(first, second, third))
     }
 }

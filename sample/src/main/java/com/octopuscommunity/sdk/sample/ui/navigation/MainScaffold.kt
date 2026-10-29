@@ -64,7 +64,9 @@ import com.octopuscommunity.sdk.sample.data.model.SDKConfig
 import com.octopuscommunity.sdk.sample.ui.community.onClientProfileTap
 import com.octopuscommunity.sdk.sample.ui.components.SampleTopAppBar
 import com.octopuscommunity.sdk.sample.ui.components.SampleTopAppBarSize
+import com.octopuscommunity.sdk.sample.ui.components.SampleTopBarContent
 import com.octopuscommunity.sdk.sample.ui.components.rememberIsOnline
+import com.octopuscommunity.sdk.sample.ui.components.withoutTop
 import com.octopuscommunity.sdk.sample.ui.console.DebugConsoleSheet
 import com.octopuscommunity.sdk.sample.ui.console.SendFeedbackSheet
 import com.octopuscommunity.sdk.sample.ui.scenarios.ScenarioCatalog
@@ -283,7 +285,6 @@ internal fun MainScaffold(
         navController = tabNavController,
         currentSession = communitySession,
         currentMode = communityNavigation,
-        isCommunityTabOnScreen = currentTab == Tab.COMMUNITY,
     )
 
     // The last place the tester was that was not part of the Settings tree, as a breadcrumb —
@@ -308,7 +309,7 @@ internal fun MainScaffold(
     }
 
     val pageContainer: @Composable (NavBackStackEntry, @Composable () -> Unit) -> Unit = { entry, content ->
-        SampleTabPage(entry, onBack = { tabNavController.popBackStack() }, onDebug = { showDebugConsole = true }, content)
+        SampleTabPage(entry, onBack = { tabNavController.popBackStack() }, onDebug = { showDebugConsole = true }, content = content)
     }
 
     Scaffold(
@@ -758,10 +759,12 @@ internal fun NavHostController.selectTab(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SampleTabPage(
+internal fun SampleTabPage(
     entry: NavBackStackEntry,
     onBack: () -> Unit,
     onDebug: () -> Unit,
+    // Each destination retains its own state across tab switches and restoration.
+    barState: TopAppBarState = rememberSaveable(saver = TopAppBarState.Saver) { TopAppBarState(-Float.MAX_VALUE, 0f, 0f) },
     content: @Composable () -> Unit,
 ) {
     val route = entry.destination.route?.substringBefore('?')
@@ -784,33 +787,33 @@ private fun SampleTabPage(
             route == AboutRoute::class.qualifiedName -> "About"
             else -> "Scenarios"
         }
-    val size =
-        when {
-            route == SettingsTab::class.qualifiedName -> SampleTopAppBarSize.Large
-            route == ScenariosTab::class.qualifiedName ||
-                route?.startsWith(
-                    ScenarioDetailRoute::class.qualifiedName!!,
-                ) == true -> SampleTopAppBarSize.Medium
-            else -> SampleTopAppBarSize.Small
-        }
-    val barState = rememberSaveable(saver = TopAppBarState.Saver) { TopAppBarState(-Float.MAX_VALUE, 0f, 0f) }
+    // Material 3: a tab root shows a large title that collapses into the bar as its content
+    // scrolls; a pushed screen shows the small bar. The SDK home is the exception among the roots:
+    // it owns its scroll and pull-to-refresh, which takes the downward drag at the top of the feed,
+    // so a collapsed bar above it could never expand again. It keeps the small, fixed bar.
+    val hasLargeTitle = route == ScenariosTab::class.qualifiedName || route == SettingsTab::class.qualifiedName
+    // Fixed headers and the SDK home keep their scroll viewport below the bar. Their scroll
+    // deltas do not indicate overlap, so they must not drive its hairline.
+    val contentScrollsUnderBar =
+        route != CommunityTab::class.qualifiedName &&
+            route != ScenariosTab::class.qualifiedName &&
+            route != EventsLogRoute::class.qualifiedName
     val scrollBehavior =
-        if (size ==
-            SampleTopAppBarSize.Small
-        ) {
-            TopAppBarDefaults.pinnedScrollBehavior(barState)
-        } else {
-            TopAppBarDefaults.exitUntilCollapsedScrollBehavior(barState)
+        when {
+            hasLargeTitle -> TopAppBarDefaults.exitUntilCollapsedScrollBehavior(barState)
+            contentScrollsUnderBar -> TopAppBarDefaults.pinnedScrollBehavior(barState)
+            else -> null
         }
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = scrollBehavior?.let { Modifier.nestedScroll(it.nestedScrollConnection) } ?: Modifier,
         containerColor = samplePageColor,
         contentColor = samplePageContentColor,
         topBar = {
             SampleTopAppBar(
                 title = title,
-                size = size,
+                size = if (hasLargeTitle) SampleTopAppBarSize.Large else SampleTopAppBarSize.Small,
                 scrollBehavior = scrollBehavior,
+                contentScrollsUnder = contentScrollsUnderBar,
                 showPlatformBadge = isRoot,
                 navigationIcon = {
                     if (!isRoot) IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back") }
@@ -823,6 +826,10 @@ private fun SampleTabPage(
             )
         },
     ) { padding ->
-        Box(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding)) { content() }
+        SampleTopBarContent(padding.calculateTopPadding(), scrollsUnderBar = contentScrollsUnderBar) {
+            // The SDK home has its own chrome and pull-to-refresh, so it stays below the sample bar.
+            val contentPadding = if (route == CommunityTab::class.qualifiedName) padding else padding.withoutTop()
+            Box(Modifier.fillMaxSize().padding(contentPadding).consumeWindowInsets(padding)) { content() }
+        }
     }
 }

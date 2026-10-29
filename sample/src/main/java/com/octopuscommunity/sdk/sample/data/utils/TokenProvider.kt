@@ -16,13 +16,17 @@ import javax.crypto.spec.SecretKeySpec
  * In your app, you should probably call a backend route that provides you this token.
  */
 object TokenProvider {
+    val isSigningAvailable: Boolean get() = BuildConfig.OCTOPUS_SSO_CLIENT_USER_TOKEN_SECRET.isNotEmpty()
+
     fun getToken(
         userId: String,
         entitlements: List<String> = emptyList(),
+        secret: String = BuildConfig.OCTOPUS_SSO_CLIENT_USER_TOKEN_SECRET,
     ): String {
         // ⚠️ The content of this function is for sample purposes only
         // In your app, you should probably call a backend route that provides you this token
-        val secret = BuildConfig.OCTOPUS_SSO_CLIENT_USER_TOKEN_SECRET
+        // The SDK handles an absent token as a normal failure, including restored SSO sessions.
+        if (secret.isEmpty()) return ""
 
         val headerJson =
             buildJsonObject {
@@ -54,10 +58,13 @@ object TokenProvider {
         return "$headerBase64.$payloadBase64.$signature"
     }
 
-    fun getBridgeSignature(bridgeFingerprint: String): String {
+    fun getBridgeSignature(
+        bridgeFingerprint: String,
+        secret: String = BuildConfig.OCTOPUS_SSO_CLIENT_USER_TOKEN_SECRET,
+    ): String {
         // ⚠️ The content of this function is for sample purposes only
         // In your app, you should probably call a backend route that provides you this token
-        val secret = BuildConfig.OCTOPUS_SSO_CLIENT_USER_TOKEN_SECRET
+        if (secret.isEmpty()) return ""
 
         val currentTime = (System.currentTimeMillis() / 1000L).toInt()
 

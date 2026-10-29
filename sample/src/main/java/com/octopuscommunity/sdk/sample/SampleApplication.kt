@@ -53,6 +53,7 @@ class SampleApplication : Application() {
         startKoin {
             androidContext(this@SampleApplication)
             modules(
+                LocalExtensions.module,
                 // Data layer
                 module {
                     single { SDKConfigDataStore(context = androidContext()) }
@@ -79,6 +80,7 @@ class SampleApplication : Application() {
                             communityConnectUseCase = get(),
                             appScope = get(),
                             savedStateHandle = get(),
+                            localOptionsFactory = LocalExtensions::configOptions,
                         )
                     }
                     viewModel { HostIntegrationViewModel(configDataStore = get()) }
@@ -218,14 +220,11 @@ class SampleApplication : Application() {
                                 apiServer = apiServer,
                             )
                         }
-                        // Announced here — after the call, so nothing reacting to it can resolve
-                        // against the container that has just been torn down, and before the first
-                        // suspension point below, so it cannot land *after* the UI that reads it.
-                        // `initialize` is what flips `isInitialisedFlow`, which is what lets
-                        // `MainScaffold` compose; a session announced after the reconnect suspended
-                        // would reach a Community tab that had already taken the previous number as
-                        // its baseline and make it rebuild a surface it had just built (internal change). This
-                        // collector runs on `MainScope`, so no frame can slip in between.
+                        // Announce after initialization/switch returns, when the new container is
+                        // available, and before reconnecting the stored user below. initialize()
+                        // does not suspend, so its first UI composition sees the new generation.
+                        // switchCommunity() suspends internally: UI may already have composed with
+                        // the previous generation and is invalidated when this counter advances.
                         // The re-init just dropped every SDK debug override: put the Unified Profile
                         // flag back to what the Unified Profile scenario asks for, and keep
                         // HostOverrides in step instead of showing a value the SDK lost.

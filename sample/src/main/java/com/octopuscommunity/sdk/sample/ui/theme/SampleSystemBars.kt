@@ -36,17 +36,14 @@ import androidx.compose.ui.window.DialogWindowProvider
 import androidx.core.view.WindowCompat
 
 /**
- * The app bar's resting container: the page `bg` (DS AppBar, Android M3 Expressive). The DS
- * retired the navy app bar; it tints to [sampleTopBarScrolledColor] once content scrolls under it.
+ * The app bar's container: the page `bg` (DS AppBar, Android). The DS retired the navy app bar.
+ * Once content scrolls under it the bar keeps this colour at a translucent alpha (see
+ * `SampleTopAppBar`), so the status strip `SampleWindowFrame` paints in it stays in tone with the
+ * bar.
  */
 internal val sampleTopBarColor: Color
     @Composable @ReadOnlyComposable
     get() = SampleTheme.colors.bg
-
-/** The app bar's container once content has scrolled under it: `surface-2`. */
-internal val sampleTopBarScrolledColor: Color
-    @Composable @ReadOnlyComposable
-    get() = SampleTheme.colors.surface2
 
 /** The navigation bar's container: `surface-2`. */
 internal val sampleBottomBarColor: Color

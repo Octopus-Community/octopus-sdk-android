@@ -591,7 +591,7 @@ object ScenarioCatalog {
                 ),
             "locale" to
                 listOf(
-                    ScenarioParam("locale", "Locale?", "Locale(\"fr\"), Locale(\"en\"), or null to reset"),
+                    ScenarioParam("locale", "Locale?", "language tag: fr, en, pt-BR; blank to reset"),
                 ),
             "communityData" to
                 listOf(

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.octopuscommunity.sdk.OctopusSDK
 import com.octopuscommunity.sdk.domain.network.OctopusResult
 import com.octopuscommunity.sdk.domain.repository.ConnectionRepository.ConnectionState
+import com.octopuscommunity.sdk.domain.repository.RefreshEntitlementsError
 import com.octopuscommunity.sdk.sample.data.SDKTestFakesLauncher
 import com.octopuscommunity.sdk.sample.data.SDKTestFakesRequest
 import com.octopuscommunity.sdk.sample.data.datastore.UserDataStore
@@ -35,6 +36,9 @@ class AccountViewModel(
     private val userDataStore: UserDataStore,
     private val communityConnectUseCase: CommunityConnectUseCase,
     private val sdkTestFakesRequests: StateFlow<SDKTestFakesRequest?> = SDKTestFakesLauncher.request,
+    private val refreshSdkEntitlements: suspend () -> OctopusResult<Unit, RefreshEntitlementsError> = {
+        OctopusSDK.refreshEntitlements()
+    },
 ) : ViewModel() {
     /** The entitlements provisioned on the demo backend, offered as ready-made switches. */
     enum class KnownEntitlement(
@@ -145,8 +149,6 @@ class AccountViewModel(
         )
     }
 
-    fun dismissMessage() = _state.update { it.copy(message = null, error = null) }
-
     /**
      * Forges a local JWT with the current values and calls `connectUser` — the full path, which is
      * what an entitlement *added* to the set needs (the backend only reads them at mint time).
@@ -165,8 +167,8 @@ class AccountViewModel(
                     nickname = current.nickname?.ifBlank { null },
                     entitlements = current.entitlements.toList(),
                 )
-            userDataStore.updateUser(clearSignOut = true) { user }
             if (sdkTestFakesRequests.value != null) {
+                userDataStore.updateUser(clearSignOut = true) { user }
                 _state.update {
                     it.copy(
                         isReconnecting = false,
@@ -175,8 +177,9 @@ class AccountViewModel(
                 }
                 return@launch
             }
+            val result = communityConnectUseCase(user)
             _state.update {
-                when (val result = communityConnectUseCase(user)) {
+                when (result) {
                     is OctopusResult.Success ->
                         it.copy(isReconnecting = false, message = "Connected as ${user.id}.")
 
@@ -192,8 +195,9 @@ class AccountViewModel(
         viewModelScope.launch {
             _state.update { it.copy(isRefreshing = true, error = null, message = null) }
             userDataStore.updateUser(clearSignOut = false) { it?.copy(entitlements = _state.value.entitlements.toList()) }
+            val result = refreshSdkEntitlements()
             _state.update {
-                when (val result = OctopusSDK.refreshEntitlements()) {
+                when (result) {
                     is OctopusResult.Success ->
                         it.copy(isRefreshing = false, message = "Entitlements refreshed.")
 

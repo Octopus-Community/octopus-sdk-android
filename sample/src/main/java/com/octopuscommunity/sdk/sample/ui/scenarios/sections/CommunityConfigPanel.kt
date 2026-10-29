@@ -95,19 +95,35 @@ fun communityConfigPanelStates(
             if (repository == null) {
                 emit(CommunityConfigPanelState.NotInitialised)
             } else {
-                try {
-                    val cached = repository.readState()
-                    if (cached is CommunityConfigPanelState.Loaded) lastFetch = cached
-                    val state =
-                        cached ?: lastFetch ?: run {
-                            emit(CommunityConfigPanelState.Loading)
-                            repository.fetchState().also { lastFetch = it }
-                        }
-                    // A read/fetch can suspend across a switch: never attribute A's result to B.
-                    if (source.repositoryOrNull() === repository) emit(state)
-                } catch (_: ClosedScopeException) {
-                    // The old scope closed during a read/fetch. Resolve the new one next tick.
-                }
+                val cached =
+                    try {
+                        repository.readState()
+                    } catch (_: ClosedScopeException) {
+                        // Only SDK reads/fetches can be skipped. A downstream emit failure must
+                        // propagate, even if it also happens to be a ClosedScopeException.
+                        delay(pollIntervalMillis)
+                        continue
+                    }
+                if (cached is CommunityConfigPanelState.Loaded) lastFetch = cached
+                val previousFetch = lastFetch
+                val state =
+                    if (cached != null) {
+                        cached
+                    } else if (previousFetch != null) {
+                        previousFetch
+                    } else {
+                        emit(CommunityConfigPanelState.Loading)
+                        val fetched =
+                            try {
+                                repository.fetchState()
+                            } catch (_: ClosedScopeException) {
+                                delay(pollIntervalMillis)
+                                continue
+                            }
+                        fetched.also { lastFetch = it }
+                    }
+                // A read/fetch can suspend across a switch: never attribute A's result to B.
+                if (source.repositoryOrNull() === repository) emit(state)
             }
             delay(pollIntervalMillis)
         }

@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.octopuscommunity.sdk.OctopusSDK
 import com.octopuscommunity.sdk.domain.model.ProfileField
+import com.octopuscommunity.sdk.domain.network.OctopusResult
 import com.octopuscommunity.sdk.sample.data.AuthPreset
 import com.octopuscommunity.sdk.sample.data.SDKTestFakesLauncher
 import com.octopuscommunity.sdk.sample.data.SDKTestFakesRequest
@@ -18,7 +19,7 @@ import com.octopuscommunity.sdk.sample.data.model.User
 import com.octopuscommunity.sdk.sample.data.resolveAuthPreset
 import com.octopuscommunity.sdk.sample.data.unifiedProfileActivation
 import com.octopuscommunity.sdk.sample.data.usecase.CommunityConnectUseCase
-import com.octopuscommunity.sdk.sample.extensions.LocalExtensions
+import com.octopuscommunity.sdk.sample.extensions.LocalConfigOptions
 import com.octopuscommunity.sdk.sample.ui.scenarios.sections.OctopusCommunityConfigPanelSource
 import com.octopuscommunity.sdk.sample.ui.scenarios.sections.communityConfigPanelStates
 import kotlinx.coroutines.CoroutineScope
@@ -40,15 +41,19 @@ class ConfigViewModel(
     private val userDataStore: UserDataStore,
     private val communityConnectUseCase: CommunityConnectUseCase,
     /**
-     * Application-lifetime scope for Apply: Apply navigates away at once, which clears this
-     * ViewModel and would cancel a connect still on the network in [viewModelScope].
+     * Application-lifetime scope for Apply: leaving the screen must not cancel persistence or
+     * an in-flight connection along with this ViewModel's [viewModelScope].
      */
     private val appScope: CoroutineScope,
     private val sdkTestFakesRequests: StateFlow<SDKTestFakesRequest?> = SDKTestFakesLauncher.request,
     savedStateHandle: SavedStateHandle = SavedStateHandle(),
-    // In-memory storage flows let draft merge tests run entirely on the test scheduler.
+    // Read-only overrides for draft-merge tests. Apply still writes configDataStore and reads
+    // userDataStore, so any test calling saveAndStart must use those same stores as its flows.
+    // Production always uses the defaults; in-memory DataStores also work without overrides.
     configFlow: Flow<SDKConfig?> = configDataStore.configFlow,
     userFlow: Flow<User?> = userDataStore.userFlow,
+    // Koin supplies internal directory options; isolated draft tests need no directory or network.
+    localOptionsFactory: (CoroutineScope) -> LocalConfigOptions = { object : LocalConfigOptions {} },
 ) : ViewModel() {
     @Serializable
     data class State(
@@ -74,7 +79,7 @@ class ConfigViewModel(
 
     enum class ServerEnvKind { DEFAULT, PROD, CUSTOM, LOCAL }
 
-    val localOptions = LocalExtensions.configOptions(viewModelScope)
+    val localOptions = localOptionsFactory(viewModelScope)
 
     private val savedDraft = savedStateHandle.get<Bundle>("configDraft")
     private val restoredDraft = savedDraft?.getString("state")?.let { Json.decodeFromString<State>(it) }
@@ -82,6 +87,8 @@ class ConfigViewModel(
     private val _state = MutableStateFlow(restoredDraft ?: State())
     private var hasHydrated = restoredDraft != null
     val state = _state.asStateFlow()
+
+    val isApplying = communityConnectUseCase.isApplying
 
     /**
      * The stored config, kept warm so [saveAndStart] can say what Apply is about to do the moment it
@@ -283,10 +290,11 @@ class ConfigViewModel(
 
     /**
      * Persists the edited config (the SDK then re-inits from `SampleApplication` when its init key
-     * changed) and returns the one-line outcome the screen shows as feedback — "restarting on …",
-     * "no restart needed" or "nothing changed" — so Apply never looks like it did nothing.
+     * changed) and immediately returns the outcome for navigation. Connection failures are
+     * queued on the app-scoped use case for the Activity root to display, even after rotation.
+     * A repeated tap while Apply is running returns null and starts no second operation.
      */
-    fun saveAndStart(): String {
+    fun saveAndStart(): String? {
         val current = _state.value
         val authKind =
             SDKConfig.AuthKind.SSO(
@@ -333,26 +341,42 @@ class ConfigViewModel(
             applyOutcomeMessage(
                 persisted = persistedNow,
                 next = nextConfig(persistedNow),
-                userChanged = userChanged,
+                userChanged = userChanged && (sdkTestFakesRequests.value != null || communityConnectUseCase.signingFailure() == null),
                 testFakesActive = sdkTestFakesRequests.value != null,
             )
+        if (!communityConnectUseCase.tryBeginConfigApply()) return null
         appScope.launch {
-            // A different SSO id is a different person: start from a fresh User rather than carry
-            // the previous one's nickname, avatar and entitlements over to it. Persisted BEFORE the
-            // config, so a re-init triggered by the config write reconnects the new user.
-            val picked = current.ssoUserId
-            val newUser = if (picked != null && picked != userDataStore.getUser()?.id) User(id = picked) else null
-            newUser?.let { user -> userDataStore.updateUser(clearSignOut = true) { user } }
-            var reinitialises = true
-            configDataStore.updateConfig { persisted ->
-                val next = nextConfig(persisted)
-                reinitialises = persisted?.sdkInitKey != next.sdkInitKey
-                next
-            }
-            // A user-only change leaves the re-init key as it was, so SampleApplication will not
-            // reconnect anyone: connect the picked user here, as Settings → Account does.
-            if (newUser != null && !reinitialises && sdkTestFakesRequests.value == null && OctopusSDK.isInitialised) {
-                communityConnectUseCase(newUser)
+            try {
+                // A different id must not inherit the old member's profile or grants. Persist it
+                // before config so a re-init reconnects it. Without signing, keep the stored
+                // identity and sign-out state while still applying the other settings.
+                val picked = current.ssoUserId
+                val requestedUser = if (picked != null && picked != userDataStore.getUser()?.id) User(id = picked) else null
+                val skipUserSwitch =
+                    requestedUser != null && sdkTestFakesRequests.value == null && communityConnectUseCase.signingFailure() != null
+                val newUser = requestedUser.takeUnless { skipUserSwitch }
+                newUser?.let { user -> userDataStore.updateUser(clearSignOut = true) { user } }
+                var reinitialises = true
+                configDataStore.updateConfig { persisted ->
+                    val next = nextConfig(persisted)
+                    reinitialises = persisted?.sdkInitKey != next.sdkInitKey
+                    next
+                }
+                if (skipUserSwitch) {
+                    communityConnectUseCase.reportConfigApplyMessage(
+                        "SSO sign-in is unavailable in this build; settings applied without switching user.",
+                    )
+                }
+                // A user-only change leaves the re-init key unchanged: connect here. The root
+                // owns feedback; no delayed callback can navigate a disposed Config screen.
+                if (newUser != null && !reinitialises && sdkTestFakesRequests.value == null && OctopusSDK.isInitialised) {
+                    when (val result = communityConnectUseCase(newUser)) {
+                        is OctopusResult.Failure -> communityConnectUseCase.reportConfigConnectionFailure(result)
+                        is OctopusResult.Success -> Unit
+                    }
+                }
+            } finally {
+                communityConnectUseCase.finishConfigApply()
             }
         }
         return outcome

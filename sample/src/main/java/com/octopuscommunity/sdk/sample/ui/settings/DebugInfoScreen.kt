@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -26,12 +25,14 @@ import com.octopuscommunity.sdk.sample.data.model.HostCallback
 import com.octopuscommunity.sdk.sample.data.model.SDKConfig
 import com.octopuscommunity.sdk.sample.data.model.label
 import com.octopuscommunity.sdk.sample.ui.components.CurrentConfigurationBlock
+import com.octopuscommunity.sdk.sample.ui.components.LocalSampleTopBarInset
 import com.octopuscommunity.sdk.sample.ui.components.SampleCard
 import com.octopuscommunity.sdk.sample.ui.components.SampleInfoRow
 import com.octopuscommunity.sdk.sample.ui.components.dotColor
 import com.octopuscommunity.sdk.sample.ui.components.rememberIsOnline
 import com.octopuscommunity.sdk.sample.ui.components.sampleDangerColor
 import com.octopuscommunity.sdk.sample.ui.components.sampleSuccessColor
+import com.octopuscommunity.sdk.sample.ui.components.sampleVerticalScroll
 import org.koin.androidx.compose.koinViewModel
 
 /**
@@ -56,7 +57,9 @@ fun DebugInfoScreen(viewModel: SettingsViewModel = koinViewModel()) {
         modifier =
             Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .sampleVerticalScroll(rememberScrollState())
+                // Start below the shell's translucent app bar, inside the scroll so content passes under it.
+                .padding(top = LocalSampleTopBarInset.current)
                 .padding(16.dp)
                 .testTag("debug-info-screen"),
         verticalArrangement = Arrangement.spacedBy(12.dp),

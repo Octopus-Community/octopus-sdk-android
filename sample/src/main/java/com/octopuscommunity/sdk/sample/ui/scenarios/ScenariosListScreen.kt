@@ -44,6 +44,7 @@ import com.octopuscommunity.sdk.sample.data.SampleSdkStatus
 import com.octopuscommunity.sdk.sample.data.model.FeatureToggle
 import com.octopuscommunity.sdk.sample.data.model.FeatureToggles
 import com.octopuscommunity.sdk.sample.ui.components.ApiPill
+import com.octopuscommunity.sdk.sample.ui.components.LocalSampleTopBarInset
 import com.octopuscommunity.sdk.sample.ui.components.PrimaryPillButton
 import com.octopuscommunity.sdk.sample.ui.components.SampleBanner
 import com.octopuscommunity.sdk.sample.ui.components.SampleBannerTone
@@ -140,6 +141,8 @@ fun ScenariosListScreen(
         modifier =
             Modifier
                 .fillMaxSize()
+                // The status band and search stay below the bar, outside the scrolling list.
+                .padding(top = LocalSampleTopBarInset.current)
                 .padding(horizontal = SampleSpacing.gutter)
                 .padding(top = SampleSpacing.space4)
                 .testTag("scenarios-screen"),
