@@ -9,6 +9,20 @@ For upgrade instructions across breaking changes, see [MIGRATING.md](MIGRATING.m
 
 ## Unreleased
 
+## [1.15.3](https://github.com/Octopus-Community/octopus-sdk-android/releases/tag/v1.15.3) — 2026-11-04
+
+Patch over 1.15.2: two session fixes. No API change, no migration.
+
+### Fixed
+- `SessionStopped` is now emitted when the community UI is closed or hidden, as on iOS. An Octopus
+  screen counts towards the session while the view hosting its navigation is displayed, not while
+  it is composed: a community view kept alive but hidden no longer keeps the session open, nor
+  starts one before it is shown. Navigating inside the community keeps the session; backgrounding
+  the app still stops it.
+- Calling `initialize()` again with an identical configuration keeps the running session instead of
+  rebuilding the SDK, which left an open community screen bound to the discarded instance (no
+  `SessionStopped` afterwards, and a possible crash).
+
 ## [1.15.2](https://github.com/Octopus-Community/octopus-sdk-android/releases/tag/v1.15.2) — 2026-10-29
 
 Patch over 1.15.1: one crash fix. No API change, no migration.
