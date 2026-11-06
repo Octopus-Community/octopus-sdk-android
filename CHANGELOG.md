@@ -9,6 +9,18 @@ For upgrade instructions across breaking changes, see [MIGRATING.md](MIGRATING.m
 
 ## Unreleased
 
+## [1.15.4](https://github.com/Octopus-Community/octopus-sdk-android/releases/tag/v1.15.4) — 2026-11-06
+
+Patch over 1.15.3: one crash fix. No API change, no migration.
+
+### Fixed
+- Leaving the community no longer crashes with "Can't get Koin scope … is closed". A host that
+  clears the community's `ViewModelStore` while the community is still on screen (for example a
+  bottom-bar tab in a Navigation 3 `NavDisplay`, cleared on Back during the pop animation) has
+  crashed the SDK screen since 1.15.0. The SDK's navigation scope now stays open until the
+  community has left the screen. Hosts should still clear such a store only once its content has
+  left composition: ViewModels resolved after an early clear are never cleared.
+
 ## [1.15.3](https://github.com/Octopus-Community/octopus-sdk-android/releases/tag/v1.15.3) — 2026-11-04
 
 Patch over 1.15.2: two session fixes. No API change, no migration.

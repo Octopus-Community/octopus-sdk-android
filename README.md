@@ -40,8 +40,8 @@ The artifacts are on Maven Central. In your module's `build.gradle.kts`:
 
 ```kotlin
 dependencies {
-    implementation("com.octopuscommunity:octopus-sdk:1.15.3")
-    implementation("com.octopuscommunity:octopus-sdk-ui:1.15.3")
+    implementation("com.octopuscommunity:octopus-sdk:1.15.4")
+    implementation("com.octopuscommunity:octopus-sdk-ui:1.15.4")
     // Used directly by the Quickstart; the SDK does not expose them to your compile classpath.
     implementation("androidx.activity:activity-compose:1.10.1")
     implementation("androidx.navigation:navigation-compose:2.9.5")
