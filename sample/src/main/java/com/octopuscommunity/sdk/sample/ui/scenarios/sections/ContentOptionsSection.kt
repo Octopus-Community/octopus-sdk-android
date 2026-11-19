@@ -13,13 +13,14 @@ import com.octopuscommunity.sdk.domain.model.CommunityConfig.ContentOptions
 import com.octopuscommunity.sdk.sample.ui.community.HostOverrides
 
 /**
- * QA tooling for the per-content-type pictures/polls gating (internal ticket).
+ * QA tooling for content creation gating (internal ticket) and post taps (internal ticket / internal ticket).
  *
  * Applies a DEBUG-only local override of the community [ContentOptions] — without a backend-driven
  * config — so the creation gating can be exercised in the sample independently of which community
  * is seeded. Each preset turns one affordance off, or lets a post with an image go without text;
  * open the post composer (or the comment / reply input) after applying one to observe the matching
- * picture / poll button disappear, or to publish a post with an image and no text.
+ * picture / poll button disappear, or to publish a post with an image and no text. The post tap
+ * presets change what tapping a feed image or a post's group name opens.
  *
  * State is routed through [HostOverrides.contentOptionsOverride] rather than a local
  * `rememberSaveable` label (as before the override-UX pass): the currently-applied preset renders
@@ -45,7 +46,8 @@ fun ContentOptionsSection() {
         SectionIntro(
             "Debug-only: override the community content options locally, then open the post " +
                 "composer (or a comment / reply input) to see the matching picture / poll " +
-                "affordance disappear, or publish a post with an image and no text.",
+                "affordance disappear, or publish a post with an image and no text. The post tap " +
+                "presets change what tapping a feed image or a post's group name opens.",
         )
 
         if (hasOverride) {
@@ -95,6 +97,33 @@ fun ContentOptionsSection() {
             label = "Post: text optional with an image",
             testId = "qa-preset-contentOptions-7",
             options = ContentOptions(post = ContentOptions.PostOptions(textRequired = false)),
+            applied = applied,
+        )
+        Preset(
+            label = "Preset 8 · Post: image tap opens the post",
+            testId = "qa-preset-contentOptions-8",
+            options =
+                ContentOptions(
+                    post = ContentOptions.PostOptions(imageTapOpensPost = true, groupNameTapOpensGroup = false),
+                ),
+            applied = applied,
+        )
+        Preset(
+            label = "Preset 9 · Post: group name opens the group",
+            testId = "qa-preset-contentOptions-9",
+            options =
+                ContentOptions(
+                    post = ContentOptions.PostOptions(imageTapOpensPost = false, groupNameTapOpensGroup = true),
+                ),
+            applied = applied,
+        )
+        Preset(
+            label = "Preset 10 · Post: image and group name taps",
+            testId = "qa-preset-contentOptions-10",
+            options =
+                ContentOptions(
+                    post = ContentOptions.PostOptions(imageTapOpensPost = true, groupNameTapOpensGroup = true),
+                ),
             applied = applied,
         )
 
@@ -152,5 +181,17 @@ private fun contentOptionsLabel(options: ContentOptions): String =
         ContentOptions(comment = ContentOptions.CommentOptions(enablePictures = false)) -> "Comment: pictures off"
         ContentOptions(reply = ContentOptions.ReplyOptions(enablePictures = false)) -> "Reply: pictures off"
         ContentOptions(post = ContentOptions.PostOptions(textRequired = false)) -> "Post: text optional with an image"
+        ContentOptions(
+            post = ContentOptions.PostOptions(imageTapOpensPost = true, groupNameTapOpensGroup = false),
+        ),
+        -> "Post: image tap opens the post"
+        ContentOptions(
+            post = ContentOptions.PostOptions(imageTapOpensPost = false, groupNameTapOpensGroup = true),
+        ),
+        -> "Post: group name opens the group"
+        ContentOptions(
+            post = ContentOptions.PostOptions(imageTapOpensPost = true, groupNameTapOpensGroup = true),
+        ),
+        -> "Post: image and group name taps"
         else -> options.toString()
     }

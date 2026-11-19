@@ -45,6 +45,7 @@ private val LANGUAGES =
         Locale.ITALIAN to "Italian",
         Locale.forLanguageTag("pl") to "Polish",
         Locale.forLanguageTag("pt") to "Portuguese",
+        Locale.forLanguageTag("sk") to "Slovak",
         Locale.forLanguageTag("es") to "Spanish",
         Locale.forLanguageTag("sv") to "Swedish",
         Locale.forLanguageTag("tr") to "Turkish",

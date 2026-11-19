@@ -94,6 +94,7 @@ fun DebugInfoScreen(viewModel: SettingsViewModel = koinViewModel()) {
                 )
                 SampleInfoRow("Unread notifications", state.notSeenNotifications.toString())
                 SampleInfoRow("Community access", if (state.hasAccessToCommunity) "Granted" else "Denied")
+                SampleInfoRow("Access denied reason", state.communityAccessDeniedReason?.name ?: "None")
             }
         }
 

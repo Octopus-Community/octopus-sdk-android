@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.octopuscommunity.sdk.OctopusSDK
+import com.octopuscommunity.sdk.domain.model.CommunityAccessDeniedReason
 import com.octopuscommunity.sdk.domain.model.OctopusEvent
 import com.octopuscommunity.sdk.model.OctopusNotification
 import com.octopuscommunity.sdk.sample.data.SampleFixtures
@@ -49,7 +50,7 @@ import org.koin.androidx.compose.koinViewModel
 
 /** Shared result line: one `Text` node carrying the scenario's single `result_test_id`. */
 @Composable
-private fun ScenarioResult(
+internal fun ScenarioResult(
     text: String?,
     isError: Boolean,
     resultTestTag: String,
@@ -79,6 +80,7 @@ private fun ScenarioResult(
 @Composable
 fun CommunityAccessPresets(
     hasAccessToCommunity: Boolean,
+    communityAccessDeniedReason: CommunityAccessDeniedReason?,
     onOverrideGrant: () -> Unit,
     onOverrideDeny: () -> Unit,
     onTrackHasAccess: () -> Unit,
@@ -130,6 +132,7 @@ fun CommunityAccessPresets(
         ) { Text("Track · has access") }
 
         LiveFlowDisplay(label = "hasAccessToCommunity", value = hasAccessToCommunity.toString())
+        LiveFlowDisplay(label = "communityAccessDeniedReason", value = communityAccessDeniedReason?.name ?: "null")
     }
 }
 
@@ -448,6 +451,7 @@ fun TrackABTestsPresets(
 @Composable
 fun ForceOctopusABTestsPresets(
     hasAccessToCommunity: Boolean,
+    communityAccessDeniedReason: CommunityAccessDeniedReason?,
     onGrant: () -> Unit,
     onDeny: () -> Unit,
 ) {
@@ -494,6 +498,7 @@ fun ForceOctopusABTestsPresets(
         ) { Text("Re-apply current SDK value") }
 
         LiveFlowDisplay(label = "hasAccessToCommunity", value = hasAccessToCommunity.toString())
+        LiveFlowDisplay(label = "communityAccessDeniedReason", value = communityAccessDeniedReason?.name ?: "null")
     }
 }
 

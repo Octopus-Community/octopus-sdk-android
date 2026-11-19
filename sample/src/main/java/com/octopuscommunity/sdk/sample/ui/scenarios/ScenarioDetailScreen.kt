@@ -56,6 +56,7 @@ import com.octopuscommunity.sdk.sample.ui.scenarios.sections.ConsentTextsSection
 import com.octopuscommunity.sdk.sample.ui.scenarios.sections.ContentOptionsSection
 import com.octopuscommunity.sdk.sample.ui.scenarios.sections.ForceNicknameChoiceSection
 import com.octopuscommunity.sdk.sample.ui.scenarios.sections.GroupsSection
+import com.octopuscommunity.sdk.sample.ui.scenarios.sections.HostLifecyclesSection
 import com.octopuscommunity.sdk.sample.ui.scenarios.sections.LifecycleSection
 import com.octopuscommunity.sdk.sample.ui.scenarios.sections.NotificationsSection
 import com.octopuscommunity.sdk.sample.ui.scenarios.sections.ProfileLockSection
@@ -307,6 +308,7 @@ fun ScenarioDetailScreen(
                     "communityAccess" ->
                         CommunityAccessPresets(
                             hasAccessToCommunity = state.hasAccessToCommunity,
+                            communityAccessDeniedReason = state.communityAccessDeniedReason,
                             onOverrideGrant = {
                                 viewModel.setCommunityAccessInput(true)
                                 viewModel.executeOverrideCommunityAccess()
@@ -338,6 +340,12 @@ fun ScenarioDetailScreen(
                             onForceFr = { customize.runPreset(0) },
                             onForceEn = { customize.runPreset(1) },
                             onResetToSystem = { customize.runPreset(2) },
+                        )
+
+                    "hostLifecycles" ->
+                        HostLifecyclesSection(
+                            config = state.sdkConfig,
+                            onSdkSessionEnded = viewModel::onHostLifecycleSessionEnded,
                         )
 
                     "lifecycle" -> {
@@ -480,6 +488,7 @@ fun ScenarioDetailScreen(
                     "forceOctopusABTests" ->
                         ForceOctopusABTestsPresets(
                             hasAccessToCommunity = state.hasAccessToCommunity,
+                            communityAccessDeniedReason = state.communityAccessDeniedReason,
                             onGrant = {
                                 viewModel.setCommunityAccessInput(true)
                                 viewModel.executeOverrideCommunityAccess(methodKey = "overrideAccessABTests")

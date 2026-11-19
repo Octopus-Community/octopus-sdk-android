@@ -116,6 +116,8 @@ private fun ConfigLines(config: CommunityConfig) {
             "polls ${tick(config.contentOptions.post.enablePolls)} · " +
             "text required ${tick(config.contentOptions.post.textRequired)}",
     )
+    Line("Post image tap opens post", tick(config.contentOptions.post.imageTapOpensPost))
+    Line("Post group name opens group", tick(config.contentOptions.post.groupNameTapOpensGroup))
     Line("Comment", "pictures ${tick(config.contentOptions.comment.enablePictures)}")
     Line("Reply", "pictures ${tick(config.contentOptions.reply.enablePictures)}")
     Line(

@@ -200,7 +200,10 @@ private fun CommunityDataFields(data: OctopusCommunityData?) {
         )
         LabeledValue(
             label = "gamification score",
-            value = data.gamification?.score?.toString() ?: "— (not exposed to consumers)",
+            value =
+                data.gamification?.let { gamification ->
+                    gamification.score?.toString() ?: "— (not sent by the server)"
+                } ?: "— (gamification off)",
         )
     }
 }

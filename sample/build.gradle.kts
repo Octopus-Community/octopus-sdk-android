@@ -266,6 +266,7 @@ dependencies {
 
     // Navigation Compose
     implementation(libs.navigation.compose)
+    implementation(libs.navigation3.ui)
 
     // Material3
     implementation(libs.androidx.material3)

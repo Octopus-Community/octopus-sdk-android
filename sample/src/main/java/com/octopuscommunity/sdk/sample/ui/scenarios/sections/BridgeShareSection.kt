@@ -6,16 +6,19 @@ import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -24,12 +27,23 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.octopuscommunity.sdk.domain.model.CreatePostScreenInfo
 import com.octopuscommunity.sdk.domain.model.OctopusGroup
+import com.octopuscommunity.sdk.domain.model.OctopusLocalizedText
 import com.octopuscommunity.sdk.domain.model.OctopusPostCTA
 import com.octopuscommunity.sdk.domain.model.OctopusPrefilledPost
 import com.octopuscommunity.sdk.sample.R
 import com.octopuscommunity.sdk.sample.data.SampleFixtures
 import com.octopuscommunity.sdk.sample.data.utils.TokenProvider
 import com.octopuscommunity.sdk.sample.ui.components.SecondaryPillButton
+import com.octopuscommunity.sdk.sample.ui.components.sampleDefaultSwitchColors
+import java.util.Locale
+
+/** The default language a per-language CTA label starts from in this form. */
+private const val DEFAULT_CTA_LANGUAGE = "en"
+
+/** Two rows of this form name the same language, which a `Map<Locale, String>` cannot hold twice. */
+private class DuplicateCtaLanguage(
+    language: Locale,
+) : Exception("Two labels are given for the language \"${language.toLanguageTag()}\".")
 
 /**
  * Bridge Share section: build an [OctopusPrefilledPost] payload and open
@@ -53,10 +67,16 @@ fun BridgeShareSection(
     onOpenCreatePost: (CreatePostScreenInfo) -> Unit,
 ) {
     var text by rememberSaveable { mutableStateOf("") }
-    var imageUriString by rememberSaveable { mutableStateOf<String?>(null) }
+    var imageUriStrings by rememberSaveable { mutableStateOf(emptyList<String>()) }
     var groupId by rememberSaveable { mutableStateOf(SampleFixtures.topicDefault) }
     var ctaLabel by rememberSaveable { mutableStateOf("") }
     var ctaUrl by rememberSaveable { mutableStateOf("") }
+    // Off by default, so the presets keep sending the auto-translated label QA has always exercised.
+    var ctaPerLanguage by rememberSaveable { mutableStateOf(false) }
+    var ctaDefaultLanguage by rememberSaveable { mutableStateOf(DEFAULT_CTA_LANGUAGE) }
+    // One translation row per index: its language tag and its label.
+    var ctaTranslationLanguages by rememberSaveable { mutableStateOf(emptyList<String>()) }
+    var ctaTranslationLabels by rememberSaveable { mutableStateOf(emptyList<String>()) }
     var validationError by rememberSaveable { mutableStateOf<String?>(null) }
     var appliedPresetLabel by rememberSaveable { mutableStateOf<String?>(null) }
 
@@ -72,9 +92,9 @@ fun BridgeShareSection(
 
     val imagePicker =
         rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.PickVisualMedia(),
-        ) { uri: Uri? ->
-            if (uri != null) imageUriString = uri.toString()
+            contract = ActivityResultContracts.PickMultipleVisualMedia(maxItems = MAX_PREFILLED_IMAGES),
+        ) { uris: List<Uri> ->
+            if (uris.isNotEmpty()) imageUriStrings = uris.map { it.toString() }
         }
 
     Column(
@@ -111,8 +131,8 @@ fun BridgeShareSection(
             testId = "qa-preset-createPost-1",
             onApply = { appliedPresetLabel = it },
         ) {
-            text = "Bridge Share preset — text only, 10+ chars."
-            imageUriString = null
+            text = "Bridge Share preset — text only."
+            imageUriStrings = emptyList()
             groupId = SampleFixtures.topicDefault
             ctaLabel = ""
             ctaUrl = ""
@@ -124,7 +144,7 @@ fun BridgeShareSection(
             onApply = { appliedPresetLabel = it },
         ) {
             text = "Bridge Share preset — text plus a CTA."
-            imageUriString = null
+            imageUriStrings = emptyList()
             groupId = SampleFixtures.topicDefault
             ctaLabel = "Open"
             ctaUrl = "https://octopuscommunity.com/preset"
@@ -136,7 +156,7 @@ fun BridgeShareSection(
             onApply = { appliedPresetLabel = it },
         ) {
             text = "Bridge Share preset — text plus a bundled image."
-            imageUriString = bundledImageUri
+            imageUriStrings = listOf(bundledImageUri)
             groupId = SampleFixtures.topicDefault
             ctaLabel = ""
             ctaUrl = ""
@@ -148,7 +168,7 @@ fun BridgeShareSection(
             onApply = { appliedPresetLabel = it },
         ) {
             text = "Bridge Share preset — full payload with a bundled image."
-            imageUriString = bundledImageUri
+            imageUriStrings = listOf(bundledImageUri)
             groupId = SampleFixtures.topicDefault
             ctaLabel = "Open"
             ctaUrl = "https://octopuscommunity.com/preset"
@@ -160,7 +180,32 @@ fun BridgeShareSection(
             onApply = { appliedPresetLabel = it },
         ) {
             text = ""
-            imageUriString = bundledImageUri
+            imageUriStrings = listOf(bundledImageUri)
+            groupId = SampleFixtures.topicDefault
+            ctaLabel = ""
+            ctaUrl = ""
+            validationError = null
+        }
+        // Multi-image presets, outside the shared five-preset catalog above.
+        Preset(
+            label = "Text + 3 bundled images",
+            testId = "sample-preset-createPost-3-images",
+            onApply = { appliedPresetLabel = it },
+        ) {
+            text = "Bridge Share preset — text plus three bundled images."
+            imageUriStrings = List(3) { bundledImageUri }
+            groupId = SampleFixtures.topicDefault
+            ctaLabel = ""
+            ctaUrl = ""
+            validationError = null
+        }
+        Preset(
+            label = "11 bundled images (too many)",
+            testId = "sample-preset-createPost-11-images",
+            onApply = { appliedPresetLabel = it },
+        ) {
+            text = "Bridge Share preset — eleven images, one over the limit."
+            imageUriStrings = List(MAX_PREFILLED_IMAGES + 1) { bundledImageUri }
             groupId = SampleFixtures.topicDefault
             ctaLabel = ""
             ctaUrl = ""
@@ -169,9 +214,12 @@ fun BridgeShareSection(
         SecondaryPillButton(
             onClick = {
                 text = ""
-                imageUriString = null
+                imageUriStrings = emptyList()
                 groupId = SampleFixtures.topicDefault
                 ctaLabel = ""
+                ctaDefaultLanguage = DEFAULT_CTA_LANGUAGE
+                ctaTranslationLanguages = emptyList()
+                ctaTranslationLabels = emptyList()
                 ctaUrl = ""
                 validationError = null
                 appliedPresetLabel = null
@@ -208,19 +256,21 @@ fun BridgeShareSection(
             },
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text(if (imageUriString == null) "Pick an image" else "Replace image")
+            Text(if (imageUriStrings.isEmpty()) "Pick up to $MAX_PREFILLED_IMAGES images" else "Replace images")
         }
-        imageUriString?.let { uriString ->
-            Text(
-                text = uriString,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+        if (imageUriStrings.isNotEmpty()) {
+            imageUriStrings.forEach { uriString ->
+                Text(
+                    text = uriString,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
             SecondaryPillButton(
-                onClick = { imageUriString = null },
+                onClick = { imageUriStrings = emptyList() },
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text("Clear image")
+                Text("Clear images (${imageUriStrings.size})")
             }
         }
 
@@ -256,13 +306,97 @@ fun BridgeShareSection(
             text = "CTA (optional — invisible in the editor, attached to the published post)",
             style = MaterialTheme.typography.titleSmall,
         )
-        OutlinedTextField(
-            value = ctaLabel,
-            onValueChange = { ctaLabel = it },
-            label = { Text("CTA label") },
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true,
-        )
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            if (ctaPerLanguage) {
+                OutlinedTextField(
+                    value = ctaDefaultLanguage,
+                    onValueChange = { ctaDefaultLanguage = it },
+                    label = { Text("Default language") },
+                    modifier = Modifier.weight(1f).testTag("bridge-share-cta-default-language"),
+                    singleLine = true,
+                )
+            }
+            OutlinedTextField(
+                value = ctaLabel,
+                onValueChange = { ctaLabel = it },
+                label = { Text(if (ctaPerLanguage) "Default label" else "CTA label") },
+                modifier = Modifier.weight(2f).testTag("bridge-share-cta-label"),
+                singleLine = true,
+            )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "Give the label per language",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.weight(1f),
+            )
+            Switch(
+                colors = sampleDefaultSwitchColors(),
+                modifier = Modifier.testTag("bridge-share-cta-per-language-toggle"),
+                checked = ctaPerLanguage,
+                onCheckedChange = { ctaPerLanguage = it },
+            )
+        }
+        if (ctaPerLanguage) {
+            ctaTranslationLanguages.indices.forEach { index ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    OutlinedTextField(
+                        value = ctaTranslationLanguages[index],
+                        onValueChange = { value ->
+                            ctaTranslationLanguages = ctaTranslationLanguages.toMutableList().also { it[index] = value }
+                        },
+                        label = { Text("Language") },
+                        modifier = Modifier.weight(1f).testTag("bridge-share-cta-translation-language-$index"),
+                        singleLine = true,
+                    )
+                    OutlinedTextField(
+                        value = ctaTranslationLabels[index],
+                        onValueChange = { value ->
+                            ctaTranslationLabels = ctaTranslationLabels.toMutableList().also { it[index] = value }
+                        },
+                        label = { Text("Label") },
+                        modifier = Modifier.weight(2f).testTag("bridge-share-cta-translation-label-$index"),
+                        singleLine = true,
+                    )
+                    SecondaryPillButton(
+                        onClick = {
+                            ctaTranslationLanguages = ctaTranslationLanguages.filterIndexed { i, _ -> i != index }
+                            ctaTranslationLabels = ctaTranslationLabels.filterIndexed { i, _ -> i != index }
+                        },
+                        modifier = Modifier.testTag("bridge-share-cta-translation-remove-$index"),
+                    ) {
+                        Text("Remove")
+                    }
+                }
+            }
+            SecondaryPillButton(
+                onClick = {
+                    ctaTranslationLanguages = ctaTranslationLanguages + ""
+                    ctaTranslationLabels = ctaTranslationLabels + ""
+                },
+                modifier = Modifier.fillMaxWidth().testTag("bridge-share-cta-add-translation"),
+            ) {
+                Text("Add translation")
+            }
+            Text(
+                text =
+                    "Languages are tags such as fr, pt-BR or zh-Hant-TW. A row left empty is ignored; " +
+                        "a half-filled one is sent, so the SDK reports what is wrong with it.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         OutlinedTextField(
             value = ctaUrl,
             onValueChange = { ctaUrl = it },
@@ -284,17 +418,53 @@ fun BridgeShareSection(
         // --- Open ---
         SecondaryPillButton(
             onClick = {
-                val cta =
-                    if (ctaLabel.isNotEmpty() || ctaUrl.isNotEmpty()) {
-                        OctopusPostCTA(url = ctaUrl.toUri(), label = ctaLabel)
-                    } else {
-                        null
-                    }
                 try {
+                    // Rows whose language and label are both empty are ignored.
+                    val translations =
+                        ctaTranslationLanguages
+                            .zip(ctaTranslationLabels)
+                            .filterNot { (language, label) -> language.isBlank() && label.isEmpty() }
+                    val cta =
+                        if (ctaLabel.isNotEmpty() || ctaUrl.isNotEmpty() || (ctaPerLanguage && translations.isNotEmpty())) {
+                            OctopusPostCTA(
+                                url = ctaUrl.toUri(),
+                                localizedLabel =
+                                    if (ctaPerLanguage) {
+                                        // Every label goes as typed, so a blank one or a malformed
+                                        // language shows the SDK's validation error. Readers whose
+                                        // language is not listed get the default label, translated
+                                        // automatically.
+                                        val defaultLanguage = Locale.forLanguageTag(ctaDefaultLanguage.trim())
+                                        val entries =
+                                            listOf(defaultLanguage to ctaLabel) +
+                                                translations.map { (language, label) ->
+                                                    Locale.forLanguageTag(language.trim()) to label
+                                                }
+                                        // A map keeps one entry per Locale, so two rows with the same
+                                        // tag would silently collapse into one: report it instead.
+                                        entries
+                                            .groupBy { it.first }
+                                            .filterValues { it.size > 1 }
+                                            .keys
+                                            .firstOrNull()
+                                            ?.let { duplicate ->
+                                                throw DuplicateCtaLanguage(duplicate)
+                                            }
+                                        OctopusLocalizedText.PerLanguage(
+                                            texts = entries.toMap(),
+                                            defaultLanguage = defaultLanguage,
+                                        )
+                                    } else {
+                                        OctopusLocalizedText.AutoTranslated(ctaLabel)
+                                    },
+                            )
+                        } else {
+                            null
+                        }
                     val prefilled =
                         OctopusPrefilledPost(
                             text = text.ifEmpty { null },
-                            image = imageUriString?.toUri(),
+                            images = imageUriStrings.map { it.toUri() },
                             topicId = groupId.ifEmpty { null },
                             cta = cta,
                         )
@@ -315,6 +485,12 @@ fun BridgeShareSection(
                 } catch (error: OctopusPrefilledPost.ValidationError) {
                     validationError = error.message
                         ?: "OctopusPrefilledPost.ValidationError: $error"
+                } catch (error: OctopusPrefilledPost.TooManyImagesError) {
+                    validationError = error.message
+                } catch (error: OctopusLocalizedText.ValidationError) {
+                    validationError = error.message
+                } catch (error: DuplicateCtaLanguage) {
+                    validationError = error.message
                 }
             },
             modifier = Modifier.fillMaxWidth(),
@@ -351,3 +527,6 @@ private fun Preset(
         Text(label)
     }
 }
+
+/** The most images a post carries, which the SDK enforces on the prefill. */
+private const val MAX_PREFILLED_IMAGES = 10

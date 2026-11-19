@@ -48,6 +48,7 @@ fun customIcons(): OctopusIcons =
                 delete = { painterResource(R.drawable.ic_sample_content_delete) },
                 notAvailable = { painterResource(R.drawable.ic_sample_content_post_not_available) },
                 report = { painterResource(R.drawable.ic_sample_content_report) },
+                translation = { painterResource(R.drawable.ic_sample_content_translation) },
                 send = { painterResource(R.drawable.ic_sample_content_comment_creation_create) },
                 openResponseCreation = { painterResource(R.drawable.ic_sample_content_post_open_comment_creation) },
                 post =

@@ -246,6 +246,13 @@ object ScenarioCatalog {
                         "are built.",
             ),
             ScenarioSpec(
+                id = "hostLifecycles",
+                title = "Host lifecycles",
+                status = ScenarioStatus.BUILT,
+                subtitle = "Replay embedded view, tab, and SDK lifecycles in one process.",
+                youWillSee = "the community surviving each host action, or the original crash.",
+            ),
+            ScenarioSpec(
                 id = "bridge",
                 title = "Open the post attached to a product",
                 status = ScenarioStatus.BUILT,
@@ -462,6 +469,7 @@ object ScenarioCatalog {
             "customEvents" to "track",
             "locale" to "overrideDefaultLocale",
             "lifecycle" to "reset / stop",
+            "hostLifecycles" to "host: view / tab lifecycle",
             "bridge" to "fetchOrCreateClientObjectRelatedPost",
             "createPost" to "navigateToOctopusCreatePost",
             "reactions" to "setReaction",
@@ -522,6 +530,7 @@ object ScenarioCatalog {
             "trackABTests" to ScenarioSection.HOST,
             "forceOctopusABTests" to ScenarioSection.HOST,
             "lifecycle" to ScenarioSection.HOST,
+            "hostLifecycles" to ScenarioSection.HOST,
         )
 
     /**

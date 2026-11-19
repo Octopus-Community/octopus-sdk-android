@@ -637,7 +637,7 @@ internal fun MainScaffold(
     LaunchedEffect(pendingPostId, pendingDeepLink, communityNavigation, navBackStackEntry != null) {
         if (navBackStackEntry == null || (pendingPostId == null && pendingDeepLink == null)) return@LaunchedEffect
         val contentController = communityContentController(currentCommunityNavigation, rootNavController, tabNavController)
-        if (communityNavigation == SDKConfig.CommunityNavigation.InTab) tabNavController.selectTab(CommunityGraph)
+        if (communityNavigation == SDKConfig.CommunityNavigation.InTab) tabNavController.selectCommunityTabForContent()
         if (pendingPostId != null) contentController.navigateToOctopusPost(pendingPostId)
         if (pendingDeepLink != null) contentController.navigate(android.net.Uri.parse(pendingDeepLink))
         onContentLinkConsumed()

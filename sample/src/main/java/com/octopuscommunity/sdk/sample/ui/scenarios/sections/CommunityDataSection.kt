@@ -68,7 +68,7 @@ fun CommunityDataSection(
             "Reads a member's public Octopus stats with fetchCommunityDataResult / " +
                 "fetchCommunityDataByClientUserIdResult (one shot) and their Flow counterparts " +
                 "(reactive), by Octopus userId or by your own clientUserId. gamification.score is " +
-                "always null through this API. Read gamification.level from the result panel below " +
+                "the member's total points, for any member. Read gamification from the result panel below " +
                 "(presets 1 and 2, straight from the network) or from preset 6's profile — never " +
                 "from the live-state panel, which can be showing a store row of any age (see " +
                 "LiveState).",
@@ -224,12 +224,11 @@ private fun ResultPanel(scenario: ScenariosViewModel.CommunityDataScenarioState)
  * SSO session. Which of them reflects what a host actually sees was never established. A value that
  * cannot be traced back to a single read is not an assertion target.
  *
- * `score` is worse than ambiguous: it can never be non-null here. The public read path maps
- * `PublicProfile` onto `OtherUserProfile`, which does not override `Profile.gamificationScore`
- * (default `null`), and the proto's `PublicGamificationScore.score` is a BO-only field the mapper
- * never reads. The row could only ever print "null".
+ * `score` carries the same age caveat, plus one of its own: a row cached before the SDK read the
+ * total keeps a `null` score until the member is fetched again, and the connected member's row is
+ * also rewritten whenever the SDK refreshes their own profile.
  *
- * Where gamification stays observable: presets 1 and 2 print the level into `communityData-result`
+ * Where gamification stays observable: presets 1 and 2 print level and score into `communityData-result`
  * (`ScenariosViewModel.describeCommunityData`) from the gRPC response itself — `fetchProfile*` maps
  * the response and only upserts as a side effect — and preset 6's host-rendered profile is
  * `fetch`-backed too. Residual gap, accepted: the flow path (presets 3/4) now has no gamification

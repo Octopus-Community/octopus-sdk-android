@@ -1,10 +1,16 @@
 package com.octopuscommunity.sdk.sample.ui.navigation
 
 import androidx.core.net.toUri
+import androidx.lifecycle.Lifecycle
 import androidx.navigation.NavGraph
+import androidx.navigation.NavHostController
 import com.octopuscommunity.sdk.domain.model.ProfileField
 import com.octopuscommunity.sdk.sample.data.model.SDKConfig
 import com.octopuscommunity.sdk.ui.components.UrlOpeningStrategy
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 
 /** Host callbacks always leave SDK navigation through the host graph, in either presentation mode. */
 internal data class CommunityHostNavigation(
@@ -51,3 +57,12 @@ internal fun shouldRelayCommunityDeepLink(
     mode == SDKConfig.CommunityNavigation.InTab &&
         uri != null &&
         graph.hasDeepLink(uri.toUri())
+
+/** Lets Home compose before a cold incoming link pushes over its host-defined route. */
+@OptIn(ExperimentalCoroutinesApi::class)
+internal suspend fun NavHostController.selectCommunityTabForContent() {
+    selectTab(CommunityGraph)
+    currentBackStackEntryFlow
+        .flatMapLatest { entry -> entry.lifecycle.currentStateFlow.map { entry to it } }
+        .first { (entry, state) -> entry === currentBackStackEntry && state == Lifecycle.State.RESUMED }
+}

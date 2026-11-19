@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.firebase.messaging.FirebaseMessaging
 import com.octopuscommunity.sdk.OctopusSDK
+import com.octopuscommunity.sdk.domain.model.CommunityAccessDeniedReason
 import com.octopuscommunity.sdk.domain.model.ConnectionMode
 import com.octopuscommunity.sdk.domain.model.OctopusCommunityData
 import com.octopuscommunity.sdk.domain.model.OctopusGroup
@@ -120,6 +121,7 @@ class ScenariosViewModel(
         val groups: List<OctopusGroup> = emptyList(),
         val notSeenCount: Int = 0,
         val hasAccessToCommunity: Boolean = false,
+        val communityAccessDeniedReason: CommunityAccessDeniedReason? = null,
         // Input fields
         val communityAccessInput: Boolean = true,
         val localeInput: String = "",
@@ -270,6 +272,11 @@ class ScenariosViewModel(
                         _state.update { it.copy(hasAccessToCommunity = hasAccess) }
                     }
                 }
+                launch {
+                    OctopusSDK.communityAccessDeniedReason.collect { reason ->
+                        _state.update { it.copy(communityAccessDeniedReason = reason) }
+                    }
+                }
             }
     }
 
@@ -289,6 +296,7 @@ class ScenariosViewModel(
                 groups = emptyList(),
                 notSeenCount = 0,
                 hasAccessToCommunity = false,
+                communityAccessDeniedReason = null,
                 communityDataScenario =
                     it.communityDataScenario.copy(observing = false, observationEndedReason = null),
             )
@@ -1227,6 +1235,13 @@ class ScenariosViewModel(
     }
 
     // --- Lifecycle ---
+
+    /** Rebind the sample after the bench has finished testing retained SDK content. */
+    fun onHostLifecycleSessionEnded() {
+        stopCollecting()
+        if (OctopusSDK.isInitialised) startCollecting()
+        communitySessionTracker.onCommunityTargeted()
+    }
 
     fun executeReset() {
         viewModelScope.launch {

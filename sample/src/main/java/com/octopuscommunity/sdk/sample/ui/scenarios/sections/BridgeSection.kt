@@ -27,6 +27,7 @@ import com.octopuscommunity.sdk.InternalOctopusApi
 import com.octopuscommunity.sdk.OctopusSDK
 import com.octopuscommunity.sdk.domain.model.ClientPost
 import com.octopuscommunity.sdk.domain.model.OctopusGroup
+import com.octopuscommunity.sdk.domain.model.OctopusLocalizedText
 import com.octopuscommunity.sdk.domain.model.OctopusReactionKind
 import com.octopuscommunity.sdk.domain.model.Resource
 import com.octopuscommunity.sdk.domain.network.onFailure
@@ -39,6 +40,7 @@ import com.octopuscommunity.sdk.sample.ui.components.LiveFlowDisplay
 import com.octopuscommunity.sdk.sample.ui.components.SecondaryPillButton
 import com.octopuscommunity.sdk.sample.ui.components.sampleDefaultSwitchColors
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 /**
  * `bridge` scenario: fetchOrCreateClientObjectRelatedPost (+ tokenProvider), then react/unreact on
@@ -80,6 +82,13 @@ fun BridgeSection(
     // Bundled-image attachment is opt-in and defaults off, so existing automated QA taps on
     // presets 1-2 keep exercising the exact same no-attachment payload as before this restoration.
     var includeImage by rememberSaveable { mutableStateOf(false) }
+    // A distant image then two bundled ones instead of one, as the iOS sample's random recipe: a
+    // multi-image client post whose local images are uploaded and whose distant one stays a URL.
+    var includeSeveralImages by rememberSaveable { mutableStateOf(false) }
+    // The button text given per language instead of auto-translated. Off by default, so presets 1-2
+    // keep sending the same payload. Only a post created with it on shows it: an existing bridge
+    // post keeps the button it was created with.
+    var perLanguageButton by rememberSaveable { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     // Same bundled drawable as the Bridge Share presets — a content URI the SDK can read without
@@ -107,9 +116,32 @@ fun BridgeSection(
                         ClientPost(
                             objectId = objectId,
                             text = "Sample bridge post for object: $objectId",
-                            attachment = if (includeImage) Resource.Local(bundledImageUri) else null,
+                            medias =
+                                when {
+                                    includeSeveralImages ->
+                                        listOf(
+                                            Resource.Remote(DISTANT_RECIPE_IMAGE_URL),
+                                            Resource.Local(bundledImageUri),
+                                            Resource.Local(bundledImageUri),
+                                        )
+                                    includeImage -> listOf(Resource.Local(bundledImageUri))
+                                    else -> emptyList()
+                                },
                             catchPhrase = "Check out this content!",
-                            viewObjectButtonText = "View in app",
+                            viewObjectButton =
+                                if (perLanguageButton) {
+                                    OctopusLocalizedText.PerLanguage(
+                                        texts =
+                                            mapOf(
+                                                Locale.ENGLISH to "View in app",
+                                                Locale.FRENCH to "Voir dans l'app",
+                                                Locale.forLanguageTag("es") to "Ver en la app",
+                                            ),
+                                        defaultLanguage = Locale.ENGLISH,
+                                    )
+                                } else {
+                                    OctopusLocalizedText.AutoTranslated("View in app")
+                                },
                         ),
                     tokenProvider = { fingerprint -> TokenProvider.getBridgeSignature(fingerprint) },
                 ).onSuccess { post ->
@@ -118,7 +150,8 @@ fun BridgeSection(
                     isError = false
                     onOpenPost(post.id)
                 }.onFailure { error ->
-                    result = "Error: ${error.describe()}"
+                    val signingHint = if (TokenProvider.isSigningAvailable) "" else "\nBridge signing is unavailable in this build."
+                    result = "Error: ${error.describe()}$signingHint"
                     isError = true
                 }
             isBusy = false
@@ -175,6 +208,38 @@ fun BridgeSection(
                 modifier = Modifier.testTag("bridge-attach-image-toggle"),
                 checked = includeImage,
                 onCheckedChange = { includeImage = it },
+            )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "Attach a distant and 2 bundled images on create",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Switch(
+                colors = sampleDefaultSwitchColors(),
+                modifier = Modifier.testTag("bridge-attach-several-images-toggle"),
+                checked = includeSeveralImages,
+                onCheckedChange = { includeSeveralImages = it },
+            )
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = "Per-language button text on create (en default, fr, es)",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Switch(
+                colors = sampleDefaultSwitchColors(),
+                modifier = Modifier.testTag("bridge-per-language-button-toggle"),
+                checked = perLanguageButton,
+                onCheckedChange = { perLanguageButton = it },
             )
         }
 
@@ -268,3 +333,6 @@ fun BridgeSection(
         ) { Text("Bridge Group → Invalid ID") }
     }
 }
+
+/** The distant image the iOS sample's random recipe posts first. */
+private const val DISTANT_RECIPE_IMAGE_URL = "https://media-content-demo.octocdn.net/misc/macarons.jpeg"

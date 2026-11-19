@@ -3,6 +3,8 @@ package com.octopuscommunity.sdk.sample.ui.scenarios
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -14,6 +16,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
@@ -30,13 +34,24 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -111,6 +126,22 @@ fun ScenariosListScreen(
     val expanded = rememberSaveable(saver = expandedSectionsSaver) { mutableStateOf(setOf<String>()) }
     val listState = rememberLazyListState()
 
+    // The search field lets go of focus — and the keyboard closes — as soon as the tester does
+    // something else: scrolls the list, taps anywhere outside the field, or presses Search.
+    val focusManager = LocalFocusManager.current
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val dismissSearch by rememberUpdatedState {
+        keyboardController?.hide()
+        focusManager.clearFocus()
+    }
+    var searchFieldBounds by remember { mutableStateOf(Rect.Zero) }
+    var screenCoordinates by remember { mutableStateOf<LayoutCoordinates?>(null) }
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.isScrollInProgress }.collect { isScrolling ->
+            if (isScrolling) dismissSearch()
+        }
+    }
+
     val sections =
         remember(query, unifiedProfileActive) {
             ScenarioCatalog
@@ -141,6 +172,16 @@ fun ScenariosListScreen(
         modifier =
             Modifier
                 .fillMaxSize()
+                .onGloballyPositioned { screenCoordinates = it }
+                // Initial pass, nothing consumed: a tap on a card or a switch still reaches it.
+                // Observe before padding so the gutters and the gap below the bar dismiss too.
+                .pointerInput(Unit) {
+                    awaitEachGesture {
+                        val down = awaitFirstDown(requireUnconsumed = false, pass = PointerEventPass.Initial)
+                        val positionInRoot = screenCoordinates?.localToRoot(down.position)
+                        if (positionInRoot != null && !searchFieldBounds.contains(positionInRoot)) dismissSearch()
+                    }
+                }
                 // The status band and search stay below the bar, outside the scrolling list.
                 .padding(top = LocalSampleTopBarInset.current)
                 .padding(horizontal = SampleSpacing.gutter)
@@ -157,8 +198,14 @@ fun ScenariosListScreen(
             onValueChange = { query = it },
             label = { Text("Search scenarios") },
             leadingIcon = { Icon(imageVector = Icons.Filled.Search, contentDescription = null) },
-            modifier = Modifier.fillMaxWidth().testTag("scenarios-search-input"),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .onGloballyPositioned { searchFieldBounds = it.boundsInRoot() }
+                    .testTag("scenarios-search-input"),
             singleLine = true,
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+            keyboardActions = KeyboardActions(onSearch = { dismissSearch() }),
         )
 
         LazyColumn(

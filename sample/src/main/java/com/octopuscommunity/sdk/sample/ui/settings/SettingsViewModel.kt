@@ -4,6 +4,7 @@ import android.content.SharedPreferences
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.octopuscommunity.sdk.OctopusSDK
+import com.octopuscommunity.sdk.domain.model.CommunityAccessDeniedReason
 import com.octopuscommunity.sdk.domain.repository.ConnectionRepository.ConnectionState
 import com.octopuscommunity.sdk.sample.data.SDKConfigResolver
 import com.octopuscommunity.sdk.sample.data.SampleConfigSummary
@@ -32,6 +33,8 @@ class SettingsViewModel(
         val notSeenNotifications: Int = 0,
         /** `OctopusSDK.hasAccessToCommunity`, the live answer of the community-access gate. */
         val hasAccessToCommunity: Boolean = false,
+        /** `OctopusSDK.communityAccessDeniedReason`, why that gate denies the access; `null` while it does not. */
+        val communityAccessDeniedReason: CommunityAccessDeniedReason? = null,
     ) {
         val isConnected: Boolean
             get() = (connectionState as? ConnectionState.Connected)?.isGuest == false
@@ -97,6 +100,11 @@ class SettingsViewModel(
                     launch {
                         OctopusSDK.hasAccessToCommunity.collect { hasAccess ->
                             _state.update { it.copy(hasAccessToCommunity = hasAccess) }
+                        }
+                    }
+                    launch {
+                        OctopusSDK.communityAccessDeniedReason.collect { reason ->
+                            _state.update { it.copy(communityAccessDeniedReason = reason) }
                         }
                     }
                 }

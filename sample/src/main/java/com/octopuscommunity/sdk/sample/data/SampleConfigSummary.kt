@@ -149,6 +149,7 @@ object SampleConfigSummary {
             "it" to "Italian",
             "pl" to "Polish",
             "pt" to "Portuguese",
+            "sk" to "Slovak",
             "sv" to "Swedish",
             "tr" to "Turkish",
         )
