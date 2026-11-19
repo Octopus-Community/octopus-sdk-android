@@ -9,6 +9,36 @@ For upgrade instructions across breaking changes, see [MIGRATING.md](MIGRATING.m
 
 ## Unreleased
 
+## [1.16.0](https://github.com/Octopus-Community/octopus-sdk-android/releases/tag/v1.16.0) — 2026-11-19
+
+Multi-photo posts, localized bridge buttons, clearer community access states and improved comment navigation. Host builds require API 36; see the [migration guide](MIGRATING.md#to-1160-from-115x) before upgrading.
+
+### Added
+- Posts can contain up to 10 photos, displayed in a carousel and a paged full-screen viewer. Pinch photos and videos to zoom inline.
+- Communities can choose formal or informal member-facing wording per language. Slovak is now supported.
+- Bridge buttons can use labels supplied per language, with automatic translation for other languages.
+- Community data exposes members' total gamification points when available. The access-denial reason is available to the host, including when an account has been deleted.
+- Optional post image and group-name tap actions, home navigation controls and profile-field change information give hosts more integration choices.
+
+### Changed
+- Long comment threads open at the latest or requested comment and load surrounding pages as needed.
+- The access-denied screen explains the reason and offers recovery for deleted accounts. Closed communities pause server calls until reopening.
+- The composer accepts posts with one visible character. The default theme, post footer, timestamps and translation toggle have been refreshed.
+- Local images supplied to bridge posts are uploaded without resizing or re-encoding; unreadable images now fail post creation rather than being silently omitted.
+- Members can close the nickname choice screen and return to their draft.
+
+### Fixed
+- Embedded screens and launch links handle initialization, lifecycle changes and community switches more reliably.
+- Large cached communities no longer crash during cleanup; sign-in refreshes the member's feeds, and lifted bans no longer persist incorrectly.
+- Nickname length errors appear under the nickname field. Comment and reply navigation keeps the target visible.
+
+### Deprecated
+- Single-image fields and string bridge labels remain available; prefer the multi-image fields and localized labels. Some Android-only group properties are deprecated.
+
+### Breaking
+- Host builds require `compileSdk` 36 or higher and Android Gradle Plugin 8.9.1 or higher; the minimum Android version remains API 23.
+- Recompile apps and integration libraries against 1.16.0. Direct use of changed UI, data and domain types may require source changes; update exhaustive event and nickname-error matches, removed notification icon and report APIs, and affected string overrides. See [MIGRATING.md](MIGRATING.md#to-1160-from-115x).
+
 ## [1.15.4](https://github.com/Octopus-Community/octopus-sdk-android/releases/tag/v1.15.4) — 2026-11-06
 
 Patch over 1.15.3: one crash fix. No API change, no migration.

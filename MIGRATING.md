@@ -9,12 +9,519 @@ Full release notes (including the additive API surface of each release) live on
 [GitHub Releases](https://github.com/Octopus-Community/octopus-sdk-android/releases),
 and a condensed history in [CHANGELOG.md](CHANGELOG.md).
 
+- [To 1.16.0 (from 1.15.x)](#to-1160-from-115x)
 - [To 1.15.0 (from 1.14.x)](#to-1150-from-114x)
 - [To 1.14.0 (from 1.13.x)](#to-1140-from-113x)
 - [To 1.13.2 (from 1.13.x)](#to-1132-from-113x)
 - [To 1.13.0 (from 1.12.x)](#to-1130-from-112x)
 - [To 1.12.0 (from 1.11.x)](#to-1120-from-111x)
 - [To 1.11.0 (from 1.10.x)](#to-1110-from-110x)
+
+---
+
+## To 1.16.0 (from 1.15.x)
+<a id="to-1160-from-115x"></a>
+
+### Breaking — report ViewModels are internal
+
+`ReportViewModel`, `ReportViewModel.UiState`, `ReportViewModel.Event`, `ReportContentViewModel`
+and `ReportUserViewModel` are now internal to `octopus-sdk-ui`. They are owned by the SDK report sheet; hosts must remove direct imports,
+subclasses and state/event handling. There are no deprecated compatibility aliases.
+
+Before (directly referencing report implementation types):
+
+```kotlin
+import com.octopuscommunity.sdk.ui.report.common.ReportViewModel
+
+fun isSendingReport(state: ReportViewModel.UiState): Boolean = state.isSending
+```
+
+After:
+
+```kotlin
+// Remove direct ReportViewModel references and custom state/event handling.
+// Open Report from the SDK's content or profile menu; the SDK owns the sheet and its state.
+```
+
+Recompile host integrations against 1.16 after removing these references. Integrations that
+already use the SDK report UI need no changes. The report and block flows keep the same behaviour.
+
+### Breaking — deprecated Notifications icon group removed
+
+1.16 removes `OctopusIcons.Notifications`, `OctopusIcons.notifications`,
+`OctopusIconsDefaults.notifications()` and the `notifications` argument of
+`OctopusIconsDefaults.icons()` directly after their WARNING deprecation in 1.15.
+
+- **Why**: the group's only icon was no longer rendered. The notifications empty state already
+  uses `screenStates.emptyNotifications`, as on iOS, and keeps its built-in illustration.
+- **Recompile required**: the `OctopusIcons` constructor, `copy()` and component functions and the
+  `icons()` factory have changed JVM signatures. Rebuild your app and any integration libraries
+  that use them against 1.16; there is no compatibility alias.
+
+Before (1.15.x — the override had no visible effect):
+
+```kotlin
+val icons = OctopusIconsDefaults.icons(
+    notifications = OctopusIconsDefaults.notifications(
+        emptyNotifications = { painterResource(R.drawable.my_empty_notifications) },
+    ),
+)
+```
+
+After (1.16 — the override is rendered):
+
+```kotlin
+val icons = OctopusIconsDefaults.icons(
+    screenStates = OctopusIconsDefaults.screenStates(
+        emptyNotifications = { painterResource(R.drawable.my_empty_notifications) },
+    ),
+)
+```
+
+To keep the SDK default, simply omit `notifications`. If you construct `OctopusIcons` directly or
+call `copy()`, remove its `notifications` argument too. Update positional arguments and destructuring
+to account for the removed fourth property. The deprecated empty-state parameters of `post()` and
+`comment()` are unchanged.
+
+### Breaking — nickname length errors belong to `NicknameError`
+
+`ProfileUpdateError.NicknameError.CharLimitReached` now extends `NicknameError`, rather than
+`BioError`. Its name, constructor and `errorMessage` remain unchanged. There is no deprecated alias
+or compatibility bridge.
+
+- **Why**: a nickname length refusal was incorrectly caught by `BioError` handlers and missed by
+  `NicknameError` handlers. The error now belongs to the nickname field, matching iOS's
+  `ProfileValidationError.ErrorKind.maxCharLimitReached` with `Field.nickname`.
+- **Recompile required**: the public superclass changes. Rebuild host apps and any libraries using
+  this type against 1.16. Add `CharLimitReached` to exhaustive `when` expressions on `NicknameError`,
+  and remove it from exhaustive `when` expressions on `BioError` if present. Code compiled against
+  1.15 and not rebuilt can throw `NoWhenBranchMatchedException` from an exhaustive `when` on
+  `NicknameError`, and its `is NicknameError.CharLimitReached` branch inside a `when` on `BioError`
+  no longer matches.
+
+The source break is the exhaustive `when` on `NicknameError`, which no longer compiles without the
+new branch:
+
+Before:
+
+```kotlin
+fun nicknameMessage(error: ProfileUpdateError.NicknameError): String =
+    when (error) {
+        is ProfileUpdateError.NicknameError.AlreadyUsed -> error.errorMessage
+        is ProfileUpdateError.NicknameError.BannedWords -> error.errorMessage
+        is ProfileUpdateError.NicknameError.BadFormat -> error.errorMessage
+        is ProfileUpdateError.NicknameError.Unknown -> error.errorMessage
+    }
+```
+
+After:
+
+```kotlin
+fun nicknameMessage(error: ProfileUpdateError.NicknameError): String =
+    when (error) {
+        is ProfileUpdateError.NicknameError.AlreadyUsed -> error.errorMessage
+        is ProfileUpdateError.NicknameError.BannedWords -> error.errorMessage
+        is ProfileUpdateError.NicknameError.BadFormat -> error.errorMessage
+        is ProfileUpdateError.NicknameError.CharLimitReached -> error.errorMessage
+        is ProfileUpdateError.NicknameError.Unknown -> error.errorMessage
+    }
+```
+
+Optionally, remove any special handling that worked around the old inheritance (this one still
+compiles on 1.16):
+
+Before:
+
+```kotlin
+when (error) {
+    is ProfileUpdateError.NicknameError.CharLimitReached -> showNicknameError(error.errorMessage)
+    is ProfileUpdateError.NicknameError -> showNicknameError(error.errorMessage)
+    is ProfileUpdateError.BioError -> showBioError(error.errorMessage)
+    else -> showOtherError(error.errorMessage)
+}
+```
+
+After:
+
+```kotlin
+when (error) {
+    is ProfileUpdateError.NicknameError -> showNicknameError(error.errorMessage)
+    is ProfileUpdateError.BioError -> showBioError(error.errorMessage)
+    else -> showOtherError(error.errorMessage)
+}
+```
+
+`BioError.CharLimitReached` is unchanged and still belongs to the bio field. Nickname validation
+messages and limits are unchanged.
+
+### Breaking — legacy secured serializer is internal
+
+`SecuredDataStore.LegacySecuredDataSerializer` is now internal to `octopus-sdk-data`.
+It is a legacy storage implementation detail, not a host integration API. Remove direct
+references and let the SDK own session persistence; no replacement serializer API is added.
+
+Before (direct use of the legacy implementation):
+
+```kotlin
+import com.octopuscommunity.sdk.data.local.datastore.SecuredDataStore
+
+val serializer = SecuredDataStore.LegacySecuredDataSerializer
+```
+
+After:
+
+```kotlin
+// Remove the serializer reference. The SDK restores and persists its session automatically.
+```
+
+Upgrading from 1.15 preserves existing sessions without host migration code.
+
+### Breaking — data-layer cache-cleanup helpers removed
+
+1.16 removes these public members from the published, ungated `octopus-sdk-data` module:
+
+- `FeedDao.getAllFeedItemIds()`.
+- `PostDao.getNonBridgePostIds()`, `deletePostsIn(ids)` and `deletePostsNotIn(ids)`.
+- `CommentDao.getAllCommentIds()`, `deleteCommentsIn(ids)` and `deleteCommentsNotIn(ids)`.
+- `ReplyDao.getAllReplyIds()`, `deleteRepliesIn(ids)` and `deleteRepliesNotIn(ids)`.
+- `OctopusItemRepositoryImpl.deleteLocalItemsNotIn(ids): Int` and its implementations in
+  `PostRepositoryImpl`, `CommentRepositoryImpl` and `ReplyRepositoryImpl`.
+
+**Why**: orphan cleanup now runs atomically per table in SQLite, avoiding full-cache ID reads
+and large parameter lists. Direct callers must replace the removed calls and recompile their
+integrations. For orphan cleanup, use the existing domain repository method
+`deleteLocalOrphanedItems()`; the domain repository API is unchanged.
+
+Before (direct data-layer cleanup with a keep-list):
+
+```kotlin
+import com.octopuscommunity.sdk.data.repository.PostRepositoryImpl
+
+suspend fun cleanPostCache(repository: PostRepositoryImpl, feedItemIds: List<String>) {
+    repository.deleteLocalItemsNotIn(feedItemIds)
+}
+```
+
+After:
+
+```kotlin
+import com.octopuscommunity.sdk.domain.repository.PostRepository
+
+suspend fun cleanPostCache(repository: PostRepository) {
+    repository.deleteLocalOrphanedItems()
+}
+```
+
+The method uses references from all cached feeds, takes no caller-supplied keep-list and returns
+`Unit`; remove any deleted-count handling. An empty feed cache preserves all cached content, and
+bridge posts are retained. Call `deleteLocalOrphanedItems()` on `CommentRepository` or
+`ReplyRepository` separately when those caches need cleanup. The constructor of
+`OctopusItemRepositoryImpl` is `internal`, so only Java code can subclass it outside the SDK: such a
+subclass must now implement `deleteLocalOrphanedItems(): Unit` instead of
+`deleteLocalItemsNotIn(ids): Int`.
+
+### Breaking — internal repository getters require opt-in
+
+`OctopusSDK.reactionsRepository` and `OctopusSDK.userCommentRepository` now require
+`@OptIn(InternalOctopusApi::class)` in Kotlin.
+
+- **Why**: these SDK-internal repositories back the SDK's own "Who reacted" list and profile
+  Comments tab. iOS exposes no public equivalent. Use the SDK UI to show these lists; there is no
+  equivalent public use case or flow for fetching them.
+- **Binary-compatible**: the getters keep their JVM signatures, so already compiled callers keep
+  running and Java callers are unaffected. Kotlin source that accesses either getter must opt in
+  when recompiled against 1.16.
+
+For existing code that still needs these internals, add the opt-in at the call site. It acknowledges
+that these APIs may change or be removed without notice, including in patch releases.
+
+Before:
+
+```kotlin
+import com.octopuscommunity.sdk.OctopusSDK
+
+fun accessRepositories() {
+    val reactions = OctopusSDK.reactionsRepository
+    val userComments = OctopusSDK.userCommentRepository
+}
+```
+
+After:
+
+```kotlin
+import com.octopuscommunity.sdk.InternalOctopusApi
+import com.octopuscommunity.sdk.OctopusSDK
+
+@OptIn(InternalOctopusApi::class)
+fun accessRepositories() {
+    val reactions = OctopusSDK.reactionsRepository
+    val userComments = OctopusSDK.userCommentRepository
+}
+```
+
+### Breaking — `ScreenDisplayed` gained `CommunityAccessDenied`
+
+`OctopusEvent.ScreenDisplayed.CommunityAccessDenied` is sent when the screen shown instead of the
+community is displayed, matching iOS (`OctopusEvent.Screen.communityAccessDenied`). An exhaustive
+`when` over `ScreenDisplayed` without an `else` branch no longer compiles. Add the new branch, or an
+`else` branch so that later screens do not break it again.
+
+Before:
+
+```kotlin
+fun screenName(event: OctopusEvent.ScreenDisplayed): String =
+    when (event) {
+        is OctopusEvent.ScreenDisplayed.MainFeed -> "feed"
+        OctopusEvent.ScreenDisplayed.Groups -> "groups"
+        // ... one branch per screen
+    }
+```
+
+After:
+
+```kotlin
+fun screenName(event: OctopusEvent.ScreenDisplayed): String =
+    when (event) {
+        is OctopusEvent.ScreenDisplayed.MainFeed -> "feed"
+        OctopusEvent.ScreenDisplayed.Groups -> "groups"
+        // ... one branch per screen
+        OctopusEvent.ScreenDisplayed.CommunityAccessDenied -> "community_access_denied"
+    }
+```
+
+### Breaking (Java source) — `UserConfig` gained `accessDenial`
+
+`UserConfig` carries why the access is denied, with the details of a ban, as a trailing, defaulted
+`accessDenial`. Kotlin source compiles unchanged, and code compiled against 1.15.x keeps linking:
+the previous constructor and `copy` stay in the binary, hidden from source. Java source, which sees
+no default values, passes the new argument; `null` keeps the previous meaning.
+
+Before (Java):
+
+```java
+UserConfig config = new UserConfig(false, "Not available yet");
+```
+
+After (Java):
+
+```java
+UserConfig config = new UserConfig(false, "Not available yet", null);
+```
+
+### Breaking — `CommunityAccessDeniedViewModel.UiState` no longer takes `accessDeniedMessage`
+
+The screen shown instead of the community now shows a title, a subtitle and a button that depend on
+the reason of the denial, and its state in `octopus-sdk-ui` holds those. `accessDeniedMessage` is
+no longer a constructor or `copy` argument of `UiState`, so code that builds or copies one with it
+no longer compiles. Reading it still compiles with a deprecation warning, for one release: it gives
+the message of the server, the sentences of a ban, or the title when there is no message. The
+message alone no longer describes the screen, so host code that read the state of this SDK screen
+reads the reason from the entry point instead.
+
+Before:
+
+```kotlin
+val message: UiText = viewModel.state.value.accessDeniedMessage
+```
+
+After:
+
+```kotlin
+val reason: Flow<CommunityAccessDeniedReason?> = OctopusSDK.communityAccessDeniedReason
+```
+
+### Breaking (binary only) — `OctopusIcons.Content` gained `translation`
+
+The content icon set in `octopus-sdk-ui` carries the icon shown before the "See original" / "See
+translation" toggle, as a trailing, defaulted `translation` on `OctopusIcons.Content` and on
+`OctopusIconsDefaults.content()`. As with `clearText` in 1.15.0, Kotlin keeps no overload for the
+old parameter list: source that builds or copies an `OctopusIcons.Content`, positionally or by
+name, compiles unchanged, Java source passes the new argument, and a binary compiled against 1.15.x
+that does — typically a host's theme setup, test fixture or preview — throws `NoSuchMethodError`
+once this version is on the classpath. Recompile it.
+
+### Breaking (binary only) — repositories that read the closure of the community
+
+The SDK now stops its calls while the community is closed, and the repositories that make or gate
+them read that closure. In `octopus-sdk-data`, `CommunityConfigRepositoryImpl`,
+`ConnectionRepositoryImpl`, `SSOConnectionRepositoryImpl`, `ProfileRepositoryImpl`,
+`SessionRepositoryImpl`, `TrackerRepositoryImpl` and `UserRepositoryImpl` take a defaulted
+`closureRepository` constructor parameter, and `ApiKeyService.getConfig()` a defaulted
+`bypassingCallsGate` parameter. In `octopus-sdk-ui`, `OctopusViewModel.CommonParameters` takes a
+defaulted `closureRepository`. Kotlin keeps no overload for the old parameter lists: source that
+calls them compiles unchanged, Java source passes the new arguments, and a binary compiled against
+1.15.x that calls them directly — a host that builds these classes itself, or a test fixture —
+throws `NoSuchMethodError` once this version is on the classpath. Recompile it. A host that only
+goes through `OctopusSDK` is not concerned.
+
+### Breaking — `octopus-sdk-data` cache entities and DAOs
+
+These concern only a host that builds the SDK's Room entities or implements its DAOs itself,
+typically in a test fixture; a host that goes through `OctopusSDK` is not concerned.
+
+- Entities (binary only): `PublicProfileEntity` gains a trailing, nullable `gamificationScore`;
+  `UserConfigEntity` five trailing, defaulted properties for the reason of a denied access and the
+  details of a ban; `CommunityConfigEntity` a defaulted `informalLanguages`, and its content
+  options `postImageTapOpensPost` and `postGroupNameTapOpensGroup`. Kotlin source compiles
+  unchanged; Java source passes the new arguments; a binary compiled against 1.15.x that builds or
+  copies one throws `NoSuchMethodError` until recompiled.
+- DAOs (source): several DAO interfaces gain abstract members that a direct implementation must
+  add — `ProfileDao.updatePublicProfileGamification`; `CommentDao.getFeedComments`,
+  `updateCommentReaction` and `deleteOrphanedComments`; `FeedDao.getRefreshPosts`,
+  `getRefreshComments`, `getRefreshReplies`, `getMaxPosition`, `getMinPosition` and
+  `deleteFeedItemsMarked`; `PostDao.deleteOrphanedPosts`; `ReplyDao.deleteOrphanedReplies`;
+  `TrackerEventDao.insertAppSessionEndReceipt`. For instance, for `ProfileDao`:
+
+Before:
+
+```kotlin
+class FakeProfileDao : ProfileDao {
+    // 1.15.x members
+}
+```
+
+After:
+
+```kotlin
+class FakeProfileDao : ProfileDao {
+    // 1.15.x members
+
+    override suspend fun updatePublicProfileGamification(
+        userId: String,
+        gamificationLevelIndex: Int?,
+        gamificationScore: Int?,
+    ) {
+        // Update the level and score of a cached public profile already marked as gamified.
+    }
+}
+```
+
+### Behaviour change — overrides of the texts that address the member
+
+The SDK now reads each text that addresses the member from a `_formal` and an `_informal`
+resource, to follow the tone a community sets per language. The unsuffixed resource of these texts
+is no longer read, so a host override of it stops applying, silently. The concerned keys are the
+ones the SDK's `values/strings.xml` defines with both suffixes. Move each such override to both
+variants.
+
+Before (host `res/values/strings.xml`):
+
+```xml
+<string name="error_unknown">Something went wrong, try again.</string>
+```
+
+After:
+
+```xml
+<string name="error_unknown_formal">Something went wrong, please try again.</string>
+<string name="error_unknown_informal">Something went wrong, try again.</string>
+```
+
+### Deprecations — multi-photo UI and mapper compatibility
+
+`PostMedia.Images(medias)` holds every image of a post, in order. The deprecated
+`PostMedia.Image(media)` remains available to Kotlin and Java hosts, including its constructor,
+`media` property and `copy`. Migrate new rendering code to `PostMedia.Images` and handle its
+`medias` list; the SDK mapper now returns this multi-photo model.
+
+`CreatePostViewModel.UiState` adds `isPrefilled`, `communityOptionsResolved`, `faultyImage` and
+`isReadingImages`. Its 1.15.x constructor and `copy` signatures (18 arguments), plus their
+pre-multi-photo equivalents (19 arguments), remain as compatibility overloads, including their default
+argument bridges. They do not emit deprecation warnings on ordinary calls. Copying through the old
+overload preserves the new fields.
+`OctopusDestination.CreatePost` likewise retains its six-argument constructor and `copy`, visible
+to Kotlin and Java. Prefer its `prefilledImageUris` parameter for new integrations.
+
+`CreatePostViewModel.updatePicture` and `applyPrefilledImage` are deprecated: use `addPictures` /
+`removePicture` and `applyPrefilledImages`.
+
+`PostMapper.toProto()` for `Post.Draft` and `ClientPost`, and `PostMapper.toFingerprint()` for
+`ClientPost`, retain their public signatures as deprecated compatibility paths. They encode every image from
+`images` (whether supplied through the legacy field or `medias`) in display order, preserving the
+legacy encoding and joining fingerprint image values with the backend separator. Use the post repository or
+`OctopusSDK.fetchOrCreateClientObjectRelatedPost` for the upload flow that supports all images.
+
+### Behaviour change — client post images are no longer resized
+
+The local images of a `ClientPost` are uploaded as the host supplies them: Android no longer resizes
+them to 1500 px nor re-encodes them before hashing and sending them, as on iOS. The bridge
+fingerprint is now the one the backend JWT documentation specifies, computed on those bytes, so a
+host backend can compute it from its own copy of each image. Pass images no larger than you want
+stored and served, in JPEG or PNG. `ClientPost.IMAGE_UPLOAD_MAX_SIZE` and
+`ClientPost.IMAGE_UPLOAD_QUALITY` are deprecated with no replacement: they are no longer applied.
+
+### Deprecations — single image fields
+
+`ClientPost.attachment`, `Post.Draft.media`, `OctopusPrefilledPost.image` and
+`OctopusDestination.CreatePost.prefilledImageUri` are deprecated: use `medias`, `medias`, `images`
+and `prefilledImageUris`. Setting both the old and the new field of an `OctopusPrefilledPost`, a
+`ClientPost` or a `Post.Draft` throws `IllegalArgumentException`. `ClientPost.images` and
+`Post.Draft.images` read the images whichever field set them, and so does
+`OctopusPrefilledPost.images`. The constructors these classes had keep compiling, in Kotlin and in
+Java, `new OctopusPrefilledPost(text, null, topicId, cta)` included.
+
+More than 10 images throws `OctopusPrefilledPost.TooManyImagesError`. It extends
+`IllegalArgumentException` but is not an `OctopusPrefilledPost.ValidationError`, so a `when` over
+`ValidationError` does not cover it.
+
+Before:
+
+```kotlin
+ClientPost(objectId = "recipe-1", text = "Our recipe", attachment = Resource.Remote(url))
+```
+
+After (pass `viewObjectButton` explicitly, `null` for no button, to reach the non-deprecated
+constructor):
+
+```kotlin
+ClientPost(
+    objectId = "recipe-1",
+    viewObjectButton = null,
+    text = "Our recipe",
+    medias = listOf(Resource.Remote(url1), Resource.Remote(url2)),
+)
+```
+
+### Breaking — repository and UI state changes
+
+`GroupRepository.fetchGroup` has a default body for Kotlin source. Java implementations must implement it; Kotlin implementations compiled against 1.15 must be recompiled.
+
+`CommentDetailsViewModel.UiState` adds `hasLoadFailure` and `loadFailureIsNoNetwork` after `isRefreshing`. Update positional constructor and `copy` calls past that argument and destructuring, and recompile affected binaries. Named calls remain source-compatible.
+
+`OctopusItemsListViewModel.UiState` and `OctopusItemsListViewModel` have changed constructor signatures; `FeedService.initializeFeed()` takes an anchor parameter. `OctopusItemInputFieldViewModel.UiState` also gained a property. Recompile binaries that directly construct, copy or call these declarations.
+
+### Removed and unused string resources
+
+Direct `R.string` references to removed resources must be deleted. These include the former `connection_magic_link_*`, `settings_profile_delete_account_*`, `validate_nickname_*` strings and unused empty-state strings, plus `accessibility_view_count_count`, `content_aggregated_info_comment_count`, `content_aggregated_info_view_count` and `content_aggregated_info_reaction_count_empty`. Delete overrides that are no longer read; move an override of `content_aggregated_info_like` to `content_aggregated_info_reaction_heart`. `post_create_incentive_button5` is no longer read.
+
+### Build requirements — compileSdk 36
+
+All four published modules now compile against Android 16 (API 36). Host apps must use
+`compileSdk` 36 or higher and Android Gradle Plugin (AGP) 8.9.1 or higher, the
+[minimum supported AGP for API 36](https://developer.android.com/build/releases/about-agp#api-level-support).
+Keep a newer AGP version if your project already uses one.
+
+Update the host app's `build.gradle.kts`:
+
+Before:
+
+```kotlin
+android {
+    compileSdk = 35
+}
+```
+
+After:
+
+```kotlin
+android {
+    compileSdk = 36
+}
+```
+
+If needed, update the AGP version in the root build script or version catalog to at least
+8.9.1, together with its required Gradle version. The SDK's `minSdk` stays at 23, and its
+libraries do not set `targetSdk`; this change does not require a host `targetSdk` change.
 
 ---
 
