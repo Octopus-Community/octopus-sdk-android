@@ -1,0 +1,81 @@
+syntax = "proto3";
+
+//
+// Run gradle:
+//         Tasks > other > "generateProto"
+// task to generate the java classes and make it available in your code
+//
+
+package com.octopuscommunity;
+
+import "com/octopuscommunity/GrpcModelProto.proto";
+
+service FeedService {
+  rpc GetRootFeedsInfo(GetRootFeedsInfoRequest) returns (GetRootFeedsInfoResponse);
+  rpc InitializeFeedWithOctoObject(InitializeFeedWithOctoObjectRequest) returns (GetFeedWithOctoObjectPageResponse);
+  rpc GetFeedWithOctoObjectPage(GetFeedWithOctoObjectPageRequest) returns (GetFeedWithOctoObjectPageResponse);
+  //Normalized version
+  rpc InitializeFeed(InitializeFeedRequest) returns (GetFeedPageResponse);
+  rpc GetFeedPage(GetFeedPageRequest) returns (GetFeedPageResponse);
+}
+
+message GetRootFeedsInfoRequest {}
+
+message GetRootFeedsInfoResponse {
+  repeated FeedInfo feedsInfo = 1;
+}
+
+message FeedInfo {
+  string id = 1;
+  string label = 2;
+  optional string relatedTopicId = 3;
+}
+
+message InitializeFeedWithOctoObjectRequest {
+  string feedId = 1;
+  optional int32 pageSize = 2; //Server can decide to return less than this value
+}
+
+message GetFeedWithOctoObjectPageRequest {
+  string pageCursor = 1;
+  optional int32 pageSize = 2; //Server can decide to return less than this value
+  optional bool fetchAggregates = 3;
+}
+
+message GetFeedWithOctoObjectPageResponse {
+  repeated OctoObject feed = 1;
+  optional string nextPageCursor = 2; //To pass to pageCursor in the next request. `null` if there is no more pages/items
+  repeated FeedAggregate aggregates = 3; //Same order than feed
+  repeated OctoObject relatedObjects = 4;
+  repeated FeedAggregate relatedAggregates = 5;
+}
+
+message FeedAggregate {
+  string itemId = 1;
+  Aggregate aggregate = 2;
+}
+
+message InitializeFeedRequest {
+  string feedId = 1;
+  optional int32 pageSize = 2; //Server can decide to return less than this value
+  optional bool showAll = 3;
+  optional string anchorItemId = 4; //Opens the feed on the page holding this item. Ignored when it cannot be served there: the first page is returned
+}
+
+message GetFeedPageRequest {
+  string pageCursor = 1;
+  optional int32 pageSize = 2; //Server can decide to return less than this value
+}
+
+message GetFeedPageResponse {
+  repeated FeedItemInfo items = 1;
+  optional string nextPageCursor = 2; //To pass to pageCursor in the next request. `null` if there is no more pages/items
+  optional string previousPageCursor = 3; //Set only on a page opened with anchorItemId: to pass to pageCursor to list the items before the page, closest first
+}
+
+message FeedItemInfo {
+  string octoObjectId = 1;
+  uint64 octoObjectUpdatedAt = 2;
+  optional string highlightedChildId = 3;
+  //TODO string octoObjecCreatedBy
+}

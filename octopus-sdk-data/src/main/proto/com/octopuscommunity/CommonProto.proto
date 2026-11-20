@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package com.octopuscommunity;
+
+// An empty message for routes that do not return any value
+message Empty {}
+
+//Error messages on Put
+message ErrorDetails{
+  message MissingParent {}
+  message MaxCharLimitReached {}
+  message BannedWordUsed {
+    repeated string words = 1;
+  }
+  message MissingText {}
+  message EmptyFile {}
+  message FileSizeTooBig {}
+  message BadFileFormat {}
+  message UploadIssue {}
+  message EmptyPublication {}
+  message MultiContent {}
+  message MissingPollAnswer {} // for putPollVote only
+  message BadPollAnswerNumber {}
+  message DownloadIssue {}
+  message MissingCtaText {}
+  message MissingClientObjectId {}
+  message InvalidClientToken {}
+  message BridgePostUnavailable {}
+  message ExpiredClientToken {}
+  message InvalidTopicId {}
+  message InvalidAuthor {} //Octopus side
+  message MissingCtaTarget {}
+  message InvalidCtaTarget {}
+  message PostAlreadyExists {}
+  message PostNotFound {}
+  message PublicationRateLimitExceeded {
+    int64 waitInSec = 1;
+    string ruleLabel = 2; // Name of the rule that triggered the error
+    int32 maxCount = 3; // Max number of publication in window
+    int64 windowSec = 4; // Duration of the window in sec
+  }
+  message UnFollowableTopic {}
+  message TopicAlreadyFollowed {}
+  message TopicAlreadyUnfollowed {}
+}

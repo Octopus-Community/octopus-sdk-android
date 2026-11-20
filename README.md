@@ -132,6 +132,15 @@ it arrives by email within 24 hours. The sample connects users with SSO: to sign
 [Generate a signed JWT for SSO](https://doc.octopuscommunity.com/backend/sso/)). The sample
 signs its own JWT locally for convenience; your app should get it from your backend.
 
+## SDK sources
+
+The SDK library sources are published here for reading, at the released version this
+repository's sample pins, in the `octopus-sdk`, `octopus-sdk-ui`, `octopus-sdk-domain` and
+`octopus-sdk-data` directories
+(main source sets, resources, gRPC contract and public API dumps). This project does not
+compile them: the sample and tools resolve the SDK from Maven Central, where each artifact
+also ships a `-sources.jar`.
+
 ## Links
 
 - [Integration guide](docs/integration-guide.md) — SSO setup, navigation patterns, profile

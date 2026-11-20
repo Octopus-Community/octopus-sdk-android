@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package com.octopuscommunity;
+
+import "com/octopuscommunity/GrpcModelProto.proto";
+
+service MediaService {
+  rpc GetMedia(GetMediaRequest) returns (GetMediaResponse); // For Back-Office
+}
+
+message GetMediaRequest {
+  repeated string mediaIds = 1;
+}
+
+message GetMediaResponse {
+  repeated MediaContent responses = 1;
+}

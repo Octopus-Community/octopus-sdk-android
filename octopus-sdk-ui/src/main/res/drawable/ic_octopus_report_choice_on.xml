@@ -1,0 +1,14 @@
+<!-- Source: Figma Feature - Report (file sx2Q80gQrF7GOqYwRWsa0Q), node 15003:1249 (Vector).
+     Single path combining a filled disk + a check carved out via even-odd fill rule, so a
+     Compose `Icon(tint=primary)` colors the disk and the check inherits whatever surface
+     sits behind the icon (the sheet background, typically white). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M24,11.9999 C24,18.6117 18.6235,24 11.9999,24 C5.38822,24 0,18.6117 0,11.9999 C0,5.37646 5.38822,0 11.9999,0 C18.6235,0 24,5.37646 24,11.9999 Z M15.6588,7.3294 L10.6353,15.3999 L8.24704,12.3177 C7.95293,11.9294 7.6941,11.8235 7.35293,11.8235 C6.82352,11.8235 6.41175,12.2588 6.41175,12.7883 C6.41175,13.0588 6.51763,13.3177 6.6941,13.5529 L9.64704,17.1764 C9.95292,17.5882 10.2823,17.753 10.6823,17.753 C11.0823,17.753 11.4235,17.5647 11.6705,17.1764 L17.2,8.47058 C17.3412,8.22352 17.4941,7.95293 17.4941,7.6941 C17.4941,7.14117 17.0117,6.78822 16.494,6.78822 C16.1882,6.78822 15.8824,6.97646 15.6588,7.3294 Z" />
+</vector>

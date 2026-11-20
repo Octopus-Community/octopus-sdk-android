@@ -1,0 +1,112 @@
+syntax = "proto3";
+
+package com.octopuscommunity;
+
+import "com/octopuscommunity/UserServiceProto.proto";
+import "com/octopuscommunity/GrpcModelProto.proto";
+
+// MagicLinkService provides functionality for authentication using magic links.
+service MagicLinkService {
+  // Generates a magic link and sends it to the specified email.
+  rpc GenerateLink(GenerateLinkRequest) returns (GenerateLinkResponse);
+
+  // Confirms a magic link when a user clicks on it.
+  rpc ConfirmLink(ConfirmLinkRequest) returns (ConfirmLinkResponse);
+
+  // Retrieves a JWT for a confirmed magic link.
+  rpc GetJWT(IsAuthenticatedRequest) returns (IsAuthenticatedResponse);
+}
+
+// Request to generate a magic link.
+message GenerateLinkRequest {
+  string email = 1; // The email address to send the magic link to.
+  optional string deeplink = 2; // Optional deeplink to include in the magic link.
+  // TODO: Add string communityId = 3; for future use.
+}
+
+// Response after generating a magic link.
+message GenerateLinkResponse {
+  oneof result {
+    string magicLinkId = 1; // The generated id for the magic link.
+    GenerateLinkErrorDetail error = 2; // Error details if authentication failed.
+  }
+
+  // Detailed error information.
+  message GenerateLinkErrorDetail {
+    GenerateLinkErrorCode errorCode = 1; // The specific error code.
+    string message = 2; // A human-readable error message.
+  }
+
+  // Possible error codes for magic link request failures.
+  enum GenerateLinkErrorCode {
+    UNKNOWN_ERROR = 0; // An unknown error occurred.
+    USER_BANNED = 1; // The user exists but has been banned
+  }
+}
+
+// Request to confirm a magic link. This message is intentionally empty as the magicLinkId
+// is typically included in the headers of the request.
+message ConfirmLinkRequest {}
+
+// Response after confirming a magic link.
+message ConfirmLinkResponse {
+  optional string deeplink = 1; // The deeplink to redirect the user to, if any.
+  optional string user_nickname = 2; // The user's nickname, if available.
+  ConfirmLinkStatus status = 3; // The status of the confirmation attempt.
+  repeated StatusReasonCode banReasons = 4; //Only fill when the user is banned to display the reasons
+}
+
+// Possible statuses when confirming a magic link.
+enum ConfirmLinkStatus {
+  UNSPECIFIED_LINK_STATUS = 0;
+  EXPIRED_STRONG = 1; // The link has strongly expired (cannot be used).
+  EXPIRED_WEAK = 2; // The link has weakly expired (can be refreshed).
+  ALREADY_USED = 3; // The link has already been used.
+  AUTHENTICATED = 4; // The link is valid and the user is authenticated.
+  UNAUTHORIZED = 5; // The user related to the magic link is banned
+  INVALID_TOKEN = 6; // The link is not valid.
+}
+
+// Request to check if a user has been authenticated with a magic link.
+message IsAuthenticatedRequest {
+  string magicLinkId = 1; // The magic link id to check.
+  string email = 2; // The email associated with the id.
+}
+
+// Response to an authentication check.
+message IsAuthenticatedResponse {
+  oneof result {
+    AuthenticationSuccess success = 1; // The response if authentication was successful.
+    ErrorDetail error = 2; // Error details if authentication failed.
+  }
+}
+
+//Response after successful authentication
+message AuthenticationSuccess {
+  string jwt = 1; // The jwt related to the user
+  string userId = 2; // The user id
+  PrivateProfile profile = 3; // The profile of the user
+}
+
+// Detailed error information.
+message ErrorDetail {
+  ErrorCode error_code = 1; // The specific error code.
+  string message = 2; // A human-readable error message.
+}
+
+// Possible error codes for authentication failures.
+enum ErrorCode {
+  UNKNOWN_ERROR = 0; // An unknown error occurred.
+  NOT_AUTHENTICATED_YET = 1; // A Magic link connection request exists, but has not been validated by the user yet
+  LINK_NOT_FOUND = 2; // No magic link connection request found for the given magicLinkId/email combination
+  USER_NOT_FOUND = 3; // No user related to the magic link connection request found
+  INVALID_LINK = 4; // The magic link connection request has been invalidated by a most recent one
+  EXPIRED_LINK = 5; // The magic link connection request has expired
+  USER_BANNED = 6; // The user exists but has been banned
+}
+
+// MagicLinkStreamService provides subscription to channel in order to know when a user is authenticated via magic link
+service MagicLinkStreamService {
+  // Subscribes to authentication status updates for a given magicLinkId and email.
+  rpc Subscribe(IsAuthenticatedRequest) returns (stream IsAuthenticatedResponse);
+}

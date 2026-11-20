@@ -1,0 +1,82 @@
+syntax = "proto3";
+
+package com.octopuscommunity;
+
+import "com/octopuscommunity/GrpcModelProto.proto";
+
+service NotificationService {
+
+  //Notif center
+  rpc GetUserNotifications(GetUserNotificationsRequest) returns (GetUserNotificationsResponse);
+  rpc MarkNotificationsAsRead(MarkNotificationsAsReadRequest) returns (MarkNotificationsAsReadResponse);
+
+  //Push notif
+  rpc RegisterPushToken(RegisterPushTokenRequest) returns (RegisterPushTokenResponse);
+  rpc SetNotificationSettings(SetNotificationSettingsRequest) returns (NotificationSettingsResponse);
+  rpc GetNotificationSettings(GetNotificationSettingsRequest) returns (NotificationSettingsResponse);
+
+  //Community notif
+  rpc SendCommunityNotification(SendCommunityNotificationRequest) returns (SendCommunityNotificationResponse);
+
+}
+
+message SendCommunityNotificationRequest {
+
+  //if there is more languages than supported by the community, the unsupported languages will be ignored
+  //If there is less languages than supported by the community, english will be used as fallback
+  map<string, NotificationContent> langToNotifContent = 1; //Map of language tag (en, fr, en-US etc...) to content
+
+  string octoObjectId = 2; //The ID of the object to which the notification is related (e.g. a post, a comment, etc.) will open the object in the app when tapped
+
+  message NotificationContent {
+    string text = 2;
+  }
+
+}
+
+message SendCommunityNotificationResponse {
+  string commuNotifId = 1; //The ID of the notification that was sent
+}
+
+message GetUserNotificationsRequest {
+  string userId = 1;
+  optional bool markdownText = 2; //Default to true
+}
+
+message GetUserNotificationsResponse {
+  repeated Notification notifications = 1;
+}
+
+message MarkNotificationsAsReadRequest {
+  repeated string notificationIds = 1;
+  optional bool read = 2; //Default true
+}
+
+message MarkNotificationsAsReadResponse {
+  repeated string notificationIds = 1; //the IDs of the notifications on which the status change is effective
+}
+
+message RegisterPushTokenRequest {//Send it each time you receive it and when the user changes. Notification language is related to language tag sent in header of this request
+  optional string pushToken = 1; //can be nullable if PN are disable on device
+  optional bool isSandbox = 2; //Whether the token is for sandbox (iOS only, default to false).
+}
+
+message RegisterPushTokenResponse {
+}
+
+message SetNotificationSettingsRequest {
+  NotificationSettings settings = 1;
+}
+
+message GetNotificationSettingsRequest {
+}
+
+message NotificationSettingsResponse {
+  NotificationSettings settings = 1;
+}
+
+message NotificationSettings {
+  bool pushNotificationEnabled = 1;
+}
+
+

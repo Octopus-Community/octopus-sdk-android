@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package com.octopuscommunity;
+
+import "com/octopuscommunity/CommonProto.proto";
+
+//-----------------LastSeenService-----------------
+
+service LastSeenService {
+  //Not for V0.1
+  rpc UpdateLastSeen(UpdateLastSeenRequest) returns (Empty);
+}
+
+message UpdateLastSeenRequest {
+  string objectId = 1;
+}

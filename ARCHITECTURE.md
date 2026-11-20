@@ -2,7 +2,9 @@
 
 This repository contains the canonical `sample/` application and `tools/`,
 a Compose theme configurator. The SDK libraries are resolved from Maven Central
-using the `octopusSdk` pin in `gradle/libs.versions.toml`.
+using the `octopusSdk` pin in `gradle/libs.versions.toml`. Their sources are
+published for reading in the four `octopus-sdk*` directories, which this build
+does not compile.
 
 The sample has a single navigation shell: Config, Scenarios, Community and
 Settings, with a Debug console for events and API results. Scenario presets

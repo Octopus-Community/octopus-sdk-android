@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Heart outline icon for the Like button when the user has no active reaction.
+  Iso Figma `heart-stroke-1` export and iOS `AggregatedInfo/like.imageset`.
+  24dp container with stroke-only path. Tinting via `Modifier.tint` in code.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#00000000"
+        android:fillType="evenOdd"
+        android:pathData="M12.4941,6.77984C10.7947,4.832 7.96079,4.30803 5.83149,6.09168C3.7022,7.87532 3.40242,10.8574 5.07457,12.967L12.4941,20L19.9137,12.967C21.586,10.8574 21.3228,7.85656 19.1568,6.09168C16.9909,4.3268 14.1937,4.832 12.4941,6.77984Z"
+        android:strokeColor="#616172"
+        android:strokeWidth="1"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+</vector>

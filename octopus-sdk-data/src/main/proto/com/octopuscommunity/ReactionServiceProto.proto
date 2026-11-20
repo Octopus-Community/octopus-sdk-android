@@ -1,0 +1,103 @@
+syntax = "proto3";
+
+//
+// Run gradle:
+//         Tasks > other > "generateProto"
+// task to generate the java classes and make it available in your code
+//
+
+package com.octopuscommunity;
+
+import "com/octopuscommunity/GrpcModelProto.proto";
+import "com/octopuscommunity/CommonProto.proto";
+
+message PutLikeResponse {
+  oneof result {
+    Success success = 1;
+    Fail fail = 2;
+  }
+
+  message Success {
+    OctoObject like = 1;
+  }
+
+  message Fail {
+    repeated Error errors = 1;
+  }
+
+  message Error {
+    string message = 1;
+
+    optional Field field = 2;
+    enum Field {
+      UNKNOWN = 0;
+      CONTENT_PARENT = 1; //MissingParent
+    }
+
+    oneof details {
+      ErrorDetails.MissingParent missingParent = 101;
+    }
+  }
+}
+
+
+message DeleteLikeRequest {
+  string octoObjectId = 1;
+}
+
+message DeleteLikeResponse {
+}
+
+message PutReactionResponse {
+  oneof result {
+    Success success = 1;
+    Fail fail = 2;
+  }
+
+  message Success {
+    OctoObject reaction = 1;
+    optional bool hasTargetVideoContent = 2; //For analytics
+  }
+
+  message Fail {
+    repeated Error errors = 1;
+  }
+
+  message Error {
+    string message = 1;
+
+    optional Field field = 2;
+    enum Field {
+      UNKNOWN = 0;
+      CONTENT_PARENT = 1; //MissingParent
+    }
+
+    oneof details {
+      ErrorDetails.MissingParent missingParent = 101;
+    }
+  }
+}
+
+message DeleteRequest {
+  string octoObjectId = 1;
+}
+
+message DeleteReactionResponse {
+}
+
+message GetReactionsPageRequest {
+  string parentId = 1;          // post / comment / reply
+  optional string unicode = 2;  // absent → tab "All"; set → only that reaction type
+  optional string pageCursor = 3; // absent → first page; pass the previous response's nextPageCursor for the next page
+  uint32 pageSize = 4;          // 0/unset → server default; clamped to a server maximum
+}
+
+message GetReactionsPageResponse {
+  message UserReaction {
+    optional MinimalProfile profile = 1; // Empty when user is deleted or banned
+    string unicode = 2;
+  }
+  repeated UserReaction reactions = 1;   // sorted by most recent reaction first
+  optional string nextPageCursor = 2;    // null if there is no more page
+}
+

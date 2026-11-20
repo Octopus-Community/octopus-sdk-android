@@ -1,0 +1,538 @@
+syntax = "proto3";
+
+//
+// Run gradle:
+//         Tasks > other > "generateProto"
+// task to generate the java classes and make it available in your code
+//
+
+package com.octopuscommunity;
+
+import "com/octopuscommunity/GrpcModelProto.proto";
+import "com/octopuscommunity/CommonProto.proto";
+import "com/octopuscommunity/ReactionServiceProto.proto";
+
+service OctoObjectService {
+  rpc Get(GetRequest) returns (GetResponse);//throw not found status when octoObject does not exist or has been deleted
+  rpc GetBatch(GetBatchRequest) returns (GetBatchResponse);
+  rpc PutComment(PutRequest) returns (PutCommentResponse);
+  //TODO create a DeleteRequest
+  rpc DeleteComment(DeleteCommentRequest) returns (DeleteCommentResponse);
+  rpc ModerateComment(ModerateCommentRequest) returns (ModerateCommentResponse);
+  rpc PutReply(PutRequest) returns (PutReplyResponse);
+  rpc DeleteReply(DeleteReplyRequest) returns (DeleteReplyResponse);
+  rpc ModerateReply(ModerateReplyRequest) returns (ModerateReplyResponse);
+  rpc PutPost(PutRequest) returns (PutPostResponse);
+  rpc CreateImageUploads(CreateImageUploadsRequest) returns (CreateImageUploadsResponse);
+  rpc PutPollVote(PutRequest) returns (PutPollVoteResponse);
+  rpc GetTopics(GetTopicsRequest) returns (GetTopicsResponse);
+  rpc UpdatePost(UpdatePostRequest) returns (UpdatePostResponse);
+  rpc DeletePost(DeletePostRequest) returns (DeletePostResponse);
+  rpc ModeratePost(ModeratePostRequest) returns (ModeratePostResponse);
+  rpc ShadowbanPost(ShadowbanPostRequest) returns (ShadowbanPostResponse);
+  rpc ShadowbanComment(ShadowbanCommentRequest) returns (ShadowbanCommentResponse);
+  rpc ShadowbanReply(ShadowbanReplyRequest) returns (ShadowbanReplyResponse);
+  rpc UnshadowbanPost(UnshadowbanPostRequest) returns (UnshadowbanPostResponse);
+  rpc UnshadowbanComment(UnshadowbanCommentRequest) returns (UnshadowbanCommentResponse);
+  rpc UnshadowbanReply(UnshadowbanReplyRequest) returns (UnshadowbanReplyResponse);
+  rpc ReportContent(ReportContentRequest) returns (ReportContentResponse);//Do nothing if moderation mod is off
+  rpc GetOrCreateBridgePost(GetOrCreateBridgePostRequest) returns (GetOrCreateBridgePostResponse); //deprecated
+  rpc GetBridgePost(GetBridgePostRequest) returns (GetOrCreateBridgePostResponse);
+  rpc CreateBridgePost(GetOrCreateBridgePostRequest) returns (GetOrCreateBridgePostResponse);
+  rpc GetOctoObjectTranslations(GetOctoObjectTranslationsRequest) returns (GetOctoObjectTranslationsResponse); // for public API
+  //reactions
+  rpc PutLike(PutRequest) returns (PutLikeResponse); //Deprecated. Use PutReaction
+  rpc DeleteLike(DeleteLikeRequest) returns (DeleteLikeResponse); //Deprecated. Use DeleteReaction
+  rpc PutReaction(PutRequest) returns (PutReactionResponse);
+  rpc DeleteReaction(DeleteRequest) returns (DeleteReactionResponse);
+  rpc GetReactionsPage(GetReactionsPageRequest) returns (GetReactionsPageResponse);
+}
+
+message RwOctoObject {
+  string parentId = 1;
+  Content content = 2;
+  uint64 pressedEnterAt = 3;
+  //  int64 createdAt;  server side determined by the put logged user
+  //  string createdBy;  server side determined by time of the put request
+  // string id; server side randomly generated
+}
+
+message UpdatePostRequest {
+  string octoObjectId = 1;
+  Update update = 2;
+  message Update {
+    optional string topicId = 1;
+    optional Post postContent = 2;
+
+    optional uint64 maxActivityScore = 3;
+    optional bool deleteMaxActivityScore = 31;
+
+    optional uint64 minActivityScore = 4;
+    optional bool deleteMinActivityScore = 41;
+
+    optional bool shadowBanned = 5;
+
+    optional EntitlementList createCommentsRepliesOverride = 6;
+    optional bool clearCreateCommentsRepliesOverride = 61;
+  }
+}
+
+message UpdatePostResponse {
+  oneof result {
+    Success success = 1;
+    Fail fail = 2;
+  }
+  message Success {
+    OctoObject post = 1;
+  }
+  message Fail {
+    repeated Error errors = 1;
+  }
+  message Error {
+    string message = 1;
+
+    optional Field field = 2;
+    enum Field {
+      UNKNOWN = 0;
+      CONTENT_TEXT = 2; //MissingText, BannedWordUsed, MaxCharLimitReached
+        // field 3 was "CONTENT_TEXT = 3;", now removed
+      CONTENT_FILE = 4; //EmptyFile, FileSizeTooBig, BadFileFormat, UploadIssue
+    }
+
+    oneof details {
+      ErrorDetails.MissingText missingText = 102;
+      ErrorDetails.BannedWordUsed bannedWordUsed = 103;
+      ErrorDetails.MaxCharLimitReached maxCharLimitReached = 104;
+      ErrorDetails.EmptyFile emptyFile = 105;
+      ErrorDetails.FileSizeTooBig fileSizeTooBig = 106;
+      ErrorDetails.BadFileFormat badFileFormat = 107;
+      ErrorDetails.UploadIssue uploadIssue = 108;
+    }
+  }
+}
+
+message GetRequest {
+  string octoObjectId = 1;
+  bool fetchObject = 2;
+  bool fetchRequesterCtx = 3;
+  bool fetchAggregate = 4;
+  optional bool registerView = 6;
+  optional bool hasVideo = 7; //For analytics
+}
+
+message GetResponse {
+  string octoObjectId = 1;
+  optional OctoObject octoObject = 2;
+  optional Aggregate aggregate = 3;
+  optional RequesterCtx requesterCtx = 4;
+}
+
+message GetBatchRequest {
+  repeated GetRequest requests = 1;
+}
+
+message GetBatchResponse {
+  repeated GetResponse responses = 1;
+}
+
+message PutRequest {
+  RwOctoObject octoObject = 1;
+  optional bool translatedContent = 10; // Whether the interaction happened on a translated or original content. Default false
+  optional CreationSource creationSource = 11; // PutPost-only. Ignored by other Put* handlers.
+  optional string clientToken = 12; // PutPost-only. Signed client token authorising a prefilled share; checked only when pictures are disabled and the post has an image.
+
+  enum CreationSource {
+    CREATION_SOURCE_UNSPECIFIED = 0;
+    PREFILLED_FROM_CLIENT = 1; // Editor opened with a payload prefilled by the host app
+    USER = 2; // User opened the editor on their own
+  }
+}
+
+message PutCommentResponse {
+  oneof result {
+    Success success = 1;
+    Fail fail = 2;
+  }
+  message Success {
+    OctoObject comment = 1;
+    optional bool hasTargetVideoContent = 2; //For analytics
+  }
+  message Fail {
+    repeated Error errors = 1;
+  }
+  message Error {
+    string message = 1;
+
+    optional Field field = 2;
+    enum Field {
+      UNKNOWN = 0;
+      CONTENT_PARENT = 1; //MissingParent
+      CONTENT_TEXT = 2; //BannedWordUsed, MaxCharLimitReached
+      CONTENT_FILE = 3; //EmptyFile, FileSizeTooBig, BadFileFormat, UploadIssue
+    }
+
+    oneof details {
+      ErrorDetails.MissingParent missingParent = 101;
+      ErrorDetails.BannedWordUsed bannedWordUsed = 102;
+      ErrorDetails.MaxCharLimitReached maxCharLimitReached = 103;
+      ErrorDetails.EmptyFile emptyFile = 104;
+      ErrorDetails.FileSizeTooBig fileSizeTooBig = 105;
+      ErrorDetails.BadFileFormat badFileFormat = 106;
+      ErrorDetails.UploadIssue uploadIssue = 107;
+      ErrorDetails.EmptyPublication emptyPublication = 108;
+      ErrorDetails.PublicationRateLimitExceeded publicationRateLimitExceeded = 109;
+    }
+  }
+}
+
+message PutReplyResponse {
+  oneof result {
+    Success success = 1;
+    Fail fail = 2;
+  }
+  message Success {
+    OctoObject reply = 1;
+  }
+  message Fail {
+    repeated Error errors = 1;
+  }
+  message Error {
+    string message = 1;
+
+    optional Field field = 2;
+    enum Field {
+      UNKNOWN = 0;
+      CONTENT_PARENT = 1; //MissingParent
+      CONTENT_TEXT = 2; //BannedWordUsed, MaxCharLimitReached
+      CONTENT_FILE = 3; //EmptyFile, FileSizeTooBig, BadFileFormat, UploadIssue
+    }
+
+    oneof details {
+      ErrorDetails.MissingParent missingParent = 101;
+      ErrorDetails.BannedWordUsed bannedWordUsed = 102;
+      ErrorDetails.MaxCharLimitReached maxCharLimitReached = 103;
+      ErrorDetails.EmptyFile emptyFile = 104;
+      ErrorDetails.FileSizeTooBig fileSizeTooBig = 105;
+      ErrorDetails.BadFileFormat badFileFormat = 106;
+      ErrorDetails.UploadIssue uploadIssue = 107;
+      ErrorDetails.EmptyPublication emptyPublication = 108;
+      ErrorDetails.PublicationRateLimitExceeded publicationRateLimitExceeded = 109;
+    }
+  }
+}
+
+message PutPollVoteResponse {
+  oneof result {
+    Success success = 1;
+    Fail fail = 2;
+  }
+
+  message Success {
+    OctoObject pollVote = 1;
+  }
+
+  message Fail {
+    repeated Error errors = 1;
+  }
+
+  message Error {
+    string message = 1;
+
+    optional Field field = 2;
+    enum Field {
+      UNKNOWN = 0;
+      CONTENT_PARENT = 1; //MissingParent
+      CONTENT_TARGET = 2; //MissingPollAnswer
+    }
+
+    oneof details {
+      ErrorDetails.MissingParent missingParent = 101;
+      ErrorDetails.MissingPollAnswer missingPollAnswer = 102;
+    }
+  }
+}
+
+message PutPostResponse {
+  oneof result {
+    Success success = 1;
+    Fail fail = 2;
+  }
+  message Success {
+    OctoObject post = 1;
+  }
+  message Fail {
+    repeated Error errors = 1;
+  }
+  message Error {
+    string message = 1;
+
+    optional Field field = 2;
+    enum Field {
+      UNKNOWN = 0;
+      CONTENT_PARENT = 1; //MissingParent
+      CONTENT_TEXT = 2; //MissingText, BannedWordUsed, MaxCharLimitReached
+      // field 3 was "CONTENT_TEXT = 3;", now removed
+      CONTENT_FILE = 4; //EmptyFile, FileSizeTooBig, BadFileFormat, UploadIssue
+      CONTENT_POLL = 5; //MaxCharLimitReached, BadPollAnswerNumber
+      CONTENT_CATCHPHRASE = 6; //MaxCharLimitReached
+      CONTENT_CTA = 7; //MaxCharLimitReached, InvalidAuthor, MissingCtaText
+      CONTENT_CLIENT_OBJECT = 8; //MissingClientObjectId
+    }
+
+    optional int32 fileIndex = 3;
+
+    oneof details {
+      ErrorDetails.MissingParent missingParent = 101;
+      ErrorDetails.MissingText missingText = 102;
+      ErrorDetails.BannedWordUsed bannedWordUsed = 103;
+      ErrorDetails.MaxCharLimitReached maxCharLimitReached = 104;
+      ErrorDetails.EmptyFile emptyFile = 105;
+      ErrorDetails.FileSizeTooBig fileSizeTooBig = 106;
+      ErrorDetails.BadFileFormat badFileFormat = 107;
+      ErrorDetails.UploadIssue uploadIssue = 108;
+      ErrorDetails.BadPollAnswerNumber badPollAnswerNumber = 109;
+      ErrorDetails.MissingClientObjectId missingClientObjectId = 110;
+      ErrorDetails.InvalidAuthor invalidAuthor = 111;
+      ErrorDetails.MissingCtaText missingCtaText = 112;
+      ErrorDetails.MissingCtaTarget missingCtaTarget = 113;
+      ErrorDetails.InvalidCtaTarget invalidCtaTarget = 114;
+      ErrorDetails.PublicationRateLimitExceeded publicationRateLimitExceeded = 115;
+    }
+  }
+}
+
+message CreateImageUploadsRequest {
+  repeated ImageUploadRequest images = 1;
+  optional BridgeUpload bridge = 2;
+  message ImageUploadRequest {
+    uint64 sizeBytes = 1;
+  }
+  message BridgeUpload {
+    string clientObjectId = 1;
+    optional string clientToken = 2;
+  }
+}
+
+message CreateImageUploadsResponse {
+  oneof result {
+    Success success = 1;
+    Fail fail = 2;
+  }
+  message Success {
+    repeated ImageUpload uploads = 1;
+  }
+  message ImageUpload {
+    string uploadId = 1;
+    string uploadUrl = 2;
+    uint64 expiresAt = 3;
+  }
+  message Fail {
+    repeated Error errors = 1;
+  }
+  message Error {
+    string message = 1;
+    optional int32 fileIndex = 2;
+    oneof details {
+      ErrorDetails.EmptyFile emptyFile = 101;
+      ErrorDetails.FileSizeTooBig fileSizeTooBig = 102;
+      // Only for an upload with a bridge, with the same meaning as in the bridge post creation.
+      ErrorDetails.InvalidClientToken invalidClientToken = 103;
+      ErrorDetails.ExpiredClientToken expiredClientToken = 104;
+      ErrorDetails.BridgePostUnavailable bridgePostUnavailable = 105;
+    }
+  }
+}
+
+
+
+message GetTopicsRequest {
+  //Implicit community field determined from API_KEY or hard coded for V0.1
+}
+
+message GetTopicsResponse {
+  repeated OctoObject topics = 1;
+  repeated OctoObject sections = 2; //Alphabetical order
+  repeated RequesterCtx topicsRequesterCtxs = 3; //Same order than topics. Empty when caller does not need it
+}
+
+message DeletePostRequest {
+  string octoObjectId = 1;
+}
+
+message DeletePostResponse {
+}
+
+message DeleteCommentRequest {
+  string octoObjectId = 1;
+}
+
+message DeleteCommentResponse {
+}
+
+message DeleteReplyRequest {
+  string octoObjectId = 1;
+}
+
+message DeleteReplyResponse {
+}
+
+message ModeratePostRequest {
+  string octoObjectId = 1;
+  repeated StatusReasonCode reasonCodes = 2;
+}
+
+message ModeratePostResponse {
+}
+
+message ModerateCommentRequest {
+  string octoObjectId = 1;
+  repeated StatusReasonCode reasonCodes = 2;
+}
+
+message ModerateCommentResponse {
+}
+
+message ModerateReplyRequest {
+  string octoObjectId = 1;
+  repeated StatusReasonCode reasonCodes = 2;
+}
+
+message ModerateReplyResponse {
+}
+
+message ShadowbanPostRequest {
+  string octoObjectId = 1;
+}
+
+message ShadowbanPostResponse {
+}
+
+message ShadowbanCommentRequest {
+  string octoObjectId = 1;
+}
+
+message ShadowbanCommentResponse {
+}
+
+message ShadowbanReplyRequest {
+  string octoObjectId = 1;
+}
+
+message ShadowbanReplyResponse {
+}
+
+message UnshadowbanPostRequest {
+  string octoObjectId = 1;
+}
+
+message UnshadowbanPostResponse {
+}
+
+message UnshadowbanCommentRequest {
+  string octoObjectId = 1;
+}
+
+message UnshadowbanCommentResponse {
+}
+
+message UnshadowbanReplyRequest {
+  string octoObjectId = 1;
+}
+
+message UnshadowbanReplyResponse {
+}
+
+message ReportContentRequest {
+  string octoObjectId = 1;
+  repeated ReportReasonCode reasonCodes = 2;
+  optional string customReason = 3;
+}
+
+message ReportContentResponse {
+}
+
+message GetOrCreateBridgePostRequest {
+  optional string clientToken = 1;//Better to fill it for security reasons
+  optional string topicId = 2;//Default bridge topic if not filled
+  Post postBridge = 3;// must contain bridgeToClientObject
+}
+
+message GetOrCreateBridgePostResponse {
+  oneof result {
+    Success success = 1;
+    Fail fail = 2;
+  }
+  message Success {
+    OctoObject postBridge = 1; // The created post
+    Aggregate aggregate = 3; // The aggregate for the created post
+
+    optional ResponseStatus status = 2; // Used for analytics only
+    enum ResponseStatus {
+      UNKNOWN = 0;
+      CREATED = 1; //Post bridge created
+      RETRIEVED = 2; //Existing post bridge retrieved
+    }
+  }
+  message Fail {
+    repeated Error errors = 1;
+  }
+  message Error {
+    string message = 1;
+
+    optional Field field = 2;
+    enum Field {
+      UNKNOWN = 0; // InvalidClientToken, ExpiredClientToken
+      CONTENT_TEXT = 1; //MissingText, MaxCharLimitReached
+      CONTENT_FILE = 2; //EmptyFile, FileSizeTooBig, BadFileFormat, UploadIssue, DownloadIssue
+      CONTENT_CLIENT_OBJECT = 3; //MissingCtaText, MissingClientObjectId, BridgePostUnavailable, InvalidTopicIc, InvalidAuthor, PostAlreadyExists
+    }
+
+    optional int32 fileIndex = 3;
+
+    oneof details {
+      ErrorDetails.MissingText missingText = 101;
+      ErrorDetails.MaxCharLimitReached maxCharLimitReached = 102;
+      ErrorDetails.EmptyFile emptyFile = 103;
+      ErrorDetails.FileSizeTooBig fileSizeTooBig = 104;
+      ErrorDetails.BadFileFormat badFileFormat = 105;
+      ErrorDetails.UploadIssue uploadIssue = 106;
+      ErrorDetails.DownloadIssue downloadIssue = 107;
+      ErrorDetails.MissingCtaText missingCtaText = 108;
+      ErrorDetails.MissingClientObjectId missingClientObjectId = 109;
+      ErrorDetails.InvalidClientToken invalidClientToken = 110;
+      ErrorDetails.BridgePostUnavailable bridgePostUnavailable = 111;
+      ErrorDetails.ExpiredClientToken expiredClientToken = 112;
+      ErrorDetails.InvalidTopicId invalidTopicId = 113;
+      ErrorDetails.InvalidAuthor invalidAuthor = 114;
+      ErrorDetails.PostAlreadyExists postAlreadyExists = 115; //Only on GetBridgePost service call
+      ErrorDetails.PostNotFound postNotFound = 116; //Only on GetBridgePost service call
+    }
+  }
+}
+
+message GetBridgePostRequest {
+    string clientObjectId = 1;
+}
+
+message GetOctoObjectTranslationsRequest {
+  string octoObjectId = 1;
+}
+
+message GetOctoObjectTranslationsResponse {
+  string octoObjectId = 1;
+  optional string originalLanguageCode = 2; // Can be null if not detected
+  repeated FieldTranslationsByLanguage fieldTranslationsByLanguages = 3;
+}
+
+message FieldTranslationsByLanguage {
+  string translationLanguageCode = 1;
+  FieldTranslations text = 2;
+  repeated FieldTranslations pollAnswers = 3;
+  optional FieldTranslations ctaButton = 4;
+  optional FieldTranslations catchPhrase = 5;
+}
+
+message FieldTranslations {
+  string originalText = 1;
+  string translatedText = 2;
+}

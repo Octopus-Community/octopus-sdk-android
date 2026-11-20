@@ -1,0 +1,688 @@
+public final class com/octopuscommunity/sdk/ApiServer {
+	public fun <init> (Ljava/lang/String;I)V
+	public synthetic fun <init> (Ljava/lang/String;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/lang/String;
+	public final fun component2 ()I
+	public final fun copy (Ljava/lang/String;I)Lcom/octopuscommunity/sdk/ApiServer;
+	public static synthetic fun copy$default (Lcom/octopuscommunity/sdk/ApiServer;Ljava/lang/String;IILjava/lang/Object;)Lcom/octopuscommunity/sdk/ApiServer;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getHost ()Ljava/lang/String;
+	public final fun getPort ()I
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public abstract class com/octopuscommunity/sdk/ApiServer$ValidationError : java/lang/IllegalArgumentException {
+	public synthetic fun <init> (Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class com/octopuscommunity/sdk/ApiServer$ValidationError$EmptyHost : com/octopuscommunity/sdk/ApiServer$ValidationError {
+	public static final field INSTANCE Lcom/octopuscommunity/sdk/ApiServer$ValidationError$EmptyHost;
+}
+
+public final class com/octopuscommunity/sdk/ApiServer$ValidationError$HostContainsPortOrPath : com/octopuscommunity/sdk/ApiServer$ValidationError {
+	public static final field INSTANCE Lcom/octopuscommunity/sdk/ApiServer$ValidationError$HostContainsPortOrPath;
+}
+
+public final class com/octopuscommunity/sdk/ApiServer$ValidationError$HostContainsScheme : com/octopuscommunity/sdk/ApiServer$ValidationError {
+	public static final field INSTANCE Lcom/octopuscommunity/sdk/ApiServer$ValidationError$HostContainsScheme;
+}
+
+public final class com/octopuscommunity/sdk/ApiServer$ValidationError$HostContainsWhitespace : com/octopuscommunity/sdk/ApiServer$ValidationError {
+	public static final field INSTANCE Lcom/octopuscommunity/sdk/ApiServer$ValidationError$HostContainsWhitespace;
+}
+
+public final class com/octopuscommunity/sdk/ApiServer$ValidationError$InvalidIPv6Bracketing : com/octopuscommunity/sdk/ApiServer$ValidationError {
+	public static final field INSTANCE Lcom/octopuscommunity/sdk/ApiServer$ValidationError$InvalidIPv6Bracketing;
+}
+
+public final class com/octopuscommunity/sdk/BuildConfig {
+	public static final field BUILD_TYPE Ljava/lang/String;
+	public static final field DEBUG Z
+	public static final field FLAVOR Ljava/lang/String;
+	public static final field LIBRARY_PACKAGE_NAME Ljava/lang/String;
+	public static final field OCTOPUS_LINKS_HOST Ljava/lang/String;
+	public static final field OCTOPUS_SERVER_HOST Ljava/lang/String;
+	public static final field OCTOPUS_SERVER_PORT I
+	public static final field SDK_VERSION_CODE I
+	public static final field SDK_VERSION_NAME Ljava/lang/String;
+	public fun <init> ()V
+}
+
+public abstract interface annotation class com/octopuscommunity/sdk/InternalOctopusApi : java/lang/annotation/Annotation {
+}
+
+public final class com/octopuscommunity/sdk/MissingOnNavigateToLoginException : java/lang/Exception {
+	public fun <init> ()V
+}
+
+public final class com/octopuscommunity/sdk/MissingOnNavigateToProfileEditException : java/lang/Exception {
+	public fun <init> ()V
+}
+
+public final class com/octopuscommunity/sdk/OctopusLifecycle {
+	public static final field INSTANCE Lcom/octopuscommunity/sdk/OctopusLifecycle;
+	public final fun getContainer ()Lkotlinx/coroutines/flow/StateFlow;
+	public final fun isolatedModulesOrNull ([Lorg/koin/core/module/Module;)Ljava/util/List;
+}
+
+public final class com/octopuscommunity/sdk/OctopusLifecycle$Container {
+	public final fun acquire ()Z
+	public final fun getApplication ()Lorg/koin/core/KoinApplication;
+	public final fun getGeneration ()J
+	public final fun release ()V
+}
+
+public final class com/octopuscommunity/sdk/OctopusProfile {
+	public fun <init> (Ljava/util/Set;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/util/Set;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun component1 ()Ljava/util/Set;
+	public final fun component2 ()Ljava/lang/String;
+	public final fun copy (Ljava/util/Set;Ljava/lang/String;)Lcom/octopuscommunity/sdk/OctopusProfile;
+	public static synthetic fun copy$default (Lcom/octopuscommunity/sdk/OctopusProfile;Ljava/util/Set;Ljava/lang/String;ILjava/lang/Object;)Lcom/octopuscommunity/sdk/OctopusProfile;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getClientUserId ()Ljava/lang/String;
+	public final fun getEntitlements ()Ljava/util/Set;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/octopuscommunity/sdk/OctopusSDK {
+	public static final field INSTANCE Lcom/octopuscommunity/sdk/OctopusSDK;
+	public static final field INTERNAL_DEEP_LINK_BASE_PATH Ljava/lang/String;
+	public static field koinApp Lorg/koin/core/KoinApplication;
+	public static field sdkScope Lkotlinx/coroutines/CoroutineScope;
+	public final fun communityDataFlow (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public final fun communityDataFlowByClientUserId (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public final fun connectUser (Lcom/octopuscommunity/sdk/domain/model/ClientUser;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun debugOverrideConsentTexts (Lcom/octopuscommunity/sdk/domain/model/CommunityConfig$ConsentTexts;)V
+	public final fun debugOverrideContentOptions (Lcom/octopuscommunity/sdk/domain/model/CommunityConfig$ContentOptions;)V
+	public final fun debugOverrideExposeClientUserId (Ljava/lang/Boolean;)V
+	public final fun debugOverrideForceNicknameChoice (Ljava/lang/Boolean;)V
+	public final fun debugOverrideProfileFieldsLock (Lcom/octopuscommunity/sdk/domain/model/ProfileFieldsLock;)V
+	public final fun debugOverrideTermsAcceptanceMode (Lcom/octopuscommunity/sdk/domain/model/CommunityConfig$TermsAcceptanceMode;)V
+	public final fun disconnectUser (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun fetchCommunityData (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun fetchCommunityDataByClientUserId (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun fetchCommunityDataByClientUserIdResult (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun fetchCommunityDataResult (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun fetchGroups (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun fetchOrCreateClientObjectRelatedPost (Lcom/octopuscommunity/sdk/domain/model/ClientPost;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun fetchOrCreateClientObjectRelatedPost$default (Lcom/octopuscommunity/sdk/OctopusSDK;Lcom/octopuscommunity/sdk/domain/model/ClientPost;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun fetchTopics (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun followGroup (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun followTopic (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun getAppDeepLinkBasePaths ()Ljava/util/List;
+	public final fun getClientObjectRelatedPostFlow (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public final fun getCommentRepository ()Lcom/octopuscommunity/sdk/domain/repository/CommentRepository;
+	public final fun getCommunityAccessDeniedReason ()Lkotlinx/coroutines/flow/Flow;
+	public final fun getCommunityConfigRepository ()Lcom/octopuscommunity/sdk/domain/repository/CommunityConfigRepository;
+	public final fun getConnectionRepository ()Lcom/octopuscommunity/sdk/domain/repository/ConnectionRepository;
+	public final fun getConnectionState ()Lkotlinx/coroutines/flow/Flow;
+	public final fun getEventRepository ()Lcom/octopuscommunity/sdk/domain/repository/EventRepository;
+	public final fun getEvents ()Lkotlinx/coroutines/flow/Flow;
+	public final fun getGroupAccessDeniedCallback ()Lkotlin/jvm/functions/Function1;
+	public final fun getGroupRepository ()Lcom/octopuscommunity/sdk/domain/repository/GroupRepository;
+	public final fun getGroups ()Lkotlinx/coroutines/flow/Flow;
+	public final fun getHasAccessToCommunity ()Lkotlinx/coroutines/flow/Flow;
+	public final fun getKoin ()Lorg/koin/core/Koin;
+	public final fun getKoinApp ()Lorg/koin/core/KoinApplication;
+	public final fun getKoinTestApp ()Lorg/koin/core/KoinApplication;
+	public final fun getLanguageRepository ()Lcom/octopuscommunity/sdk/domain/repository/LanguageRepository;
+	public final fun getNotSeenNotificationsCount ()Lkotlinx/coroutines/flow/Flow;
+	public final fun getNotificationRepository ()Lcom/octopuscommunity/sdk/domain/repository/NotificationRepository;
+	public final fun getOctopusNotification (Ljava/util/Map;)Lcom/octopuscommunity/sdk/model/OctopusNotification;
+	public final fun getPostRepository ()Lcom/octopuscommunity/sdk/domain/repository/PostRepository;
+	public final fun getProfile ()Lkotlinx/coroutines/flow/Flow;
+	public final fun getProfileRepository ()Lcom/octopuscommunity/sdk/domain/repository/ProfileRepository;
+	public final fun getReactionsRepository ()Lcom/octopuscommunity/sdk/domain/repository/ReactionsRepository;
+	public final fun getRootFeedRepository ()Lcom/octopuscommunity/sdk/domain/repository/RootFeedRepository;
+	public final fun getSdkScope ()Lkotlinx/coroutines/CoroutineScope;
+	public final fun getSessionRepository ()Lcom/octopuscommunity/sdk/domain/repository/SessionRepository;
+	public final fun getTopicRepository ()Lcom/octopuscommunity/sdk/domain/repository/GroupRepository;
+	public final fun getTopics ()Lkotlinx/coroutines/flow/Flow;
+	public final fun getTrackerRepository ()Lcom/octopuscommunity/sdk/domain/repository/TrackerRepository;
+	public final fun getUserCommentRepository ()Lcom/octopuscommunity/sdk/domain/repository/UserCommentRepository;
+	public final fun getUserRepository ()Lcom/octopuscommunity/sdk/domain/repository/UserRepository;
+	public final fun initialize (Landroid/content/Context;Ljava/lang/String;Lcom/octopuscommunity/sdk/domain/model/ConnectionMode;Ljava/util/List;Lcom/octopuscommunity/sdk/ApiServer;)V
+	public static synthetic fun initialize$default (Lcom/octopuscommunity/sdk/OctopusSDK;Landroid/content/Context;Ljava/lang/String;Lcom/octopuscommunity/sdk/domain/model/ConnectionMode;Ljava/util/List;Lcom/octopuscommunity/sdk/ApiServer;ILjava/lang/Object;)V
+	public final fun isInitialised ()Z
+	public final fun isInitialisedFlow ()Lkotlinx/coroutines/flow/MutableStateFlow;
+	public final fun isOctopusNotification (Ljava/util/Map;)Z
+	public final fun isUserConnected ()Lkotlinx/coroutines/flow/Flow;
+	public final fun overrideCommunityAccess (ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun overrideDefaultLocale (Ljava/util/Locale;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun refreshEntitlements (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun registerNotificationsToken (Ljava/lang/String;)V
+	public final fun reset (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun setAppDeepLinkBasePaths (Ljava/util/List;)V
+	public final fun setBridgeShareTokenProvider (Lkotlin/jvm/functions/Function2;)V
+	public final fun setGroupAccessDeniedCallback (Lkotlin/jvm/functions/Function1;)V
+	public final fun setKoinApp (Lorg/koin/core/KoinApplication;)V
+	public final fun setReaction (Lcom/octopuscommunity/sdk/domain/model/OctopusReactionKind;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun setSdkFamily (Lcom/octopuscommunity/sdk/SdkFamily;Ljava/lang/String;)V
+	public final fun setSdkScope (Lkotlinx/coroutines/CoroutineScope;)V
+	public final fun stop ()V
+	public final fun switchCommunity (Landroid/content/Context;Ljava/lang/String;Lcom/octopuscommunity/sdk/domain/model/ConnectionMode;Ljava/util/List;Lcom/octopuscommunity/sdk/ApiServer;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun switchCommunity$default (Lcom/octopuscommunity/sdk/OctopusSDK;Landroid/content/Context;Ljava/lang/String;Lcom/octopuscommunity/sdk/domain/model/ConnectionMode;Ljava/util/List;Lcom/octopuscommunity/sdk/ApiServer;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
+	public final fun syncFollowGroups (Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun track (Lcom/octopuscommunity/sdk/domain/model/TrackerEvent$Custom;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun trackAccessToCommunity (Ljava/lang/Boolean;)V
+	public final fun unfollowGroup (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun unfollowTopic (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun updateNotSeenNotificationsCount (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/octopuscommunity/sdk/SDKNotInitializedException : java/lang/Exception {
+	public fun <init> ()V
+}
+
+public final class com/octopuscommunity/sdk/SdkFamily : java/lang/Enum {
+	public static final field FLUTTER Lcom/octopuscommunity/sdk/SdkFamily;
+	public static final field REACT_NATIVE Lcom/octopuscommunity/sdk/SdkFamily;
+	public static final field UNITY Lcom/octopuscommunity/sdk/SdkFamily;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lcom/octopuscommunity/sdk/SdkFamily;
+	public static fun values ()[Lcom/octopuscommunity/sdk/SdkFamily;
+}
+
+public final class com/octopuscommunity/sdk/di/ImageModuleKt {
+	public static final fun getOctopusImageModule ()Lorg/koin/core/module/Module;
+}
+
+public final class com/octopuscommunity/sdk/di/UseCaseModuleKt {
+	public static final fun getOctopusUseCaseModule ()Lorg/koin/core/module/Module;
+}
+
+public final class com/octopuscommunity/sdk/model/OctopusNotification {
+	public static final field BODY_KEY Ljava/lang/String;
+	public static final field COMMENT_ID_KEY Ljava/lang/String;
+	public static final field Companion Lcom/octopuscommunity/sdk/model/OctopusNotification$Companion;
+	public static final field IS_OCTOPUS_NOTIFICATION_KEY Ljava/lang/String;
+	public static final field LINK_PATH_KEY Ljava/lang/String;
+	public static final field POST_ID_KEY Ljava/lang/String;
+	public static final field REPLY_ID_KEY Ljava/lang/String;
+	public static final field TITLE_KEY Ljava/lang/String;
+	public fun <init> (ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/util/Map;)V
+	public final fun component1 ()I
+	public final fun component2 ()Ljava/lang/String;
+	public final fun component3 ()Ljava/lang/String;
+	public final fun component4 ()Ljava/lang/String;
+	public final fun component5 ()Ljava/lang/String;
+	public final fun component6 ()Ljava/lang/String;
+	public final fun component7 ()Ljava/lang/String;
+	public final fun copy (ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/octopuscommunity/sdk/model/OctopusNotification;
+	public static synthetic fun copy$default (Lcom/octopuscommunity/sdk/model/OctopusNotification;ILjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/octopuscommunity/sdk/model/OctopusNotification;
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getBody ()Ljava/lang/String;
+	public final fun getCommentId ()Ljava/lang/String;
+	public final fun getDeepLink ()Landroid/net/Uri;
+	public final fun getId ()I
+	public final fun getLinkPath ()Ljava/lang/String;
+	public final fun getPostId ()Ljava/lang/String;
+	public final fun getReplyId ()Ljava/lang/String;
+	public final fun getTitle ()Ljava/lang/String;
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+}
+
+public final class com/octopuscommunity/sdk/model/OctopusNotification$Companion {
+}
+
+public final class com/octopuscommunity/sdk/model/OctopusNotificationKt {
+	public static final fun getOctopusNotification (Ljava/util/Map;)Lcom/octopuscommunity/sdk/model/OctopusNotification;
+	public static final fun isOctopusNotification (Ljava/util/Map;)Z
+	public static final fun setOctopusContent (Landroid/app/Notification$Builder;Landroid/content/Context;Lkotlin/reflect/KClass;Lcom/octopuscommunity/sdk/model/OctopusNotification;)Landroid/app/Notification$Builder;
+	public static final fun setOctopusContent (Landroidx/core/app/NotificationCompat$Builder;Landroid/content/Context;Lkotlin/reflect/KClass;Lcom/octopuscommunity/sdk/model/OctopusNotification;)Landroidx/core/app/NotificationCompat$Builder;
+}
+
+public final class com/octopuscommunity/sdk/test/di/TestModuleKt {
+	public static final fun getOctopusTestModule ()Lorg/koin/core/module/Module;
+}
+
+public final class com/octopuscommunity/sdk/test/mock/MockClientPosts {
+	public static final field INSTANCE Lcom/octopuscommunity/sdk/test/mock/MockClientPosts;
+	public final fun getAll ()Ljava/util/List;
+	public final fun getDefault ()Lcom/octopuscommunity/sdk/domain/model/ClientPost;
+	public final fun getProductReview ()Lcom/octopuscommunity/sdk/domain/model/ClientPost;
+}
+
+public final class com/octopuscommunity/sdk/test/mock/MockComments {
+	public static final field INSTANCE Lcom/octopuscommunity/sdk/test/mock/MockComments;
+	public final fun create (Ljava/lang/String;Ljava/lang/String;Ljava/util/Date;Ljava/util/Date;Ljava/lang/String;Lcom/octopuscommunity/sdk/domain/model/Status;Lcom/octopuscommunity/sdk/domain/model/Author;Lcom/octopuscommunity/sdk/domain/model/TranslatableText;Lcom/octopuscommunity/sdk/domain/model/Medias;Lcom/octopuscommunity/sdk/domain/model/OctopusItem$Feeds;ILjava/util/List;Lcom/octopuscommunity/sdk/domain/model/OctopusItem$Reaction;Lcom/octopuscommunity/sdk/domain/model/Post;)Lcom/octopuscommunity/sdk/domain/model/Comment;
+	public static synthetic fun create$default (Lcom/octopuscommunity/sdk/test/mock/MockComments;Ljava/lang/String;Ljava/lang/String;Ljava/util/Date;Ljava/util/Date;Ljava/lang/String;Lcom/octopuscommunity/sdk/domain/model/Status;Lcom/octopuscommunity/sdk/domain/model/Author;Lcom/octopuscommunity/sdk/domain/model/TranslatableText;Lcom/octopuscommunity/sdk/domain/model/Medias;Lcom/octopuscommunity/sdk/domain/model/OctopusItem$Feeds;ILjava/util/List;Lcom/octopuscommunity/sdk/domain/model/OctopusItem$Reaction;Lcom/octopuscommunity/sdk/domain/model/Post;ILjava/lang/Object;)Lcom/octopuscommunity/sdk/domain/model/Comment;
+	public final fun getAll ()Ljava/util/List;
+	public final fun getDefault ()Lcom/octopuscommunity/sdk/domain/model/Comment;
+	public final fun getWithShortText ()Lcom/octopuscommunity/sdk/domain/model/Comment;
+}
+
+public final class com/octopuscommunity/sdk/test/mock/MockCommunityConfig {
+	public static final field INSTANCE Lcom/octopuscommunity/sdk/test/mock/MockCommunityConfig;
+	public final fun create (ZLcom/octopuscommunity/sdk/domain/model/CommunityConfig$Gamification;ZLcom/octopuscommunity/sdk/domain/model/ProfileFieldsLock;)Lcom/octopuscommunity/sdk/domain/model/CommunityConfig;
+	public static synthetic fun create$default (Lcom/octopuscommunity/sdk/test/mock/MockCommunityConfig;ZLcom/octopuscommunity/sdk/domain/model/CommunityConfig$Gamification;ZLcom/octopuscommunity/sdk/domain/model/ProfileFieldsLock;ILjava/lang/Object;)Lcom/octopuscommunity/sdk/domain/model/CommunityConfig;
+	public final fun getAll ()Ljava/util/List;
+	public final fun getDefault ()Lcom/octopuscommunity/sdk/domain/model/CommunityConfig;
+	public final fun getWithoutGamification ()Lcom/octopuscommunity/sdk/domain/model/CommunityConfig;
+}
+
+public final class com/octopuscommunity/sdk/test/mock/MockCurrentUserProfiles {
+	public static final field INSTANCE Lcom/octopuscommunity/sdk/test/mock/MockCurrentUserProfiles;
+	public final fun getDefault ()Lcom/octopuscommunity/sdk/domain/model/CurrentUserProfile;
+}
+
+public final class com/octopuscommunity/sdk/test/mock/MockFeeds {
+	public static final field INSTANCE Lcom/octopuscommunity/sdk/test/mock/MockFeeds;
+}
+
+public final class com/octopuscommunity/sdk/test/mock/MockFeeds$Comment {
+	public static final field INSTANCE Lcom/octopuscommunity/sdk/test/mock/MockFeeds$Comment;
+	public final fun create (Ljava/lang/String;)Lcom/octopuscommunity/sdk/domain/model/OctopusItem$Feeds;
+	public static synthetic fun create$default (Lcom/octopuscommunity/sdk/test/mock/MockFeeds$Comment;Ljava/lang/String;ILjava/lang/Object;)Lcom/octopuscommunity/sdk/domain/model/OctopusItem$Feeds;
+	public final fun getAll ()Ljava/util/List;
+	public final fun getDefault ()Lcom/octopuscommunity/sdk/domain/model/OctopusItem$Feeds;
+}
+
+public final class com/octopuscommunity/sdk/test/mock/MockFeeds$Post {
+	public static final field INSTANCE Lcom/octopuscommunity/sdk/test/mock/MockFeeds$Post;
+	public final fun create (Ljava/lang/String;)Lcom/octopuscommunity/sdk/domain/model/OctopusItem$Feeds;
+	public static synthetic fun create$default (Lcom/octopuscommunity/sdk/test/mock/MockFeeds$Post;Ljava/lang/String;ILjava/lang/Object;)Lcom/octopuscommunity/sdk/domain/model/OctopusItem$Feeds;
+	public final fun createRoot (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)Lcom/octopuscommunity/sdk/domain/model/RootFeed;
+	public static synthetic fun createRoot$default (Lcom/octopuscommunity/sdk/test/mock/MockFeeds$Post;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/octopuscommunity/sdk/domain/model/RootFeed;
+	public final fun getAll ()Ljava/util/List;
+	public final fun getAllRoots ()Ljava/util/List;
+	public final fun getDefault ()Lcom/octopuscommunity/sdk/domain/model/OctopusItem$Feeds;
+	public final fun getDefaultRoot ()Lcom/octopuscommunity/sdk/domain/model/RootFeed;
+}
+
+public final class com/octopuscommunity/sdk/test/mock/MockFeeds$Replies {
+	public static final field INSTANCE Lcom/octopuscommunity/sdk/test/mock/MockFeeds$Replies;
+	public final fun create (Ljava/lang/String;)Lcom/octopuscommunity/sdk/domain/model/OctopusItem$Feeds;
+	public static synthetic fun create$default (Lcom/octopuscommunity/sdk/test/mock/MockFeeds$Replies;Ljava/lang/String;ILjava/lang/Object;)Lcom/octopuscommunity/sdk/domain/model/OctopusItem$Feeds;
+	public final fun getAll ()Ljava/util/List;
+	public final fun getDefault ()Lcom/octopuscommunity/sdk/domain/model/OctopusItem$Feeds;
+}
+
+public final class com/octopuscommunity/sdk/test/mock/MockGamificationLevels {
+	public static final field INSTANCE Lcom/octopuscommunity/sdk/test/mock/MockGamificationLevels;
+	public final fun create (ILjava/lang/String;Ljava/lang/Integer;Lcom/octopuscommunity/sdk/domain/model/CommunityConfig$Gamification$Level$LevelColors;)Lcom/octopuscommunity/sdk/domain/model/CommunityConfig$Gamification$Level;
+	public final fun getAll ()Ljava/util/List;
+	public final fun getDefault ()Lcom/octopuscommunity/sdk/domain/model/CommunityConfig$Gamification$Level;
+}
+
+public final class com/octopuscommunity/sdk/test/mock/MockMedias {
+	public static final field INSTANCE Lcom/octopuscommunity/sdk/test/mock/MockMedias;
+	public final fun createImage (Ljava/lang/String;Landroid/util/Size;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;)Lcom/octopuscommunity/sdk/domain/model/Media$Image;
+	public static synthetic fun createImage$default (Lcom/octopuscommunity/sdk/test/mock/MockMedias;Ljava/lang/String;Landroid/util/Size;Ljava/lang/Long;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lcom/octopuscommunity/sdk/domain/model/Media$Image;
+	public final fun createVideo-BAu0izY (Ljava/lang/String;Ljava/lang/String;Landroid/util/Size;Ljava/lang/Long;Ljava/lang/String;Lkotlin/time/Duration;)Lcom/octopuscommunity/sdk/domain/model/Media$Video;
+	public static synthetic fun createVideo-BAu0izY$default (Lcom/octopuscommunity/sdk/test/mock/MockMedias;Ljava/lang/String;Ljava/lang/String;Landroid/util/Size;Ljava/lang/Long;Ljava/lang/String;Lkotlin/time/Duration;ILjava/lang/Object;)Lcom/octopuscommunity/sdk/domain/model/Media$Video;
+	public final fun getDefault ()Lcom/octopuscommunity/sdk/domain/model/Media$Image;
+	public final fun getDefaultImage ()Lcom/octopuscommunity/sdk/domain/model/Media$Image;
+	public final fun getDefaultVideo ()Lcom/octopuscommunity/sdk/domain/model/Media$Video;
+}
+
+public final class com/octopuscommunity/sdk/test/mock/MockMinimalProfiles {
+	public static final field INSTANCE Lcom/octopuscommunity/sdk/test/mock/MockMinimalProfiles;
+	public final fun getAll ()Ljava/util/List;
+	public final fun getDefault ()Lcom/octopuscommunity/sdk/domain/model/Author;
+}
+
+public final class com/octopuscommunity/sdk/test/mock/MockNotifications {
+	public static final field INSTANCE Lcom/octopuscommunity/sdk/test/mock/MockNotifications;
+	public final fun create (Ljava/lang/String;Ljava/util/Date;Ljava/util/List;Ljava/lang/String;Lcom/octopuscommunity/sdk/domain/model/Notification$Action;Z)Lcom/octopuscommunity/sdk/domain/model/Notification;
+	public static synthetic fun create$default (Lcom/octopuscommunity/sdk/test/mock/MockNotifications;Ljava/lang/String;Ljava/util/Date;Ljava/util/List;Ljava/lang/String;Lcom/octopuscommunity/sdk/domain/model/Notification$Action;ZILjava/lang/Object;)Lcom/octopuscommunity/sdk/domain/model/Notification;
+	public final fun getAll ()Ljava/util/List;
+	public final fun getDefault ()Lcom/octopuscommunity/sdk/domain/model/Notification;
+}
+
+public final class com/octopuscommunity/sdk/test/mock/MockPostPolls {
+	public static final field INSTANCE Lcom/octopuscommunity/sdk/test/mock/MockPostPolls;
+	public final fun createAnswer (Lcom/octopuscommunity/sdk/domain/model/TranslatableText;Ljava/lang/String;)Lcom/octopuscommunity/sdk/domain/model/Post$Poll$Answer;
+	public static synthetic fun createAnswer$default (Lcom/octopuscommunity/sdk/test/mock/MockPostPolls;Lcom/octopuscommunity/sdk/domain/model/TranslatableText;Ljava/lang/String;ILjava/lang/Object;)Lcom/octopuscommunity/sdk/domain/model/Post$Poll$Answer;
+	public final fun createPoll (Ljava/util/List;)Lcom/octopuscommunity/sdk/domain/model/Post$Poll;
+	public final fun getAll ()Ljava/util/List;
+	public final fun getDefault ()Lcom/octopuscommunity/sdk/domain/model/Post$Poll;
+	public final fun getYesNoPoll ()Lcom/octopuscommunity/sdk/domain/model/Post$Poll;
+}
+
+public final class com/octopuscommunity/sdk/test/mock/MockPosts {
+	public static final field INSTANCE Lcom/octopuscommunity/sdk/test/mock/MockPosts;
+	public final fun create (Ljava/lang/String;Ljava/lang/String;Ljava/util/Date;Ljava/util/Date;Ljava/lang/String;Lcom/octopuscommunity/sdk/domain/model/Status;Lcom/octopuscommunity/sdk/domain/model/Author;Lcom/octopuscommunity/sdk/domain/model/TranslatableText;Lcom/octopuscommunity/sdk/domain/model/Medias;Lcom/octopuscommunity/sdk/domain/model/Post$Poll;Lcom/octopuscommunity/sdk/domain/model/OctopusItem$Feeds;IILjava/util/List;Lcom/octopuscommunity/sdk/domain/model/OctopusItem$Reaction;Ljava/lang/String;Lcom/octopuscommunity/sdk/domain/model/Post$ClientObject;Lcom/octopuscommunity/sdk/domain/model/Post$CustomAction;Lcom/octopuscommunity/sdk/domain/model/Comment;)Lcom/octopuscommunity/sdk/domain/model/Post;
+	public static synthetic fun create$default (Lcom/octopuscommunity/sdk/test/mock/MockPosts;Ljava/lang/String;Ljava/lang/String;Ljava/util/Date;Ljava/util/Date;Ljava/lang/String;Lcom/octopuscommunity/sdk/domain/model/Status;Lcom/octopuscommunity/sdk/domain/model/Author;Lcom/octopuscommunity/sdk/domain/model/TranslatableText;Lcom/octopuscommunity/sdk/domain/model/Medias;Lcom/octopuscommunity/sdk/domain/model/Post$Poll;Lcom/octopuscommunity/sdk/domain/model/OctopusItem$Feeds;IILjava/util/List;Lcom/octopuscommunity/sdk/domain/model/OctopusItem$Reaction;Ljava/lang/String;Lcom/octopuscommunity/sdk/domain/model/Post$ClientObject;Lcom/octopuscommunity/sdk/domain/model/Post$CustomAction;Lcom/octopuscommunity/sdk/domain/model/Comment;ILjava/lang/Object;)Lcom/octopuscommunity/sdk/domain/model/Post;
+	public final fun getAll ()Ljava/util/List;
+	public final fun getDefault ()Lcom/octopuscommunity/sdk/domain/model/Post;
+	public final fun getWithClientObject ()Lcom/octopuscommunity/sdk/domain/model/Post;
+	public final fun getWithComment ()Lcom/octopuscommunity/sdk/domain/model/Post;
+	public final fun getWithEightImages ()Lcom/octopuscommunity/sdk/domain/model/Post;
+	public final fun getWithPoll ()Lcom/octopuscommunity/sdk/domain/model/Post;
+	public final fun getWithThreeImages ()Lcom/octopuscommunity/sdk/domain/model/Post;
+	public final fun getWithVideo ()Lcom/octopuscommunity/sdk/domain/model/Post;
+}
+
+public final class com/octopuscommunity/sdk/test/mock/MockProfiles {
+	public static final field INSTANCE Lcom/octopuscommunity/sdk/test/mock/MockProfiles;
+	public final fun getAll ()Ljava/util/List;
+	public final fun getDefault ()Lcom/octopuscommunity/sdk/domain/model/OtherUserProfile;
+}
+
+public final class com/octopuscommunity/sdk/test/mock/MockReactions {
+	public static final field INSTANCE Lcom/octopuscommunity/sdk/test/mock/MockReactions;
+	public final fun getAll ()Ljava/util/List;
+	public final fun getDefault ()Lcom/octopuscommunity/sdk/domain/model/OctopusItem$ReactionCount;
+}
+
+public final class com/octopuscommunity/sdk/test/mock/MockReplies {
+	public static final field INSTANCE Lcom/octopuscommunity/sdk/test/mock/MockReplies;
+	public final fun create (Ljava/lang/String;Ljava/lang/String;Ljava/util/Date;Ljava/util/Date;Ljava/lang/String;Lcom/octopuscommunity/sdk/domain/model/Status;Lcom/octopuscommunity/sdk/domain/model/Author;Lcom/octopuscommunity/sdk/domain/model/TranslatableText;Lcom/octopuscommunity/sdk/domain/model/Medias;Ljava/util/List;Lcom/octopuscommunity/sdk/domain/model/OctopusItem$Reaction;Lcom/octopuscommunity/sdk/domain/model/Comment;)Lcom/octopuscommunity/sdk/domain/model/Comment$Reply;
+	public static synthetic fun create$default (Lcom/octopuscommunity/sdk/test/mock/MockReplies;Ljava/lang/String;Ljava/lang/String;Ljava/util/Date;Ljava/util/Date;Ljava/lang/String;Lcom/octopuscommunity/sdk/domain/model/Status;Lcom/octopuscommunity/sdk/domain/model/Author;Lcom/octopuscommunity/sdk/domain/model/TranslatableText;Lcom/octopuscommunity/sdk/domain/model/Medias;Ljava/util/List;Lcom/octopuscommunity/sdk/domain/model/OctopusItem$Reaction;Lcom/octopuscommunity/sdk/domain/model/Comment;ILjava/lang/Object;)Lcom/octopuscommunity/sdk/domain/model/Comment$Reply;
+	public final fun getAll ()Ljava/util/List;
+	public final fun getDefault ()Lcom/octopuscommunity/sdk/domain/model/Comment$Reply;
+}
+
+public final class com/octopuscommunity/sdk/test/mock/MockStrictMedias {
+	public static final field INSTANCE Lcom/octopuscommunity/sdk/test/mock/MockStrictMedias;
+	public final fun create ()Lcom/octopuscommunity/sdk/domain/model/Medias;
+	public final fun createImage (I)Lcom/octopuscommunity/sdk/domain/model/Medias;
+	public static synthetic fun createImage$default (Lcom/octopuscommunity/sdk/test/mock/MockStrictMedias;IILjava/lang/Object;)Lcom/octopuscommunity/sdk/domain/model/Medias;
+	public final fun createVideo ()Lcom/octopuscommunity/sdk/domain/model/Medias;
+}
+
+public final class com/octopuscommunity/sdk/test/mock/MockTopics {
+	public static final field INSTANCE Lcom/octopuscommunity/sdk/test/mock/MockTopics;
+	public final fun create (Ljava/lang/String;Ljava/lang/String;Ljava/util/Date;Ljava/util/Date;Lcom/octopuscommunity/sdk/domain/model/Status;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/List;Lcom/octopuscommunity/sdk/domain/model/OctopusItem$Feeds;)Lcom/octopuscommunity/sdk/domain/model/OctopusGroup;
+	public static synthetic fun create$default (Lcom/octopuscommunity/sdk/test/mock/MockTopics;Ljava/lang/String;Ljava/lang/String;Ljava/util/Date;Ljava/util/Date;Lcom/octopuscommunity/sdk/domain/model/Status;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/List;Lcom/octopuscommunity/sdk/domain/model/OctopusItem$Feeds;ILjava/lang/Object;)Lcom/octopuscommunity/sdk/domain/model/OctopusGroup;
+	public final fun getAll ()Ljava/util/List;
+	public final fun getDefault ()Lcom/octopuscommunity/sdk/domain/model/OctopusGroup;
+	public final fun getSections ()Ljava/util/List;
+}
+
+public final class com/octopuscommunity/sdk/test/observer/FakeLifecycleEvents : com/octopuscommunity/sdk/domain/event/LifecycleEvents {
+	public fun <init> ()V
+	public fun emitEvent (Lcom/octopuscommunity/sdk/domain/event/LifecycleEvents$Event;)V
+	public fun getEventsFlow ()Lkotlinx/coroutines/flow/Flow;
+	public fun onOctopusScreenStarted ()V
+	public fun onOctopusScreenStopped ()V
+}
+
+public final class com/octopuscommunity/sdk/test/repository/FakeCommentRepository : com/octopuscommunity/sdk/domain/repository/CommentRepository {
+	public fun <init> ()V
+	public fun deleteComment (Lcom/octopuscommunity/sdk/domain/model/Comment;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun deleteLocalOrphanedItems (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchCounters (Ljava/lang/String;Ljava/lang/Boolean;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchCounters (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchCounters (Ljava/util/List;Ljava/util/List;Ljava/util/List;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchCounters (Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchItem (Ljava/lang/String;Ljava/lang/Boolean;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchItems (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchItems (Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchItems (Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getLocalItemFlow (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public fun getLocalItemsFlow (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public fun resetCache (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun sendComment (Lcom/octopuscommunity/sdk/domain/model/Comment$Draft;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun setReaction (Lcom/octopuscommunity/sdk/domain/model/Comment;Lcom/octopuscommunity/sdk/domain/model/OctopusItem$Reaction$Kind;Ljava/lang/Boolean;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public synthetic fun setReaction (Lcom/octopuscommunity/sdk/domain/model/OctopusItem;Lcom/octopuscommunity/sdk/domain/model/OctopusItem$Reaction$Kind;Ljava/lang/Boolean;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public class com/octopuscommunity/sdk/test/repository/FakeCommunityClosureRepository : com/octopuscommunity/sdk/domain/repository/CommunityClosureRepository {
+	public fun <init> ()V
+	public fun <init> (Lcom/octopuscommunity/sdk/domain/model/CommunityClosure;)V
+	public synthetic fun <init> (Lcom/octopuscommunity/sdk/domain/model/CommunityClosure;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getClosureFlow ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun handle (Lcom/octopuscommunity/sdk/domain/model/CommunityClosure;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun isCheckDue (J)Z
+	public fun isClosed ()Z
+	public fun resumeInterruptedPurge (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/octopuscommunity/sdk/test/repository/FakeCommunityConfigRepository : com/octopuscommunity/sdk/domain/repository/CommunityConfigRepository {
+	public fun <init> ()V
+	public fun debugOverrideConsentTexts (Lcom/octopuscommunity/sdk/domain/model/CommunityConfig$ConsentTexts;)V
+	public fun debugOverrideContentOptions (Lcom/octopuscommunity/sdk/domain/model/CommunityConfig$ContentOptions;)V
+	public fun debugOverrideExposeClientUserId (Ljava/lang/Boolean;)V
+	public fun debugOverrideForceNicknameChoice (Ljava/lang/Boolean;)V
+	public fun debugOverrideProfileFieldsLock (Lcom/octopuscommunity/sdk/domain/model/ProfileFieldsLock;)V
+	public fun debugOverrideTermsAcceptanceMode (Lcom/octopuscommunity/sdk/domain/model/CommunityConfig$TermsAcceptanceMode;)V
+	public fun fetchCommunityConfig (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getCommunityConfig (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getCommunityConfigFlow ()Lkotlinx/coroutines/flow/Flow;
+	public fun getGamificationConfig (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getGamificationPoints (Lcom/octopuscommunity/sdk/domain/model/Gamification$Action;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getGamificationToast (Lcom/octopuscommunity/sdk/domain/model/Gamification$Action;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/octopuscommunity/sdk/test/repository/FakeConnectionRepository : com/octopuscommunity/sdk/test/repository/FakeProfileRepository, com/octopuscommunity/sdk/domain/repository/ConnectionRepository, com/octopuscommunity/sdk/domain/repository/DeletedAccountRecovery, com/octopuscommunity/sdk/domain/repository/SsoBanState {
+	public fun <init> ()V
+	public fun <init> (Lcom/octopuscommunity/sdk/domain/model/ConnectionMode;Ljava/util/Set;)V
+	public synthetic fun <init> (Lcom/octopuscommunity/sdk/domain/model/ConnectionMode;Ljava/util/Set;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun checkConnection (Lcom/octopuscommunity/sdk/domain/model/CurrentUserProfile;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun checkConnection (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun connectAsGuest (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun connectUser (Lcom/octopuscommunity/sdk/domain/model/ClientUser;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getAppManagedFields ()Ljava/util/Set;
+	public fun getClientUser (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public synthetic fun getClientUserFlow ()Lkotlinx/coroutines/flow/Flow;
+	public fun getClientUserFlow ()Lkotlinx/coroutines/flow/StateFlow;
+	public fun getConnectionMode ()Lcom/octopuscommunity/sdk/domain/model/ConnectionMode;
+	public fun getConnectionState (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getConnectionStateFlow ()Lkotlinx/coroutines/flow/Flow;
+	public fun getUserBannedMessage ()Ljava/lang/String;
+	public fun logout (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun recoverFromDeletedAccount (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun refreshEntitlements (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun setAppManagedFields (Ljava/util/Set;)V
+}
+
+public final class com/octopuscommunity/sdk/test/repository/FakeEventRepository : com/octopuscommunity/sdk/domain/repository/EventRepository {
+	public fun <init> ()V
+	public fun emitEvent (Lcom/octopuscommunity/sdk/domain/model/SDKEvent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public synthetic fun getEvents ()Lkotlinx/coroutines/flow/Flow;
+	public fun getEvents ()Lkotlinx/coroutines/flow/SharedFlow;
+	public fun getEventsFlow ()Lkotlinx/coroutines/flow/Flow;
+	public fun tryEmitEvent (Lcom/octopuscommunity/sdk/domain/model/SDKEvent;)V
+}
+
+public final class com/octopuscommunity/sdk/test/repository/FakeExternalLinkRepository : com/octopuscommunity/sdk/domain/repository/ExternalLinkRepository {
+	public fun <init> ()V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun getCommunityGuidelinesUrl ()Ljava/lang/String;
+	public fun getPrivacyPolicyUrl ()Ljava/lang/String;
+	public fun getTermsOfUseUrl ()Ljava/lang/String;
+}
+
+public final class com/octopuscommunity/sdk/test/repository/FakeLanguageRepository : com/octopuscommunity/sdk/domain/repository/LanguageRepository {
+	public fun <init> ()V
+	public fun getLocaleIdentifier (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getLocaleIdentifierFlow ()Lkotlinx/coroutines/flow/Flow;
+	public fun getOverriddenLocaleFlow ()Lkotlinx/coroutines/flow/Flow;
+	public fun getOverriddenLocaleIdentifierFlow ()Lkotlinx/coroutines/flow/Flow;
+	public fun overrideDefaultLocale (Ljava/util/Locale;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/octopuscommunity/sdk/test/repository/FakeModerationRepository : com/octopuscommunity/sdk/domain/repository/ModerationRepository {
+	public fun <init> ()V
+	public fun getModerationReportReasons ()Ljava/util/List;
+	public fun reportContent (Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun reportUser (Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public class com/octopuscommunity/sdk/test/repository/FakeNotificationRepository : com/octopuscommunity/sdk/domain/repository/NotificationRepository {
+	public fun <init> ()V
+	public final fun addNotification (Lcom/octopuscommunity/sdk/domain/model/Notification;)V
+	public final fun clearNotifications ()V
+	public fun deleteNotifications (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchNotifications (ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchNotificationsSettings (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getNotificationsFlow ()Lkotlinx/coroutines/flow/Flow;
+	public fun getNotificationsSettingsFlow ()Lkotlinx/coroutines/flow/Flow;
+	public final fun getUnreadCount ()I
+	public fun markAsRead (Lcom/octopuscommunity/sdk/domain/model/Notification;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun markAsRead (Ljava/util/List;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun setNotifications (Ljava/util/List;)V
+	public fun setNotificationsSettings (Lcom/octopuscommunity/sdk/domain/model/Settings$Notifications;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/octopuscommunity/sdk/test/repository/FakePostRepository : com/octopuscommunity/sdk/domain/repository/PostRepository {
+	public fun <init> ()V
+	public fun deleteLocalOrphanedItems (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun deletePost (Lcom/octopuscommunity/sdk/domain/model/Post;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchCounters (Ljava/lang/String;Ljava/lang/Boolean;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchCounters (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchCounters (Ljava/util/Collection;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchCounters (Ljava/util/List;Ljava/util/List;Ljava/util/List;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchCounters (Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchItem (Ljava/lang/String;Ljava/lang/Boolean;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchItems (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchItems (Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchItems (Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchOrCreateClientObjectPost (Lcom/octopuscommunity/sdk/domain/model/ClientPost;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getClientObjectPostFlow (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public fun getLocalItemFlow (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public fun getLocalItemsFlow (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public fun pollVote (Lcom/octopuscommunity/sdk/domain/model/Post;Lcom/octopuscommunity/sdk/domain/model/Post$Poll$Answer;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun resetCache (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun sendPost (Lcom/octopuscommunity/sdk/domain/model/Post$Draft;Lcom/octopuscommunity/sdk/domain/model/CreationSource;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public synthetic fun setReaction (Lcom/octopuscommunity/sdk/domain/model/OctopusItem;Lcom/octopuscommunity/sdk/domain/model/OctopusItem$Reaction$Kind;Ljava/lang/Boolean;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun setReaction (Lcom/octopuscommunity/sdk/domain/model/OctopusReactionKind;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun setReaction (Lcom/octopuscommunity/sdk/domain/model/Post;Lcom/octopuscommunity/sdk/domain/model/OctopusItem$Reaction$Kind;Ljava/lang/Boolean;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public class com/octopuscommunity/sdk/test/repository/FakePreferenceRepository : com/octopuscommunity/sdk/domain/repository/PreferenceRepository {
+	public fun <init> ()V
+	public fun getHasDisplayedGamificationSheet ()Z
+	public fun getInstallId ()Ljava/lang/String;
+	public fun setHasDisplayedGamificationSheet (Z)V
+	public fun setInstallId (Ljava/lang/String;)V
+}
+
+public class com/octopuscommunity/sdk/test/repository/FakeProfileRepository : com/octopuscommunity/sdk/test/repository/FakeUserRepository, com/octopuscommunity/sdk/domain/repository/ProfileRepository {
+	public fun <init> ()V
+	public fun blockProfile (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun createProfile (Lcom/octopuscommunity/sdk/domain/model/CurrentUserProfile;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun deleteProfile (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun deleteUser (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchNotificationsBadge (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchProfile (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchProfile (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchProfileByClientUserId (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getProfile (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getProfileFlow ()Lkotlinx/coroutines/flow/Flow;
+	public fun getProfileFlow (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	protected final fun get_currentUserProfile ()Lkotlinx/coroutines/flow/MutableStateFlow;
+	public final fun setCurrentUserProfile (Lcom/octopuscommunity/sdk/domain/model/CurrentUserProfile;)V
+	public fun updateProfile (Lcom/octopuscommunity/sdk/domain/model/CurrentUserProfile;Lcom/octopuscommunity/sdk/domain/model/CurrentUserProfile;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun updateProfile (Lcom/octopuscommunity/sdk/domain/model/CurrentUserProfile;Lcom/octopuscommunity/sdk/domain/model/CurrentUserProfile;ZZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/octopuscommunity/sdk/test/repository/FakeReactionsRepository : com/octopuscommunity/sdk/domain/repository/ReactionsRepository {
+	public fun <init> ()V
+	public fun getReactions (Ljava/lang/String;Lcom/octopuscommunity/sdk/domain/model/OctopusItem$Reaction$Kind;Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/octopuscommunity/sdk/test/repository/FakeReplyRepository : com/octopuscommunity/sdk/domain/repository/ReplyRepository {
+	public fun <init> ()V
+	public fun deleteLocalOrphanedItems (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun deleteReply (Lcom/octopuscommunity/sdk/domain/model/Comment$Reply;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchCounters (Ljava/lang/String;Ljava/lang/Boolean;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchCounters (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchCounters (Ljava/util/List;Ljava/util/List;Ljava/util/List;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchCounters (Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchItem (Ljava/lang/String;Ljava/lang/Boolean;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchItems (Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchItems (Ljava/util/List;Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchItems (Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getLocalItemFlow (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public fun getLocalItemsFlow (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public fun resetCache (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun sendReply (Lcom/octopuscommunity/sdk/domain/model/Comment$Reply$Draft;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun setReaction (Lcom/octopuscommunity/sdk/domain/model/Comment$Reply;Lcom/octopuscommunity/sdk/domain/model/OctopusItem$Reaction$Kind;Ljava/lang/Boolean;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public synthetic fun setReaction (Lcom/octopuscommunity/sdk/domain/model/OctopusItem;Lcom/octopuscommunity/sdk/domain/model/OctopusItem$Reaction$Kind;Ljava/lang/Boolean;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/octopuscommunity/sdk/test/repository/FakeRootFeedRepository : com/octopuscommunity/sdk/domain/repository/RootFeedRepository {
+	public fun <init> ()V
+	public fun fetchRootFeeds (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getRootFeeds ()Lkotlinx/coroutines/flow/Flow;
+}
+
+public final class com/octopuscommunity/sdk/test/repository/FakeSessionRepository : com/octopuscommunity/sdk/test/repository/FakeTrackerRepository, com/octopuscommunity/sdk/domain/repository/SessionRepository {
+	public fun <init> ()V
+	public fun getAppSession (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getAppSessionFlow ()Lkotlinx/coroutines/flow/Flow;
+	public fun getOctopusSession (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getOctopusSessionFlow ()Lkotlinx/coroutines/flow/Flow;
+	public fun getPlayedVideoFlow (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public fun getPlayedVideosFlow ()Lkotlinx/coroutines/flow/Flow;
+	public fun getVideosMutedFlow ()Lkotlinx/coroutines/flow/Flow;
+	public fun hasDisplayedGamification (Lcom/octopuscommunity/sdk/domain/model/Gamification$Action;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun setGamificationDisplayed (Lcom/octopuscommunity/sdk/domain/model/Gamification$Action;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun setVideosMuted (ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun startOctopusSession (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun updateAppSession (Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun updateOctopusSession (Lkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun updateSessionsLastAlive (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun upsertPlayedVideo (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/octopuscommunity/sdk/test/repository/FakeTopicRepository : com/octopuscommunity/sdk/domain/repository/GroupRepository {
+	public fun <init> ()V
+	public fun fetchGroup (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchGroups (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getGroupFlow (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public fun getGroupsFlow ()Lkotlinx/coroutines/flow/Flow;
+	public fun getSectionsFlow ()Lkotlinx/coroutines/flow/Flow;
+	public fun setFollowed (Lcom/octopuscommunity/sdk/domain/model/OctopusGroup;ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun syncFollowGroups (Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public class com/octopuscommunity/sdk/test/repository/FakeTrackerRepository : com/octopuscommunity/sdk/domain/repository/TrackerRepository {
+	public fun <init> ()V
+	public fun trackClientObjectOpened (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun trackClientSetABTest (ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun trackCtaButtonClicked (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun trackCustomEvent (Lcom/octopuscommunity/sdk/domain/model/TrackerEvent$Custom;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun trackEvent (Lcom/octopuscommunity/sdk/domain/model/TrackerEvent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun trackEvents (Ljava/util/List;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun trackPostOpened (ZLcom/octopuscommunity/sdk/domain/model/TrackerEvent$PostOpened$Origin;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun trackTopicCtaButtonClicked (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun trackTranslationButtonClicked (ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun trackVideosPlayed (Ljava/util/Collection;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/octopuscommunity/sdk/test/repository/FakeTranslationRepository : com/octopuscommunity/sdk/domain/repository/TranslationRepository {
+	public fun <init> ()V
+	public fun getTranslationFlow (Ljava/lang/String;)Lkotlinx/coroutines/flow/Flow;
+	public fun getTranslationsFlow ()Lkotlinx/coroutines/flow/Flow;
+	public fun isTranslated (Lcom/octopuscommunity/sdk/domain/model/OctopusItem;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun isTranslated (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun toggleTranslation (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/octopuscommunity/sdk/test/repository/FakeUserCommentRepository : com/octopuscommunity/sdk/domain/repository/UserCommentRepository {
+	public static final field Companion Lcom/octopuscommunity/sdk/test/repository/FakeUserCommentRepository$Companion;
+	public fun <init> ()V
+	public fun firstPage (Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun nextPage (Ljava/lang/String;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class com/octopuscommunity/sdk/test/repository/FakeUserCommentRepository$Companion {
+}
+
+public class com/octopuscommunity/sdk/test/repository/FakeUserRepository : com/octopuscommunity/sdk/test/repository/FakeNotificationRepository, com/octopuscommunity/sdk/domain/repository/UserRepository {
+	public fun <init> ()V
+	public fun checkPushNotificationsToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun deleteUser (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun fetchCommunityAccess (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getPushNotificationsToken (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	protected final fun getUser ()Lkotlinx/coroutines/flow/MutableStateFlow;
+	public fun getUser (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getUserConfig (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun getUserConfigFlow ()Lkotlinx/coroutines/flow/Flow;
+	public fun overrideCommunityAccess (ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public fun registerPushNotificationsToken (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun setUserConfig (Lcom/octopuscommunity/sdk/domain/model/UserConfig;)V
+	public fun updateJwt (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+

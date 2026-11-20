@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package com.octopuscommunity;
+
+message LogAsRequest {
+  string userId = 1;
+}
+
+message LogAsResponse {
+  string jwt = 1;
+}
+
+service AuthService {
+  rpc LogAs(LogAsRequest) returns (LogAsResponse);
+}

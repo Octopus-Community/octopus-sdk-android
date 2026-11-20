@@ -1,0 +1,172 @@
+syntax = "proto3";
+
+package com.octopuscommunity;
+
+
+//Service for calls that are used only for analytics purpose, no read, no write
+service TrackingService {
+  rpc Track(TrackRequest) returns (TrackResponse);
+}
+
+
+/*
+  userId -> deduced from Jwt from headers
+  installId / appSessionId / 8pusSessionId found in headers
+*/
+message TrackRequest {
+
+  repeated Event events = 1; // List of events to be tracked
+
+  message Event {
+
+    uint64 timestamp = 1; // Timestamp in milliseconds since epoch
+    optional string appSessionId = 2; //taken from header if not present
+    optional string octoSessionId = 3; //taken from header if not present
+
+    oneof eventType {
+      EnteringApp enteringApp = 12;
+      LeavingApp leavingApp = 13;
+      EnteringOctopus enteringOctopus = 14;
+      LeavingOctopus leavingOctopus = 15;
+      CustomEvent customEvent = 16;
+      BridgePostOpened bridgePostOpened = 17;//Deprecated use Post open with client origin
+      OpenClientObjectFromBridge openClientObjectFromBridge = 18;
+      PostOpened postOpened = 19;
+      ClientContentSharingStarted clientContentSharingStarted = 20;
+      ClientContentSharingCanceled clientContentSharingCanceled = 21;
+      ViewTopic viewTopic = 22;
+      ViewProfile viewProfile = 23;
+      SearchTopicButtonHit searchTopicButtonHit = 24;
+      ViewTranslationButtonHit viewTranslationButtonHit = 25;
+      VideoPlayed videoPlayed = 26;
+      ClickOnCta clickOnCta = 27; // Click on a Post CTA
+      ClientSetABTestInfo clientSetABTestInfo = 28;
+      ClickOnTopicCta clickOnTopicCta = 29; // Click on a Topic CTA
+      OctopusDrivenLogin octopusDrivenLogin = 30; // Login attributed to Octopus
+    }
+
+  }
+
+  message CustomEvent {
+    string name = 1;
+    map<string, PropertyValue> properties = 2;
+  }
+
+  message PropertyValue {
+    string value = 1;
+  }
+
+  message OctopusDrivenLogin {
+    Action action = 1; // The login-gated action that triggered the login request
+    enum Action {
+      ACTION_UNSPECIFIED = 0;
+      POST = 1;
+      COMMENT = 2;
+      REPLY = 3;
+      REACTION = 4;
+      VOTE = 5;
+      MODERATION = 6;
+      BLOCK_USER = 7;
+      VIEW_OWN_PROFILE = 8;
+    }
+  }
+
+  message EnteringApp {
+    optional bool firstSession = 1; // true if it's the first app session after generating installId
+  }
+  message LeavingApp {
+    SessionSummary sessionSummary = 10;
+  }
+
+  message EnteringOctopus {
+    optional bool firstSession = 1; // true if it's the first octopus session after generating installId
+  }
+  message LeavingOctopus {
+    SessionSummary sessionSummary = 10;
+  }
+
+  message BridgePostOpened {
+    bool success = 1;
+  }
+
+  message PostOpened {
+    Origin origin = 1;
+    bool success = 2;
+  }
+
+  message Origin {
+    oneof from {
+      ClientApp fromClientApp = 1;
+      Sdk fromOctopusSdk = 2;
+    }
+  }
+
+  message ClientApp {
+  }
+
+  message Sdk {
+    bool hasFeaturedComment = 1;
+  }
+
+  message OpenClientObjectFromBridge {
+  }
+
+  message SessionSummary {
+    //In milliseconds
+    uint64 startedAt = 1;
+    uint64 endedAt = 2;
+    uint64 duration = 3;
+    optional bool firstSession = 4;
+  }
+
+  message ClientContentSharingStarted {}
+
+  message ClientContentSharingCanceled {}
+
+  message ViewTopic {
+    oneof from {
+        ViewTopicFrom.SearchButton search = 11;
+        ViewTopicFrom.Carousel carousel = 12;
+    }
+    string value = 2; //Topic name
+
+    message ViewTopicFrom {
+      message SearchButton { }
+      message Carousel { }
+    }
+  }
+
+  message ViewProfile {
+    bool self = 1; //true if user is asking for his own profile, false otherwise
+    string target = 2;
+  }
+
+  message SearchTopicButtonHit {
+  }
+
+  message ViewTranslationButtonHit {
+      bool viewTranslated = 1; // Whether the button hit is to see the translated content or the original one
+  }
+
+  message VideoPlayed {
+    string objectId = 1;
+    int32 watchTimeSec = 2;
+    int32 videoDurationSec = 3;
+    string videoId = 4;
+  }
+
+  message ClickOnCta {
+    string objectId = 1;
+  }
+
+  message ClickOnTopicCta {
+    string objectId = 1;
+  }
+
+  message ClientSetABTestInfo {
+    bool hasAccessToCommunity = 1;
+  }
+}
+
+message TrackResponse {}
+

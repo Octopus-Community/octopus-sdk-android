@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Language glyph (a stroke character next to an "A") shown before the "View original" /
+  "View translation" toggle of a translated post, comment or reply. Same artwork as the iOS
+  `translation` icon. Stroke-only paths, 24dp viewport with built-in whitespace around the glyph;
+  tinted in code.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M13,8C13,8 12.6667,11.8887 8,15"
+        android:strokeWidth="1.2"
+        android:strokeColor="#616172"
+        android:strokeLineCap="round" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M7,8H14"
+        android:strokeWidth="1.2"
+        android:strokeColor="#616172"
+        android:strokeLineCap="round" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M10,7V8"
+        android:strokeWidth="1.2"
+        android:strokeColor="#616172"
+        android:strokeLineCap="round" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M9,10C9,10 10.6614,13.0602 12,14"
+        android:strokeWidth="1.2"
+        android:strokeColor="#616172"
+        android:strokeLineCap="round" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M12,17L14.5,11L17,17"
+        android:strokeWidth="1.2"
+        android:strokeColor="#616172"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M13,15H16"
+        android:strokeWidth="1.2"
+        android:strokeColor="#616172"
+        android:strokeLineCap="round" />
+</vector>

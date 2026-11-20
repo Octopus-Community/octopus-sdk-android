@@ -1,0 +1,585 @@
+syntax = "proto3";
+
+package com.octopuscommunity;
+import "com/octopuscommunity/GrpcModelProto.proto";
+import "com/octopuscommunity/CommonProto.proto";
+
+message DeleteUserRequest {
+  string userId = 1;
+}
+
+message DeleteUserResponse {}
+
+service UserService {
+  rpc DeleteUser(DeleteUserRequest) returns (DeleteUserResponse);
+  rpc BanUser(BanUserRequest) returns (BanUserResponse);//For BO user only
+  rpc UnbanUser(UnbanUserRequest) returns (UnbanUserResponse);//For Admin user only
+  rpc ShadowBanUser(ShadowBanUserRequest) returns (ShadowBanUserResponse);//For BO user only
+  rpc UnShadowBanUser(ShadowUnbanUserRequest) returns (UnShadowBanUserResponse);//For Admin user only
+
+  rpc createUser(CreateUserRequest) returns (CreateUserResponse);
+  rpc CreateProfile(UpdateProfileRequest) returns (UpdateProfileResponse);//Same as UpdateProfile, just help to understand the use case for tracking signup
+  rpc UpdateProfile(UpdateProfileRequest) returns (UpdateProfileResponse);
+  rpc GetPublicProfile(GetPublicProfileRequest) returns (GetPublicProfileResponse);
+  rpc GetPrivateProfile(GetPrivateProfileRequest) returns (GetPrivateProfileResponse);
+  rpc DeleteMyProfile(DeleteMyProfileRequest) returns (DeleteMyProfileResponse);
+  rpc ReportUser(ReportUserRequest) returns (ReportUserResponse);
+  rpc BlockUser(BlockUserRequest) returns (BlockUserResponse);
+  rpc SearchUser(SearchUserRequest) returns (SearchUserResponse);
+
+  rpc GetJwtFromClientSignedToken(GetJwtFromClientSignedTokenRequest) returns (GetJwtFromClientSignedTokenResponse);
+
+  rpc GetGuestJwt(GetGuestJwtRequest) returns (GetGuestJwtResponse);
+
+  rpc CanAccessCommunity(CanAccessCommunityRequest) returns (CanAccessCommunityResponse);
+  rpc ByPassAbTesting(ByPassAbTestingRequest) returns (ByPassAbTestingResponse);
+
+  rpc SetProfileTag(SetProfileTagRequest) returns (SetProfileTagResponse);
+  rpc EnteringOctopus(EnteringOctopusRequest) returns (EnteringOctopusResponse);
+
+  rpc FollowTopic(FollowUnfollowTopicRequest) returns (FollowUnfollowTopicResponse);
+  rpc UnfollowTopic(FollowUnfollowTopicRequest) returns (FollowUnfollowTopicResponse);
+  rpc SyncFollowTopics(SyncFollowTopicsRequest) returns (SyncFollowTopicsResponse);
+}
+
+message GetGuestJwtRequest {}
+
+message GetGuestJwtResponse {
+  oneof result {
+    Success success = 1; // The response if authentication was successful.
+    Fail fail = 2; // Error details if authentication failed.
+  }
+
+  message Success {
+    string jwt = 1; // The jwt related to the user
+    string userId = 2; // The user id
+    PrivateProfile profile = 3; // The profile of the user
+  }
+
+  // Detailed error information.
+  message Fail {
+    repeated Error errors = 1;
+  }
+
+  message Error {
+    ErrorCode errorCode = 1; // The specific error code.
+    string message = 2; // A human-readable error message.
+  }
+
+  enum ErrorCode {
+    UNKNOWN_ERROR = 0; // An unknown error occurred.
+    USER_BANNED = 1;
+  }
+}
+
+message GetJwtFromClientSignedTokenRequest {
+  string clientToken = 1;
+}
+
+message GetJwtFromClientSignedTokenResponse {
+  oneof result {
+    Success success = 1; // The response if authentication was successful.
+    Fail fail = 2; // Error details if authentication failed.
+  }
+
+  message Success {
+    string jwt = 1; // The jwt related to the user
+    string userId = 2; // The user id
+    PrivateProfile profile = 3; // The profile of the user
+  }
+
+  // Detailed error information.
+  message Fail {
+      repeated Error errors = 1;
+  }
+
+  message Error {
+    ErrorCode error_code = 1; // The specific error code.
+    string message = 2; // A human-readable error message.
+  }
+
+  enum ErrorCode {
+    UNKNOWN_ERROR = 0; // An unknown error occurred.
+    USER_BANNED = 1;
+  }
+}
+
+
+//Only accessible to BO user
+message CreateUserRequest {}
+
+message CreateUserResponse {
+  oneof result {
+    Success success = 1;
+    Fail fail = 2;
+  }
+
+  message Success {
+    string userId = 1;
+  }
+
+  message Fail {
+    repeated Error errors = 1;
+  }
+
+  message Error {
+    string message = 1; //TODO handle i18n. With error code ?
+  }
+}
+
+message UpdateProfileRequest {
+  string userId = 1;
+  ProfileUpdate update = 2;
+  optional bool fetchUserBlockList = 3;//Default to false
+  optional bool fetchNotificationsBadge = 4;//Default to false
+  optional bool fetchTotalMessages = 5;//Default to false
+  optional bool fetchGamification = 6;//Default to false
+  optional bool wantNicknameSuggestions = 7;//Default to false. When true and the nickname is taken, AlreadyTaken carries available suggestions
+}
+
+message ProfileUpdate {
+  //If a field is not set, it means that the user does not want to update it
+  optional string email = 2;
+  optional string nickname = 3;
+
+  optional PictureUpdateRequest picture = 4;
+  optional string bio = 5;
+
+  optional bool hasSeenOnboarding = 6;
+  optional bool hasAcceptedCgu = 7;
+
+  optional bool hasConfirmedNickname = 8;
+  optional bool hasConfirmedBio = 9;
+  optional bool hasConfirmedPicture = 10;
+
+  //true -> use an algorithm to generate an available nickname if non provided, are already taken
+  //false -> do not generate a nickname, just return an error if the provided nickname is already taken
+  optional bool optFindAvailableNickname = 11;
+
+}
+
+message PictureUpdateRequest {
+  oneof request {
+    PictureUploadRequest new = 1;
+    PictureDeleteRequest delete = 2;
+  }
+}
+
+message PictureUploadRequest {
+  bytes file = 1;
+  optional bool isOptimized = 2;//True if sdk resized the file before uploading it. Skip backend resize process if true
+}
+
+message PictureDeleteRequest {}
+
+//error GRPC status:
+// - PERMISSION_DENIED:
+//            - "You can only update your own profile" ->  you can also do it as octopus admin
+// - NOT_FOUND:
+//            - "User not found" -> the user you are trying to update does not exist
+message UpdateProfileResponse {
+  oneof result {
+    Success success = 1;
+    Fail fail = 2;
+  }
+  message Success {
+    PrivateProfile profile = 1;
+    optional bool shouldDisplayProfileCompletedGamificationToast  = 2;
+  }
+  message Fail {
+    repeated Error errors = 1;
+  }
+
+  message Error {
+    string message = 1; //TODO handle i18n. With error code ?
+
+    Field field = 2;
+    enum Field {
+      UNKNOWN = 0; //ModeratedContent
+      EMAIL = 1; //AlreadyTaken, BadFormat, BannedWordUsed
+      NICKNAME = 2; //AlreadyTaken, BannedWordUsed, CharLimitReached, BadFormat, ModeratedContent
+      PROFILE_PICTURE = 3; //EmptyFile, FileSizeTooBig, BadFileFormat, UploadIssue, AvatarInProcess
+      BIO = 4; //BannedWordUsed, CharLimitReached, ModeratedContent
+    }
+
+    oneof details {
+      BannedWordUsed bannedWordUsed = 101;
+      AlreadyTaken alreadyTaken = 102;
+      BadFormat badFormat = 103;
+      EmptyFile emptyFile = 104;
+      FileSizeTooBig fileSizeTooBig = 105;
+      BadFileFormat badFileFormat = 106;
+      UploadIssue uploadIssue = 107;
+      CharLimitReached charLimitReached = 108;
+      ModeratedContent moderatedContent = 109;
+      AvatarInProcess avatarInProcess = 110;
+    }
+    message BannedWordUsed {
+      repeated string words = 1;
+    }
+    message BadFormat {}
+    message AlreadyTaken {
+      repeated string suggestions = 1;
+    }
+    message EmptyFile {}
+    message FileSizeTooBig {}
+    message BadFileFormat {}
+    message UploadIssue {}
+    message CharLimitReached {}
+    message ModeratedContent {}
+    message AvatarInProcess {}
+  }
+
+  //Empty for now but could be used for error handling
+}
+
+//May throw FAILED_PRECONDITION on lookup by clientUserId when the community does not expose client user ids
+message GetPublicProfileRequest {
+  oneof user_ref {
+    string userId = 1;
+    string clientUserId = 4;
+  }
+  optional bool fetchTotalMessages = 2;//Default to false
+  optional bool fetchGamification = 3;//Default to false
+}
+
+message GetPublicProfileResponse {
+  PublicProfile profile = 1;
+}
+
+message PublicProfile {
+  string id = 1;
+  optional string nickname = 2;
+  optional string pictureUrl = 3;
+  optional string bio = 4;
+
+  string descPostFeedId = 10;
+  string ascPostFeedId = 11;
+
+  string descCommentFeedId = 12;
+  string ascCommentFeedId = 13;
+
+  repeated ProfileTag tags = 20;
+
+  optional PublicGamificationScore gamificationScore = 30;
+
+  optional int32 totalMessages = 40;
+  optional uint64 accountCreatedAt = 41;
+
+  optional string clientUserId = 50; //The user's id in the client's own system. Absent when the community does not expose client user ids, or the user has none.
+
+  optional DefaultAvatar defaultAvatar = 60;
+
+  optional string metadata = 999; //JSON string
+}
+
+message GetPrivateProfileRequest {
+  string userId = 1;
+  optional bool fetchUserBlockList = 2;
+  optional bool fetchNotificationsBadge = 3;//Default to false
+  optional bool fetchTotalMessages = 4;//Default to false
+  optional bool fetchGamification = 5;//Default to false
+}
+
+//May throw NOT_FOUND if the user does not exist, or you do not have the right to see the profile
+message GetPrivateProfileResponse {
+  PrivateProfile profile = 1;
+}
+
+message PrivateProfile {
+  string id = 1;
+  optional string email = 2;
+  optional string nickname = 3;
+  optional string pictureUrl = 4;
+  optional string bio = 5;
+
+  optional bool hasSeenOnboarding = 6;
+  optional bool hasAcceptedCgu = 7;
+
+  optional bool hasConfirmedNickname = 113;
+  optional bool hasConfirmedPicture = 114;
+  optional bool hasConfirmedBio =115;
+
+  bool isGuest = 9;
+
+  string descPostFeedId = 10;
+  string ascPostFeedId = 11;
+
+  optional string originalNickname = 12; //If nickname is present, but originalNickname is not. It means that nickname is the original one.
+
+  string descCommentFeedId = 13;
+  string ascCommentFeedId = 14;
+
+  optional uint32 notSeenNotificationsCount = 20;
+
+  repeated ProfileTag tags = 30;
+
+  repeated string entitlements = 60; // Held entitlements (display only, not gating).
+
+  optional PrivateGamificationScore gamificationScore = 40;
+
+  optional int32 totalMessages = 50;
+  optional uint64 accountCreatedAt = 51;
+
+  // The member themself: show it on "my profile", but it is not removable.
+  optional DefaultAvatar defaultAvatar = 70;
+  // The default the member would get if they removed their picture now. Set only while they have a
+  // picture (pictureUrl is not empty) and the community uses its own colors or images; absent otherwise,
+  // and always absent when defaultAvatar is set. Show it in the profile edit screen's preview once the
+  // member removes their picture, before they save. The UpdateProfile response that removes the picture
+  // then carries the member's actual default in defaultAvatar.
+  optional DefaultAvatar defaultAvatarIfPictureRemoved = 71;
+
+  repeated string usersBlockList = 100;
+
+  optional string metadata = 999; //JSON string
+}
+
+message PrivateGamificationScore {
+  int32 score = 1;
+  int32 level = 2;
+}
+
+
+message PublicGamificationScore {
+  int32 level = 1;
+  optional int32 score =2; //For BO users only
+}
+
+message BanUserRequest {
+  string userId = 1;
+  repeated StatusReasonCode reasons = 2;
+}
+
+message BanUserResponse {}
+
+message UnbanUserRequest {
+  string userId = 1;
+}
+
+message UnbanUserResponse {}
+
+message ShadowBanUserRequest {
+  string userId = 1;
+}
+
+message ShadowBanUserResponse {}
+
+message ShadowUnbanUserRequest {
+  string userId = 1;
+}
+
+message UnShadowBanUserResponse {}
+
+message DeleteMyProfileRequest {
+  string userId = 1;
+  DeleteMyProfileReason reason = 2;
+
+  message DeleteMyProfileReason {
+    DeleteMyProfileReasonCode code = 1;
+    //    optional string message = 2;  //Not used now
+  }
+  enum DeleteMyProfileReasonCode {
+    UNSPECIFIED_DELETE_REASON = 0;
+    NO_MORE_INTERESTED = 1;         // Community content is no more interesting me
+    MISSING_KEY_FEATURES = 2;       // Some key features are missing
+    TECHNICAL_ISSUES = 3;           // I am facing technical issues
+    CONFIDENTIALITY_WORRYING = 4;   // I am worrying about confidentiality of my data
+    COMMUNITY_QUALITY = 5;          // I am not satisfied about moderation service or community quality
+    REDUCING_SN_TIME = 6;           // I want to reduce my time spent on social networks
+    OTHER = 9999;                   // Other
+  }
+
+}
+message DeleteMyProfileResponse {}
+
+message ReportUserRequest {
+  string userId = 1;
+  repeated ReportReasonCode reasonCodes = 2;
+  optional string customReason = 3;
+}
+
+message ReportUserResponse {
+}
+
+message BlockUserRequest {
+  string userId = 1;
+}
+
+message BlockUserResponse {
+}
+
+message ByPassAbTestingRequest {
+  string userId = 1;
+  bool giveCommunityAccess = 2; // If true, the user will be provided access to the community. If false, it will be in the cohort of users who do not have access to the community.
+}
+
+message ByPassAbTestingResponse {
+  oneof result {
+    Success success = 1; // The response if abtesting score change was successful.
+    Fail fail = 2; // Error details if abtesting score change failed.
+  }
+
+  message Success {
+    string jwt = 1; // The jwt related to the user, with the new abTesting score
+  }
+
+  // Detailed error information.
+  message Fail {
+    repeated Error errors = 1;
+  }
+
+  message Error {
+    ErrorCode errorCode = 1; // The specific error code.
+    string message = 2; // A human-readable error message.
+  }
+
+  enum ErrorCode {
+    UNKNOWN_ERROR = 0; // An unknown error occurred.
+  }
+}
+
+message CanAccessCommunityRequest {}
+
+message CanAccessCommunityResponse {
+  bool canAccessCommunity = 1;
+  optional string communityDisabledMessage =2;
+  oneof noAccessReason {
+    NoAccessCohort noAccessCohort = 3;
+    MemberExcluded memberExcluded = 4;
+    AccountBanned accountBanned = 5;
+    AccountDeleted accountDeleted = 6;
+    SessionEnded sessionEnded = 7;
+  }
+
+  message NoAccessCohort {}
+
+  message MemberExcluded {}
+
+  message AccountBanned {
+    optional string nickname = 1;
+    string policyName = 2;
+    string policyDescription = 3;
+    optional string contactEmail = 4;
+  }
+
+  message AccountDeleted {}
+
+  message SessionEnded {}
+}
+
+message SearchUserRequest {
+  string filterValue = 1; // Can be userId, clientUserId, nickname or email
+}
+
+message SearchUserResponse {
+  repeated PublicProfile profiles = 1;
+}
+
+
+message SetProfileTagRequest {
+  string userId = 1;
+  repeated ProfileTag tags = 2;
+}
+
+message SetProfileTagResponse {
+  oneof result {
+    Success success = 1; // The response profile tag setup was successful.
+    Fail fail = 2; // Error details if profile tag setup failed.
+  }
+
+  message Success {
+    PublicProfile profile = 1; // The public profile related to the user, with the new profile tag
+  }
+
+  // Detailed error information.
+  message Fail {
+    repeated Error errors = 1;
+  }
+
+  message Error {
+    ErrorCode errorCode = 1; // The specific error code.
+    string message = 2; // A human-readable error message.
+  }
+
+  enum ErrorCode {
+    UNKNOWN_ERROR = 0; // An unknown error occurred.
+  }
+}
+
+message EnteringOctopusRequest {
+  bool fetchGamificationToasts = 1;
+}
+
+message EnteringOctopusResponse {
+  optional bool shouldDisplayGamificationLoginToast = 1;
+  optional bool shouldDisplayGamificationAnswerToast = 2;
+}
+
+message FollowUnfollowTopicRequest {
+  string topicId = 1;
+}
+
+
+message FollowUnfollowTopicResponse {
+  oneof result {
+    Success success = 1;
+    Fail fail = 2;
+  }
+
+  message Success {
+  }
+
+  message Fail {
+    repeated Error errors = 1;
+  }
+
+  message Error {
+    string message = 1;
+
+    optional Field field = 2;
+
+    enum Field {
+      UNKNOWN = 0;
+      CONTENT_PARENT = 1; //MissingParent, UnFollowableTopic
+    }
+
+    oneof details {
+      ErrorDetails.MissingParent missingParent = 101;
+      ErrorDetails.UnFollowableTopic unFollowableTopic = 102;
+      ErrorDetails.TopicAlreadyFollowed topicAlreadyFollowed = 103;
+      ErrorDetails.TopicAlreadyUnfollowed topicAlreadyUnfollowed = 104;
+    }
+  }
+}
+
+message SyncFollowTopicsRequest {
+  repeated SyncFollowTopicAction actions = 1;
+}
+
+message SyncFollowTopicAction {
+  string topicId = 1;
+  bool followed = 2;        // true = follow, false = unfollow
+  int64 actionTimestamp = 3; // epoch millis of the follow/unfollow action
+}
+
+message SyncFollowTopicsResponse {
+  repeated SyncFollowTopicResult results = 1;
+}
+
+message SyncFollowTopicResult {
+  string topicId = 1;
+  SyncFollowTopicStatus status = 2;
+}
+
+enum SyncFollowTopicStatus {
+  SYNC_FOLLOW_UNSPECIFIED = 0;        // Default/unspecified (protobuf convention)
+  SYNC_FOLLOW_APPLIED = 1;            // Change was applied
+  SYNC_FOLLOW_SKIPPED = 2;            // Stale timestamp — stored date is more recent
+  SYNC_FOLLOW_TOPIC_NOT_FOUND = 3;    // topicId does not exist
+  SYNC_FOLLOW_NOT_FOLLOWABLE = 4;     // Topic is force-hidden (cannot be followed)
+  SYNC_FOLLOW_NOT_UNFOLLOWABLE = 5;   // Topic is force-shown (cannot be unfollowed)
+  SYNC_FOLLOW_ALREADY_FOLLOWED = 6;   // Topic is already in followed state
+  SYNC_FOLLOW_ALREADY_UNFOLLOWED = 7; // Topic is already in unfollowed state
+  SYNC_FOLLOW_ERROR = 8;              // Unexpected internal error
+}

@@ -1,0 +1,167 @@
+syntax = "proto3";
+
+package com.octopuscommunity;
+
+import "com/octopuscommunity/CommonProto.proto";
+
+service ApiKeyService {
+  rpc GetConfig(Empty) returns (GetConfigResponse);
+}
+
+message GetConfigResponse {
+  ApiKeyConfig apiKeyConfig = 1;
+}
+
+message ApiKeyConfig {
+  bool clientLoginMandatory = 1; //Guest user must be logged to do strong interaction (post/comment/reply)
+  optional GamificationConfig gamificationConfig = 2;
+  bool displayAccountAge = 3;
+  repeated string languages = 4;
+  DisplayConfig displayConfig = 5;
+  ProfileFieldsLock profileFieldsLock = 6; // absent / all EDITABLE => no-op
+  ContentOptions contentOptions = 7; // Only enforced for client (SDK) keys, not BO keys. Absent fields => true.
+  bool exposeClientUserId = 8; // false when unset. When true, the community exposes members' client user ids (MinimalProfile/PublicProfile.clientUserId) so the host can open its own profile screens (Unified Profile).
+  TermsAcceptanceMode termsAcceptanceMode = 9; // IMPLICIT when unset => today's behaviour (implicit acceptance, no consent sheet).
+  bool showCommentsOnOtherProfiles = 10; // false when unset. When true, the member "Comments" tab is also shown on other members' profiles (not just the connected user's own).
+  bool forceNicknameChoice = 11; // false when unset. When true, a member who has not confirmed a nickname types one before their first contribution (empty field) instead of being offered the generated one.
+  ConsentTexts consentTexts = 12; // absent => the SDK's consent wordings.
+  // Set when Octopus closed the community (for good, or for a while): the SDK makes no call until nextCheckAt.
+  oneof disabled {
+    CommunityClosed closed = 13;
+    CommunityTemporarilyDisabled temporarilyDisabled = 14;
+  }
+  // internal ticket: the community languages whose SDK texts address members informally ("tu"), same codes
+  // as `languages`. Empty: formal everywhere.
+  repeated string informalLanguages = 15;
+}
+
+message CommunityClosed {
+  string message = 1;
+  uint64 nextCheckAt = 2; // epoch millis before which the SDK does not check the community again
+}
+
+message CommunityTemporarilyDisabled {
+  string message = 1;
+  uint64 nextCheckAt = 2; // epoch millis before which the SDK does not check the community again
+}
+
+// The community's own consent wordings: markdown, in the member's language. An empty string means
+// "the SDK wording" for that field. Only the case of the community's active mode is set.
+message ConsentTexts {
+  oneof mode {
+    ImplicitConsentTexts implicit = 1;
+    MultiCheckboxConsentTexts multiCheckbox = 2;
+    SingleCheckboxConsentTexts singleCheckbox = 3;
+  }
+}
+
+message ImplicitConsentTexts {
+  string notice = 1; // notice under the post / comment / reply editor
+}
+
+message MultiCheckboxConsentTexts {
+  string termsLabel = 1;
+  string privacyLabel = 2;
+  string rulesLabel = 3;
+}
+
+message SingleCheckboxConsentTexts {
+  string label = 1;
+  string belowText = 2; // text under the checkbox, the same for posts, comments and replies
+}
+
+// How users must accept the legal documents at their first contribution (gRPC contract).
+enum TermsAcceptanceMode {
+  TERMS_ACCEPTANCE_MODE_IMPLICIT = 0;
+  TERMS_ACCEPTANCE_MODE_EXPLICIT_MULTI_CHECKBOX = 1;
+  TERMS_ACCEPTANCE_MODE_EXPLICIT_SINGLE_CHECKBOX = 2;
+}
+
+// SDK-only subset of the per-field profile lock defined in the gRPC contract.
+// The grpc-def ApiKeyServiceProto also carries the BO-only GetCommunityApiKeyConfigs
+// RPC + CommunityApiKeyConfig message; those are intentionally NOT mirrored here:
+// the SDK only consumes the per-key GetConfig payload (ApiKeyConfig).
+message ProfileFieldsLock {
+  FieldLock    nickname = 1;
+  BioFieldLock bio      = 2;
+  FieldLock    avatar   = 3;
+}
+
+enum FieldLock {                 // nickname + avatar
+  FIELD_LOCK_EDITABLE  = 0;
+  FIELD_LOCK_READ_ONLY = 1;
+}
+
+enum BioFieldLock {              // bio only carries HIDDEN
+  BIO_FIELD_LOCK_EDITABLE  = 0;
+  BIO_FIELD_LOCK_READ_ONLY = 1;
+  BIO_FIELD_LOCK_HIDDEN    = 2;
+}
+
+// Per-content-type creation options. Every flag is `optional bool`: absence => `true`,
+// so an older SDK or an unseeded community keeps today's behaviour (pictures + polls enabled).
+// Structured per content type to leave room for future options (links, GIFs, files, polls on comments…).
+message ContentOptions {
+  PostConfig post = 1;
+  CommentConfig comment = 2;
+  ReplyConfig reply = 3;
+
+  message PostConfig {
+    optional bool enablePictures = 1;
+    optional bool enablePolls = 2;
+    optional bool textRequired = 3;
+    optional bool imageTapOpensPost = 4; // absent => false
+    optional bool groupNameTapOpensGroup = 5; // absent => false
+  }
+  message CommentConfig {
+    optional bool enablePictures = 1;
+  }
+  message ReplyConfig {
+    optional bool enablePictures = 1;
+  }
+}
+
+message GamificationConfig {
+  string pointsName = 1;
+  string shortenPointSingular = 2;
+  string shortenPointPlural = 3;
+  optional int32 reactPts = 4;
+  optional int32 votePts = 5;
+  optional int32 commentPts = 6;
+  optional int32 replyPts = 7;
+  optional int32 postPts = 8;
+  optional int32 commentOnYourPostPts = 9;
+  optional int32 loginPts = 10;
+  optional int32 completeProfilePts = 11;
+
+  repeated GamificationLevel gamificationLevels = 100;
+}
+
+message GamificationLevel {
+  int32 level = 1;
+  string name = 2;
+  optional int32 nextLevelAt = 3;
+  optional string badgeLightColorHex = 4; // No value = no badge
+  optional string badgeDarkColorHex = 5; // No value = no badge
+  optional string badgeTextLightColorHex = 6; // No value = no badge
+  optional string badgeTextDarkColorHex = 7; // No value = no badge
+}
+
+message DisplayConfig{
+  PoweredByOctopus poweredByOctopus = 1;
+}
+
+message PoweredByOctopus {
+  oneof logo {
+    Default default = 1;
+    Custom custom = 2;
+    Hidden hidden = 3;
+  }
+
+  message Default {}
+  message Custom {
+    string lightLogoUrl = 1;
+    string darkLogoUrl = 2;
+  }
+  message Hidden {}
+}

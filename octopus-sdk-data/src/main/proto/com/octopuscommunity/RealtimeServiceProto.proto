@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+//-----------------RealtimeService-----------------
+package com.octopuscommunity;
+
+import "com/octopuscommunity/CommonProto.proto";
+import "com/octopuscommunity/GrpcModelProto.proto";
+
+service RealtimeService {
+  //Not for V0.1
+  rpc Ping(Empty) returns (Empty);
+  rpc IsTyping(Empty) returns (Empty);
+  rpc Subscribe(SubscribeRequest) returns (stream SubscribeResponse);
+}
+
+message SubscribeRequest {
+  string parentId = 1;
+}
+
+message SubscribeResponse {
+  //Could be a oneof
+  optional SubscribeWelcome welcome = 1;
+  optional SubscribeNewMsg newMsg = 2;
+  //optional  SubscribeTyping typing = 3;
+}
+
+message SubscribeNewMsg {
+  OctoObject octoObject = 1;
+  Origin origin = 2;
+}
+
+//TODO use more generic name to avoid leaking the implementation details
+enum Origin {
+  UNSPECIFIED_ORIGIN = 0;
+  KINESIS = 1; //Slow-Consistent realtime ?
+  REDIS = 2; //Fast-Unconsistent realtime ?
+}
+
+message SubscribeWelcome {}

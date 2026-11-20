@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package com.octopuscommunity;
+
+import "com/octopuscommunity/CommonProto.proto";
+
+//-----------------BasicService-----------------
+
+service BasicService {
+  rpc Hello(Empty) returns (HelloResponse);
+}
+
+message HelloResponse {
+  string version = 4;
+  //Present only for octopus admin
+  optional string shortCommitHash = 1;
+  optional string fullCommitHash = 2;
+  optional string githubLink = 3;
+  optional string uncommitted = 5;
+  optional string protoShortCommitHash = 11;
+  optional string protoFullCommitHash = 12;
+  optional string protoGithubLink = 13;
+  optional string protoUncommitted = 15;
+}

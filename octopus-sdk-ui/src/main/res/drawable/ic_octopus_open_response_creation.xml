@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Chat-bubble icon for the Comment button on the post action bar (also reused
+  for the openResponseCreation entry on comments/replies). Iso Figma
+  `post-reply` export and iOS `AggregatedInfo/comment.imageset`. 24dp container
+  with stroke-only path. Tinting via `Modifier.tint` in code.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M20,11.5C20,7.75 17.0833,5.5 12.5,5.5C7.91667,5.5 5,7.75 5,11.5C5,12.4707 5.70596,14.1172 5.81834,14.3731C5.82861,14.3965 5.83878,14.4179 5.84797,14.4417C5.92491,14.641 6.23404,15.6867 5,17.2329C6.66667,17.9829 8.43666,16.75 8.43666,16.75C9.66125,17.3616 11.1183,17.5 12.5,17.5C17.0833,17.5 20,15.25 20,11.5Z"
+        android:strokeColor="#616172"
+        android:strokeWidth="1"
+        android:strokeLineCap="square"
+        android:strokeLineJoin="round" />
+</vector>

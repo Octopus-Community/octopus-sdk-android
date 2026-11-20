@@ -1,0 +1,13 @@
+<!-- Clears a text field: the design system's close-filled, a disc of radius 7.75 centred on 12,12
+     with an X of 1pt round-capped strokes carved out via the even-odd fill rule, so a Compose
+     `Icon(tint = ...)` colors the disc and the cross shows whatever surface sits behind it. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#141414"
+        android:fillType="evenOdd"
+        android:pathData="M4.25 12 A7.75 7.75 0 1 1 19.75 12 A7.75 7.75 0 1 1 4.25 12 Z M12 12.7071 L13.8964 14.6036 A0.5 0.5 0 0 0 14.6036 13.8964 L12.7071 12 L14.6036 10.1036 A0.5 0.5 0 0 0 13.8964 9.3964 L12 11.2929 L10.1036 9.3964 A0.5 0.5 0 0 0 9.3964 10.1036 L11.2929 12 L9.3964 13.8964 A0.5 0.5 0 0 0 10.1036 14.6036 Z" />
+</vector>
